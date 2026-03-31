@@ -1,0 +1,11 @@
+{
+  "name": "Main version",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    "ghcr.io/itsmechlark/features/postgresql:1": {
+      "version": "16"
+    }
+  },
+  "postCreateCommand": "sudo echo -e \"host all all ::1/128 trust\n$(sudo cat /etc/postgresql/16/main/pg_hba.conf)\" > pg_hba.conf && sudo mv pg_hba.conf /etc/postgresql/16/main/pg_hba.conf && sudo psql -c \"ALTER USER postgres PASSWORD 'postgres';\" && yarn",
+  "postAttachCommand": "sudo service postgresql start && cp -n .env.example .env && code .env && yarn"
+}

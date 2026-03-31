@@ -1,0 +1,16 @@
+- **Note**: These instructions specificaly pertain to running this on a **Linux** system. You may need to find different instructions for MacOs and Windows.
+- Get a local postgresql server running. This is a good starting place: https://www.codecademy.com/article/installing-and-using-postgresql-locally
+- You can verify that postgres service is running: `systemctl status postgresql`.
+- Start your PG server: `sudo pg_ctlcluster 12 main start`.
+- You can access your postgres database terminal with `sudo -u postgres psql`. Then use `\conninfo` to see connection information.
+  - Change the password with: `\password postgres`.
+- Edit your `postgres.conf` file. If you're on linux, it might be located at `/etc/postgresql/<VER#>/main/postgresql.conf`.
+  - Uncomment and edit the listen_addresses attribute to start listening to start listening to all available IP addresses. (around line 60).
+  	- `listen_addresses = '*'`. Save and close this file.
+- Now edit the PostgreSQL access policy configuration file. (eg: `/etc/postgresql/<VER#>/main/pg_hba.conf`).
+  - Append a new connection policy (a pattern stands for `[CONNECTION_TYPE][DATABASE][USER][ADDRESS][METHOD]`) in the bottom of the file: `host all all 0.0.0.0/0 md5`.
+  - We are allowing TCP/IP connections (host) to all databases (all) for all users (all) with any IPv4 address (0.0.0.0/0) using an MD5 encrypted password for  restart poauthentication (md5).
+- Now restart your postgres server: `systemctl restart postgresql`.
+- Make sure your system is listening to the 5432 port that is reserved for PostgreSQL: `ss -nlt | grep 5432`.
+- Update your `.env` file with any changed information (especially your password)
+- Note: If you ever want to uninstall postgres from Linux, run `sudo apt-get remove postgresql`. Or if you want to totally nuke everything related to postgres and every version, use `sudo apt-get --purge remove postgresql\*` instead.

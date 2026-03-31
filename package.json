@@ -1,0 +1,140 @@
+{
+  "name": "habitools-backend",
+  "author": "Josiah Dudzik <josiah@jdudzik.com>",
+  "version": "0.1.2",
+  "description": "Habitools API",
+  "main": "start.js",
+  "scripts": {
+    "db:up": "docker compose -f docker-compose.db.yml up -d --build ; yarn db:logs",
+    "db:logs": "docker compose -f docker-compose.db.yml logs -f --tail=100",
+    "db:down": "docker compose -f docker-compose.db.yml down",
+    "tunnel": "npx localtunnel --port 3001 --print-requests",
+    "start": "yarn start:dev",
+    "start:dev": "npx babel-watch src/start.js -m '>>>>>>>>>>>>>>>>>>>> RESTARTING <<<<<<<<<<<<<<<<<<<<'",
+    "start:prod": "node build/start.js",
+    "build:prod": "yarn build:logs && rm -r -f build && babel src -d build --copy-files",
+    "build:logs": "mkdir -p logs",
+    "migrate:make": "npx knex migrate:make --knexfile src/knex/knexfile.js --env=development",
+    "migrate:prod": "npx knex migrate:latest --knexfile build/knex/knexfile.js",
+    "migrate:dev": "              npx knex migrate:latest --knexfile src/knex/knexfile.js --env=development",
+    "migrate:dev:rollback": "     npx knex migrate:rollback --knexfile src/knex/knexfile.js --env=development",
+    "migrate:dev:rollback:all": " npx knex migrate:rollback --all --knexfile src/knex/knexfile.js --env=development",
+    "seed:dev": "      npx knex seed:run --knexfile src/knex/knexfile.js --env=development",
+    "seed:dev:make": " npx knex seed:make --knexfile src/knex/knexfile.js --env=development",
+    "seed:prod": " echo =========================== WARNING =========================== \necho WARNNING, WARNING: Seeding deletes ALL data! If you are absolutely sure you want to seed in production, use this command: \necho npx knex seed:run --knexfile build/knex/knexfile.js \necho =========================== WARNING ===========================\necho\necho\necho",
+    "db-remigrate-dev": "yarn migrate:dev:rollback:all ; yarn migrate:dev",
+    "db-reset-dev": "yarn db-remigrate-dev ; yarn seed:dev",
+    "lint": "eslint ."
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ],
+    "plugins": [
+      "@babel/plugin-syntax-dynamic-import",
+      "@babel/plugin-syntax-import-meta",
+      "@babel/plugin-proposal-class-properties",
+      "@babel/plugin-proposal-json-strings",
+      [
+        "@babel/plugin-proposal-decorators",
+        {
+          "legacy": true
+        }
+      ],
+      "@babel/plugin-proposal-function-sent",
+      "@babel/plugin-proposal-export-namespace-from",
+      "@babel/plugin-proposal-numeric-separator",
+      "@babel/plugin-proposal-throw-expressions",
+      "@babel/plugin-proposal-export-default-from",
+      "@babel/plugin-proposal-logical-assignment-operators",
+      "@babel/plugin-proposal-optional-chaining",
+      [
+        "@babel/plugin-proposal-pipeline-operator",
+        {
+          "proposal": "minimal"
+        }
+      ],
+      "@babel/plugin-proposal-nullish-coalescing-operator",
+      "@babel/plugin-proposal-do-expressions",
+      [
+        "module-resolver",
+        {
+          "root": [
+            "./src"
+          ],
+          "alias": {
+            "internal": "./src/internal",
+            "knex": "./src/knex",
+            "middlewares": "./src/middlewares",
+            "utils": "./src/utils",
+            "v1": "./src/v1"
+          }
+        }
+      ]
+    ]
+  },
+  "dependencies": {
+    "@babel/cli": "^7.27.2",
+    "@babel/core": "^7.27.4",
+    "@babel/parser": "^7.27.5",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-decorators": "^7.27.1",
+    "@babel/plugin-proposal-do-expressions": "^7.27.1",
+    "@babel/plugin-proposal-export-default-from": "^7.27.1",
+    "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
+    "@babel/plugin-proposal-function-sent": "^7.27.1",
+    "@babel/plugin-proposal-json-strings": "^7.18.6",
+    "@babel/plugin-proposal-logical-assignment-operators": "^7.20.7",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6",
+    "@babel/plugin-proposal-numeric-separator": "^7.18.6",
+    "@babel/plugin-proposal-optional-chaining": "^7.21.0",
+    "@babel/plugin-proposal-pipeline-operator": "^7.27.1",
+    "@babel/plugin-proposal-throw-expressions": "^7.27.1",
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+    "@babel/plugin-syntax-import-meta": "^7.10.4",
+    "@babel/preset-env": "^7.27.2",
+    "@dotenvx/dotenvx": "^1.45.2",
+    "@getbrevo/brevo": "^2.5.0",
+    "babel-eslint": "^10.1.0",
+    "babel-plugin-module-resolver": "^5.0.2",
+    "babel-watch": "^7.8.1",
+    "bluebird": "^3.7.2",
+    "brute-knex": "^4.0.1",
+    "compression": "^1.8.0",
+    "cross-env": "^7.0.3",
+    "dayjs": "^1.11.13",
+    "deep-trim": "^1.0.0",
+    "deepmerge": "^4.3.1",
+    "express": "^5.1.0",
+    "express-brute": "^1.0.1",
+    "hcaptcha": "^0.2.0",
+    "http-proxy": "^1.18.1",
+    "jwt-simple": "^0.5.6",
+    "knex": "^3.1.0",
+    "lodash": "^4.17.21",
+    "morgan": "^1.10.0",
+    "node-cron": "^4.2.1",
+    "objection": "^3.1.5",
+    "pg": "^8.16.0",
+    "posthog-node": "^5.28.5",
+    "property-validator": "^1.0.2",
+    "sib-api-v3-sdk": "^8.5.0",
+    "sqlite3": "^5.1.7",
+    "stripe": "^20.4.0",
+    "uid-generator": "^2.0.0"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.27.5",
+    "@eslint/compat": "^1.2.9",
+    "@eslint/eslintrc": "^3.3.1",
+    "eslint": "^9.28.0",
+    "eslint-plugin-import": "^2.31.0"
+  }
+}

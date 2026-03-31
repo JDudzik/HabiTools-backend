@@ -1,0 +1,11 @@
+DB_HOSTNAME=${example-db.HOSTNAME}
+DB_PORT=${example-db.PORT}
+DB_USERNAME=${example-db.USERNAME}
+DB_PASSWORD=${example-db.PASSWORD}
+DB_DATABASE=${example-db.DATABASE}
+DB_DATABASE_URL=${example-db.DATABASE_URL}
+EMAILER_API_KEY=
+EMAILER_OVERRIDE_SEND_ADDRESS=masterlink950@gmail.com
+ADMIN_USER_EMAIL=masterlink950@gmail.com
+ADMIN_USER_PASS=qwerty
+NODE_ENV=production

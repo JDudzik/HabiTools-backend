@@ -1,0 +1,15 @@
+FROM node:10
+
+WORKDIR /gracequotient-backend
+
+ADD package.json package.json
+ADD package-lock.json package-lock.json
+RUN yarn install
+ADD . .
+
+VOLUME /gracequotient-backend
+
+EXPOSE 80
+EXPOSE 443
+
+CMD ["npm", "run", "start:prod"]

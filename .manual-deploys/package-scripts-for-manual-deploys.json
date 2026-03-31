@@ -1,0 +1,25 @@
+{
+  "scripts": {    
+    "start:prod": " node build/server.js",
+    "build": "yarn create-logs-folder && rm -r -f build && babel src -d build --copy-files",
+    "create-logs-folder": "mkdir -p logs",
+    
+    "fly": "yarn export:upload",
+    "export:initialize": "git clone git@github.com:JDudzik/restfulapi_build.git ./export",
+    "export": "         mkdir ./export ; yarn export:copy",
+    "export:upload": "  yarn export && yarn git:process",
+    "export:copy": "    yarn copy:build ; yarn copy:dockerfile ; yarn copy:packagejson ; copy:package-lock-json ; yarn copy:gitignore ; yarn copy:env",
+    "git:process": "  cd export && yarn git:checkout && yarn git:add && yarn git:commit && yarn git:push && cd ..",
+    "git:checkout": " git checkout master",
+    "git:add": "      git add -A",
+    "git:commit": "   git commit -m 'Automated Commit'",
+    "git:push": "     git push",
+    "git:pull": "     git pull --ff",
+    "copy:build": "       rm -r ./export/build ; yarn build && cp -f -r ./build ./export/build",
+    "copy:dockerfile": "  rm -r ./export/dockerfile ; cp -f -r ./dockerfile ./export/dockerfile",
+    "copy:packagejson": " rm -r ./export/package.json ; cp -f -r ./package.json ./export/package.json",
+    "copy:package-lock-json": " rm -r ./export/package-lock.json ; cp -f -r ./package-lock.json ./export/package-lock.json",
+    "copy:gitignore": "   rm -r ./export/.gitignore ; cp -f -r ./.gitignore.export ./export/.gitignore",
+    "copy:env": "         rm -r ./export/.env ; cp -f -r ./.env.production ./export/.env"
+  }
+}
