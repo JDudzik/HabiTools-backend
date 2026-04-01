@@ -25,6 +25,22 @@ exports.seed = (knex) => {
       permission_required_for_assignment: 'super_admin_permission_control',
     },
     {
+      id: '14731d1b-29ad-4ee6-91c9-576e48e2b299',
+      created_at: Date.now(),
+      name: 'super_admin_create_user',
+      description: 'Permission for super admins to allow manually creating a user, skipping verifications',
+      is_deletable: false,
+      permission_required_for_assignment: 'super_admin_permission_control',
+    },
+    {
+      id: '48e6b8da-3892-4f89-8c95-b57902dac16c',
+      created_at: Date.now(),
+      name: 'admin_nav_menu',
+      description: 'Permission to see the top-level admin menu in the navigation',
+      is_deletable: false,
+      permission_required_for_assignment: 'super_admin_permission_control',
+    },
+    {
       id: 'd3792f22-83ac-447b-820a-4a5db60c571e',
       created_at: Date.now(),
       name: 'does_not_exist',
@@ -103,14 +119,6 @@ exports.seed = (knex) => {
       description: 'Permission to see all results for any assessment',
       is_deletable: false,
       permission_required_for_assignment: 'assessment_control',
-    },
-    {
-      id: '14731d1b-29ad-4ee6-91c9-576e48e2b299',
-      created_at: Date.now(),
-      name: 'super_admin_create_user',
-      description: 'Permission for super admins to allow manually creating a user, skipping verifications',
-      is_deletable: false,
-      permission_required_for_assignment: 'super_admin_permission_control',
     },
     {
       id: 'a2633521-ed97-44a3-aec9-7397eb320f44',

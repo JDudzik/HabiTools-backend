@@ -63,65 +63,21 @@ exports.seed = (knex) => {
         group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
         permission_id: '36235601-f4bc-4bbe-a423-4a99cf565788',
       },
-      { // admin_permission_assignment
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: 'a58a6c9b-8690-48dd-9f27-7f85c40f1ff3',
-      },
       { // admin_permission_composition
         group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
         permission_id: 'b780f483-8257-4c78-af11-b34608934c74', 
-      },
-      { // user_retrieval
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: 'd9584539-ca70-4eb2-8828-7d90f7a9b4bf',
       },
       { // user_composition
         group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
         permission_id: '0490610f-12d8-4b48-add8-8d7952b13a1c',
       },
-      { // access_analytic_logs
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: '196f6836-2dee-40ed-af73-3980feb6e65b',
-      },
-      { // access_error_logs
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: '85b2b6e2-8133-4c3e-97c1-fcb9f2bd5e7c',
-      },
-      { // access_assessment_results
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: '93613179-3185-43a2-b840-edbbbca53240',
-      },
-      { // access_feedback
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: '70110ae9-7704-4478-a0dd-4325e3ce45ee',
-      },
       { // super_admin_create_user
         group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
         permission_id: '14731d1b-29ad-4ee6-91c9-576e48e2b299',
       },
-      { // article_control
+      { // admin_nav_menu
         group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: 'a2633521-ed97-44a3-aec9-7397eb320f44',
-      },
-      { // control_coaches
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: 'ce129f53-39cd-4936-97de-7161c9d3f091',
-      },
-      { // coach_assigner
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: '37be29c8-919f-496e-a93e-06f02211ac22',
-      },
-      { // data_manipulation
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: 'e4d3c0f5-df2c-43ea-b857-032557d6f031',
-      },
-      { // assessment_creation
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: 'f81c6719-f39d-450c-aec7-ae8a0120cf63',
-      },
-      { // access_permissions_view
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
-        permission_id: '1b6d0078-7f88-40cb-9c2b-ba48e903917f',
+        permission_id: '48e6b8da-3892-4f89-8c95-b57902dac16c',
       },
 
 
@@ -142,10 +98,6 @@ exports.seed = (knex) => {
         group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23',
         permission_id: '85b2b6e2-8133-4c3e-97c1-fcb9f2bd5e7c',
       },
-      { // access_assessment_results
-        group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23',
-        permission_id: '93613179-3185-43a2-b840-edbbbca53240',
-      },
       { // access_feedback
         group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23',
         permission_id: '70110ae9-7704-4478-a0dd-4325e3ce45ee',
@@ -154,10 +106,6 @@ exports.seed = (knex) => {
         group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23',
         permission_id: 'a2633521-ed97-44a3-aec9-7397eb320f44',
       },
-      { // control_coaches
-        group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23',
-        permission_id: 'ce129f53-39cd-4936-97de-7161c9d3f091',
-      },
       { // data_manipulation
         group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23',
         permission_id: 'e4d3c0f5-df2c-43ea-b857-032557d6f031',
@@ -165,6 +113,10 @@ exports.seed = (knex) => {
       { // access_permissions_view
         group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23',
         permission_id: '1b6d0078-7f88-40cb-9c2b-ba48e903917f',
+      },
+      { // admin_nav_menu
+        group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23',
+        permission_id: '48e6b8da-3892-4f89-8c95-b57902dac16c',
       },
 
 

@@ -79,7 +79,23 @@ exports.seed = (knex) => {
     .then(() => knex('users_to_groups').insert([
       {
         user_id: '00000001-0001-4000-a000-000000000000', // masterlink950@gmail.com
-        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2', // Super Admin
+        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2', // super_admin
+      },
+      {
+        user_id: '00000001-0001-4000-a000-000000000000', // masterlink950@gmail.com
+        group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23', // admin
+      },
+      {
+        user_id: '00000001-0001-4000-a000-000000000000', // masterlink950@gmail.com
+        group_id: 'd796662c-e5e9-485c-ab6b-878e1d2cb916', // assessment_manager
+      },
+      {
+        user_id: '00000001-0001-4000-a000-000000000000', // masterlink950@gmail.com
+        group_id: 'adf42a55-883a-46a9-9745-e50f12da7e1d', // coach_manager
+      },
+      {
+        user_id: '00000001-0001-4000-a000-000000000000', // masterlink950@gmail.com
+        group_id: 'e78759d2-280e-430e-a649-a094f0b98215', // coach
       },
       {
         user_id: '00000002-0001-4000-a000-000000000000', // foo@bar.com
