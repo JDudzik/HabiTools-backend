@@ -74,10 +74,6 @@
 - SLUG_ALREADY_EXISTS - The slug that was provided already exists within the database
 - UNCHANGED_ARTICLE   - This is not an error. The client and server's article version match, thus it's unchanged
 
-// Assessments
-- CANNOT_FIND_RESULT - No result was returned based on provided query
-- NO_ASSESSMENT_ID   - There is no assessment with the provided ID
-
 // Authentication
 - BAD_TOKEN_OR_KEY        - The provided token and/or key is invalid
 - INADEQUATE_PERMISSION   - The user does not have the required permission for the requested action

@@ -30,8 +30,6 @@ module.exports = (router) => {
   router.put(`${ securedPath }/admin/update_user/:id`, adminControls.updateUser);
   router.put(`${ securedPath }/admin/disable_user/:id`, adminControls.disableUser);
   router.put(`${ securedPath }/admin/undisable_user/:id`, adminControls.undisableUser);
-  router.put(`${ securedPath }/admin/assign_coach/:id`, adminControls.assignCoach);
-  router.put(`${ securedPath }/admin/unassign_coach/:id`, adminControls.unassignCoach);
   router.put(`${ securedPath }/admin/require_password_reset/:id`, adminControls.passwordReset);
   router.delete(`${ securedPath }/admin/delete_user/:id`, adminControls.deleteUser);
 

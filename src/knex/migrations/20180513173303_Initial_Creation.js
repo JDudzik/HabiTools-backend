@@ -10,15 +10,8 @@ exports.up = (knex) => {
       table.string('first_name');
       table.string('last_name');
       table.string('email').unique();
-      table.bigInteger('dob_utc').unsigned();
-      table.string('gender');
       table.boolean('has_verified_email');
-      table.integer('credits').unsigned();
       table.string('stripe_customer_id');
-      table
-        .uuid('coach_id')
-        .references('id')
-        .inTable('users');
     })
     .createTable('user_passwords', (table) => {
       table

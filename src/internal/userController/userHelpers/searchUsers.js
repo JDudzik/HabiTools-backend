@@ -14,7 +14,6 @@ export async function searchUsers(searchOptions) {
   // permitted searchOptions:
   //
   // id:              ID of a User,
-  // coach_id:        ID of a User that is listed as the coach for User(s),
   // first_name:      String,
   // last_name:       String,
   // email:           String,
@@ -25,7 +24,6 @@ export async function searchUsers(searchOptions) {
 
   const options = {
     id:            searchOptions.id,
-    coach_id:      searchOptions.coach_id,
     first_name:    `%${ searchOptions.first_name || '' }%`,
     last_name:     `%${ searchOptions.last_name || '' }%`,
     email:         `%${ searchOptions.email || '' }%`,
@@ -36,23 +34,17 @@ export async function searchUsers(searchOptions) {
     ? [ 'id', 'first_name', 'last_name', 'email' ]
     : [
       'id',           'created_at',   'disabled_at', 'first_name',
-      'last_name',    'email',        'gender',      'credits',
-      'dob_utc',      'has_verified_email',
+      'last_name',    'email',
+      'has_verified_email',
     ];
 
   const eagerValues = eagerConstructor({
-    results: true,
-    coached_results: true,
     groups: [ 'permissions' ],
     permissions: true,
   });
 
   if (!minimalResults) {
     eagerValues.modify({
-      results: [ 'assessment' ],
-      coached_results: [ 'assessment' ],
-      coach: true,
-      students: true,
       user_subscriptions: true,
     });
   }
@@ -75,23 +67,8 @@ export async function searchUsers(searchOptions) {
       if (options.email) {
         qb.where('email', 'ilike', options.email);
       }
-      if (options.coach_id) {
-        qb.where('coach_id', '=', options.coach_id);
-      }
     })
     .withGraphFetched(eagerValues.string())
-    .modifyGraph('[results, coached_results]', (builder) => {
-      builder.select([ 'id', 'created_at' ]);
-    })
-    .modifyGraph('[results.assessment, coached_results.assessment]', (builder) => {
-      builder.select([ 'title' ]);
-    })
-    .modifyGraph('coach', (builder) => {
-      builder.select([ 'id', 'first_name', 'last_name', 'email' ]);
-    })
-    .modifyGraph('students', (builder) => {
-      builder.select([ 'id', 'first_name', 'last_name', 'email' ]);
-    })
     .modifyGraph('permissions', (builder) => {
       builder.select([ 'name', 'description' ]).whereNull('deleted_at');
     })

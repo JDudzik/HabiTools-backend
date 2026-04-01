@@ -2,14 +2,10 @@ import User from 'knex/models/User';
 // import User_Password from 'knex/models/User_Password';
 import {
   restrictProperties,
-  sendTemplate,
   allowValidUUID,
 } from 'utils';
 import {
   allowByPermissions,
-  assignGroup,
-  unassignGroup,
-  unassignPermission,
   searchUsers,
   createUser,
   deleteUser,
@@ -57,7 +53,6 @@ const adminControls = {
   // {API_URL}/v1/auth/users/admin/search_users
   // -- PARAMS --
   // id:              ID of a User,
-  // coach_id:        ID of a User that is listed as the coach for User(s),
   // first_name:      String,
   // last_name:       String,
   // email:           String,
@@ -199,7 +194,7 @@ const adminControls = {
   // {API_URL}/v1/auth/users/admin/update_user/:ID
   // ID: The ID of a User
   // -- PARAMS --
-  // first_name, last_name, age, gender
+  // first_name, last_name
   // -- ERROR CODES --
   // INCORRECT_UPDATE_DATA, NO_USER_ID, EMAIL_ALREADY_EXISTS, INVALID_ID, INADEQUATE_PERMISSION
   updateUser: async (req, res) => {
@@ -208,7 +203,7 @@ const adminControls = {
 
     if (!allowValidUUID(req.params.id, req, res)) { return; }
 
-    const filteredProperties = restrictProperties(deepTrim(req.body), [ 'id', 'created_at', 'deleted_at', 'has_verified_email', 'credits', 'coach_id' ]);
+    const filteredProperties = restrictProperties(deepTrim(req.body), [ 'id', 'created_at', 'deleted_at', 'has_verified_email' ]);
     if (Object.keys(filteredProperties).length < 1) {
       res.status(400);
       res.json({
@@ -221,8 +216,6 @@ const adminControls = {
     const properties = {
       first_name: filteredProperties.first_name,
       last_name:  filteredProperties.last_name,
-      dob_utc:    filteredProperties.dob_utc,
-      gender:     filteredProperties.gender,
     };
 
     await User.query()
@@ -262,70 +255,6 @@ const adminControls = {
         }
         throw [ err, 'users.updateUser' ];
       });
-  },
-
-
-  // Assign User as coach
-  //
-  // -- PUT --
-  // {API_URL}/v1/auth/users/admin/assign_coach/:ID
-  // ID: The ID of a user
-  // -- ERROR_CODES --
-  // NO_PERMISSION_NAME, NO_USER_ID, USER_IS_DELETED, INADEQUATE_PERMISSION, INVALID_ID
-  assignCoach: async (req, res) => {
-    const allowed = await allowByPermissions(req, res, 'coach_assigner');
-    if (!allowed) { return; }
-
-    if (!allowValidUUID(req.params.id, req, res)) { return; }
-
-    const success = await assignGroup(req.params.id, 'coach', req, res);
-    if (!success) { return; }
-
-    res.send('success');
-    const user = await User.query()
-      .where('id', req.params.id)
-      .select([ 'first_name', 'email' ])
-      .limit(1)
-      .first()
-      .catch((err) => { throw [ err, 'users.assignCoach' ]; });
-
-    sendTemplate({
-      templateId: 12, // "Coach Activation"
-      to: [{
-        name: user.first_name,
-        email: user.email,
-      }],
-      params: {
-        'NAME': user.first_name,
-      },
-    });
-  },
-
-
-  // Unassign User as coach
-  //
-  // -- PUT --
-  // {API_URL}/v1/auth/users/admin/unassign_coach/:ID
-  // ID: The ID of a user
-  // -- ERROR_CODES --
-  // NO_USER_ID, INVALID_ID
-  unassignCoach: async (req, res) => {
-    const allowed = await allowByPermissions(req, res, 'coach_assigner');
-    if (!allowed) { return; }
-
-    if (!allowValidUUID(req.params.id, req, res)) { return; }
-
-    const successGroup = await unassignGroup(req.params.id, 'coach', req, res);
-
-    if (successGroup) {
-      const successPermission = await unassignPermission(req.params.id, 'is_coach', req, res);
-      if (successPermission) {
-        res.send('success');
-        return;
-      }
-    }
-
-    return;
   },
 };
 

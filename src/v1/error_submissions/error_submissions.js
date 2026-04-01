@@ -77,7 +77,7 @@ const error_submissions = {
       .where('id', '=', req.params.id)
       .withGraphFetched('user')
       .modifyGraph('user', (builder) => {
-        builder.select([ 'id', 'first_name', 'last_name', 'email', 'dob_utc', 'gender' ]);
+        builder.select([ 'id', 'first_name', 'last_name', 'email' ]);
       })
 
       .then(message => res.send(message[0]))

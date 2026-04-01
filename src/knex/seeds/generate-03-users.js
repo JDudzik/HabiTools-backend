@@ -12,23 +12,15 @@ exports.seed = (knex) => {
       first_name: 'J',
       last_name: 'D',
       email: process.env.ADMIN_USER_EMAIL,
-      dob_utc: 498110400000,
-      gender: 'male',
       has_verified_email: true,
-      credits: 9999,
-      coach_id: null,
     },
     {
       id: '00000002-0001-4000-a000-000000000000',
       created_at: Date.now(),
       first_name: 'Test 1',
-      last_name: 'Coach',
+      last_name: 'foo',
       email: 'foo@bar.com',
-      dob_utc: 498110400000,
-      gender: 'female',
       has_verified_email: true,
-      credits: 0,
-      coach_id: null,
       stripe_customer_id: 'cus_00001ABCDEFG',
     },
     {
@@ -37,11 +29,7 @@ exports.seed = (knex) => {
       first_name: 'Test 2',
       last_name: 'last',
       email: 'bar@foo.com',
-      dob_utc: 498110400000,
-      gender: 'female',
       has_verified_email: false,
-      credits: 0,
-      coach_id: '00000001-0001-4000-a000-000000000000',
       stripe_customer_id: 'cus_00003OPQRST',
     },
   ])
@@ -84,18 +72,6 @@ exports.seed = (knex) => {
       {
         user_id: '00000001-0001-4000-a000-000000000000', // masterlink950@gmail.com
         group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23', // admin
-      },
-      {
-        user_id: '00000001-0001-4000-a000-000000000000', // masterlink950@gmail.com
-        group_id: 'd796662c-e5e9-485c-ab6b-878e1d2cb916', // assessment_manager
-      },
-      {
-        user_id: '00000001-0001-4000-a000-000000000000', // masterlink950@gmail.com
-        group_id: 'adf42a55-883a-46a9-9745-e50f12da7e1d', // coach_manager
-      },
-      {
-        user_id: '00000001-0001-4000-a000-000000000000', // masterlink950@gmail.com
-        group_id: 'e78759d2-280e-430e-a649-a094f0b98215', // coach
       },
       {
         user_id: '00000002-0001-4000-a000-000000000000', // foo@bar.com

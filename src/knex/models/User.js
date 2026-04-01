@@ -9,7 +9,7 @@ export default class User extends Model {
   // is created it is checked against this schema. http://json-schema.org/.
   static jsonSchema = {
     type: 'object',
-    required: [ 'created_at', 'first_name', 'last_name', 'email', 'dob_utc' ],
+    required: [ 'created_at', 'first_name', 'last_name', 'email' ],
     properties: {
       id:         { type: 'string' },
       created_at: { type: 'integer' },
@@ -17,12 +17,8 @@ export default class User extends Model {
       first_name: { type: 'string', minLength: 1, maxLength: 255 },
       last_name:  { type: 'string', minLength: 1, maxLength: 255 },
       email:      { type: 'string', minLength: 1, maxLength: 255 },
-      dob_utc:    { type: [ 'integer', 'null' ]},
-      gender:     { anyOf: [{ type: 'null' }, { type: 'string', enum: [ 'male', 'female', 'unspecified' ]}]},
-      coach_id:   { type: [ 'string', 'null' ]},
       stripe_customer_id: { type: [ 'string', 'null' ]},
       has_verified_email: { type: 'boolean' },
-      credits:            { type: 'integer' },
     },
   };
 
@@ -48,51 +44,6 @@ export default class User extends Model {
       join: {
         from: 'users.id',
         to: 'user_subscriptions.id',
-      },
-    },
-
-    results: {
-      relation: Model.HasManyRelation,
-      modelClass: `${ __dirname }/Result`,
-      join: {
-        from: 'users.id',
-        to: 'results.user_id',
-      },
-    },
-
-    coach: {
-      relation: Model.BelongsToOneRelation,
-      modelClass: User,
-      join: {
-        from: 'users.coach_id',
-        to: 'users.id',
-      },
-    },
-
-    coached_users: {
-      relation: Model.HasManyRelation,
-      modelClass: User,
-      join: {
-        from: 'users.id',
-        to: 'users.coach_id',
-      },
-    },
-
-    students: {
-      relation: Model.HasManyRelation,
-      modelClass: User,
-      join: {
-        from: 'users.id',
-        to: 'users.coach_id',
-      },
-    },
-
-    coached_results: {
-      relation: Model.HasManyRelation,
-      modelClass: `${ __dirname }/Result`,
-      join: {
-        from: 'users.id',
-        to: 'results.coach_id',
       },
     },
 

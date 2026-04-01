@@ -24,19 +24,6 @@ export async function login(req, res) {
   const user = await retrieveUser({
     email,
     password,
-    eager: {
-      results: { assessment: true },
-      coach: true,
-      coached_results: { user: true, assessment: true },
-    },
-    eagerSelects: [
-      [ 'results', [ 'id', 'created_at' ]],
-      [ 'results.assessment', [ 'id', 'title', 'description' ]],
-      [ 'coached_results', [ 'id', 'created_at' ]],
-      [ 'coached_results.user', [ 'first_name', 'last_name', 'email' ]],
-      [ 'coached_results.assessment', [ 'title', 'description' ]],
-      [ 'coach', [ 'first_name', 'last_name', 'email' ]],
-    ],
   });
 
   const userError = detectUserError(user);

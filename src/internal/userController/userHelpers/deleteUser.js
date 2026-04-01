@@ -32,9 +32,6 @@ export async function deleteUser(userId, req, res) {
     await transaction(User.knex(), async (trx) => {
       // Unrelates (Unrelate instead of deleting, when possible):
       await userToDelete.$relatedQuery('articles', trx).unrelate();
-      await userToDelete.$relatedQuery('coached_results', trx).unrelate();
-      await userToDelete.$relatedQuery('coached_users', trx).unrelate();
-      await userToDelete.$relatedQuery('coach', trx).unrelate();
       await userToDelete.$relatedQuery('groups', trx).unrelate();
       await userToDelete.$relatedQuery('permissions', trx).unrelate();
       await userToDelete.$relatedQuery('analytics', trx).unrelate();
@@ -44,7 +41,6 @@ export async function deleteUser(userId, req, res) {
       // Deletes:
       await userToDelete.$relatedQuery('password', trx).delete();
       await userToDelete.$relatedQuery('user_subscriptions', trx).delete();
-      await userToDelete.$relatedQuery('results', trx).delete();
       await userToDelete.$relatedQuery('associated_confirmations', trx).delete();
       await userToDelete.$relatedQuery('requested_confirmations', trx).delete();
       await userToDelete.$relatedQuery('crons', trx).delete();

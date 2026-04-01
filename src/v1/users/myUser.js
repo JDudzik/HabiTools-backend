@@ -231,19 +231,8 @@ const users = {
 
     const user = await retrieveUser({
       id: userId,
-      eager: {
-        results: { assessment: true },
-        coach: true,
-        coached_results: { user: true, assessment: true },
-      },
-      eagerSelects: [
-        [ 'results', [ 'id', 'created_at' ]],
-        [ 'results.assessment', [ 'id', 'title', 'description' ]],
-        [ 'coached_results', [ 'id', 'created_at' ]],
-        [ 'coached_results.user', [ 'first_name', 'last_name', 'email' ]],
-        [ 'coached_results.assessment', [ 'title', 'description' ]],
-        [ 'coach', [ 'first_name', 'last_name', 'email' ]],
-      ],
+      // eager: {},
+      // eagerSelects: [],
     });
 
     return res.send(user);
@@ -351,7 +340,7 @@ const users = {
   // -- PUT --
   // {API_URL}/v1/auth/users/update_my_user
   // -- PARAMS --
-  // first_name, last_name, age, gender, coach_id
+  // first_name, last_name
   // -- ERROR CODES --
   // INCORRECT_UPDATE_DATA, NO_USER_ID, EMAIL_ALREADY_EXISTS
   updateMyUser: async (req, res) => {
@@ -359,7 +348,7 @@ const users = {
 
     const filteredProperties = restrictProperties(
       deepTrim(req.body),
-      [ 'id', 'created_at', 'deleted_at', 'has_verified_email', 'credits' ],
+      [ 'id', 'created_at', 'deleted_at', 'has_verified_email' ],
     );
     if (Object.keys(filteredProperties).length < 1) {
       res.status(400);
@@ -373,9 +362,6 @@ const users = {
     const properties = {
       first_name: filteredProperties.first_name,
       last_name:  filteredProperties.last_name,
-      dob_utc:    filteredProperties.dob_utc,
-      gender:     filteredProperties.gender,
-      coach_id:   filteredProperties.coach_id,
     };
 
     await User.query()

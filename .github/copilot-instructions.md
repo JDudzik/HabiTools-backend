@@ -1,9 +1,9 @@
-# Copilot Instructions for Gift Assessment RESTful API
+# Copilot Instructions for HabiTools RESTful API
 
 ## Big Picture Architecture
 - **Backend (habitools-backend):** Node.js REST API, organized by version (e.g., `src/v1`). Uses PostgreSQL via Docker for local/production environments. Key directories: `src/v1`, `build/knex`, `middlewares`, `utils`.
 - **Frontend:** Not covered here; see respective frontend folders for Next.js/React details.
-- **Service Boundaries:** API endpoints are grouped by domain (users, articles, assessments, authentication). Permissions and groups are defined in backend logic and documented in README.
+- **Service Boundaries:** API endpoints are grouped by domain (users, articles, authentication). Permissions and groups are defined in backend logic and documented in README.
 
 ## Developer Workflows
 - **Local Development:**

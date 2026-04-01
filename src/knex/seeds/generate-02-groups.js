@@ -24,30 +24,6 @@ exports.seed = (knex) => {
       is_deletable: false,
       permission_required_for_assignment: 'super_admin_permission_control',
     },
-    {
-      id: 'd796662c-e5e9-485c-ab6b-878e1d2cb916',
-      created_at: Date.now(),
-      name: 'assessment_manager',
-      description: 'Group associated with users that have permissions to create and manage assessments, but are not themselves coaches',
-      is_deletable: false,
-      permission_required_for_assignment: 'admin_permission_assignment',
-    },
-    {
-      id: 'adf42a55-883a-46a9-9745-e50f12da7e1d',
-      created_at: Date.now(),
-      name: 'coach_manager',
-      description: 'Group associated with users that have permissions to control coaches, but are not themselves coaches',
-      is_deletable: false,
-      permission_required_for_assignment: 'admin_permission_assignment',
-    },
-    {
-      id: 'e78759d2-280e-430e-a649-a094f0b98215',
-      created_at: Date.now(),
-      name: 'coach',
-      description: 'Group associated with users assigned as coaches',
-      is_deletable: false,
-      permission_required_for_assignment: 'coach_assigner',
-    },
   ])
     .then(() => knex('groups_to_permissions').insert([
 
@@ -117,51 +93,6 @@ exports.seed = (knex) => {
       { // admin_nav_menu
         group_id: 'a8b8fed4-bf2e-49f2-93f0-177fac53aa23',
         permission_id: '48e6b8da-3892-4f89-8c95-b57902dac16c',
-      },
-
-
-      // assessment_manager
-      { // assessment_control
-        group_id: 'd796662c-e5e9-485c-ab6b-878e1d2cb916',
-        permission_id: '7ea9d26f-7267-4caa-81a9-8cb5751cd84c',
-      },
-      { // access_assessment_results
-        group_id: 'd796662c-e5e9-485c-ab6b-878e1d2cb916',
-        permission_id: '93613179-3185-43a2-b840-edbbbca53240',
-      },
-      { // assessment_creation
-        group_id: 'd796662c-e5e9-485c-ab6b-878e1d2cb916',
-        permission_id: 'f81c6719-f39d-450c-aec7-ae8a0120cf63',
-      },
-      { // view_hidden_assessments
-        group_id: 'd796662c-e5e9-485c-ab6b-878e1d2cb916',
-        permission_id: '2c3d4182-6835-457d-814f-a76dc5527dfd',
-      },
-      
-
-      // coach_manager
-      { // control_coaches
-        group_id: 'adf42a55-883a-46a9-9745-e50f12da7e1d',
-        permission_id: 'ce129f53-39cd-4936-97de-7161c9d3f091',
-      },
-      { // coach_assigner
-        group_id: 'adf42a55-883a-46a9-9745-e50f12da7e1d',
-        permission_id: '37be29c8-919f-496e-a93e-06f02211ac22',
-      },
-      { // access_permissions_view
-        group_id: 'adf42a55-883a-46a9-9745-e50f12da7e1d',
-        permission_id: '1b6d0078-7f88-40cb-9c2b-ba48e903917f',
-      },
-      { // user_retrieval
-        group_id: 'adf42a55-883a-46a9-9745-e50f12da7e1d',
-        permission_id: 'd9584539-ca70-4eb2-8828-7d90f7a9b4bf',
-      },
-
-
-      // "coach" permissions
-      { // is_coach
-        group_id: 'e78759d2-280e-430e-a649-a094f0b98215',
-        permission_id: 'b7a55959-c5cb-4426-a89d-917035aafd0e',
       },
     ]));
 };
