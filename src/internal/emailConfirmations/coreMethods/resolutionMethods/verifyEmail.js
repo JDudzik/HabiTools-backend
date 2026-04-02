@@ -7,7 +7,7 @@ const frontendHost = process.env.FRONTEND_HOST;
 const verificationData = {
   title: 'Verify Email',
   description: 'Used in verification of the users email address',
-  templateId: 7,
+  templateId: 34,
   confirmationLink: `${ frontendHost }/email-confirmations?type=verify-email`,
 };
 

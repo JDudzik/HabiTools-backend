@@ -8,7 +8,7 @@ const frontendHost = process.env.FRONTEND_HOST;
 const verificationData = {
   title: 'Reset Password',
   description: 'Used to reset password for the specified user',
-  templateId: 8,
+  templateId: 35,
   confirmationLink: `${ frontendHost }/email-confirmations?type=reset-password`,
 };
 
