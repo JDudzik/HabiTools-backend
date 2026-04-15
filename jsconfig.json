@@ -1,5 +1,16 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
+    "paths": {
+      "internal": ["./src/internal"],
+      "internal*": ["./src/internal*"],
+      "knex": ["./src/knex"],
+      "knex*": ["./src/knex*"],
+      "middlewares": ["./src/middlewares"],
+      "middlewares*": ["./src/middlewares*"],
+      "utils": ["./src/utils"],
+      "utils*": ["./src/utils*"],
+      "v1": ["./src/v1"],
+      "v1*": ["./src/v1*"],
+    },
   }
 }
