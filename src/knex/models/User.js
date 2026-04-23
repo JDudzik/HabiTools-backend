@@ -159,5 +159,14 @@ export default class User extends Model {
         to: 'event_messages.user_id',
       },
     },
+
+    habitica_users: {
+      relation: Model.HasManyRelation,
+      modelClass: `${ __dirname }/HabiticaUser`,
+      join: {
+        from: 'users.id',
+        to: 'habitica_users.user_id',
+      },
+    },
   };
 }

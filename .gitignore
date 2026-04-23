@@ -26,6 +26,7 @@ certs
 /build/knex/data
 data_backups
 logs
+/src/knex/seeds/data/habitica-content.json
 
 
 ## Other
