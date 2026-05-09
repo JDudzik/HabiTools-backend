@@ -30,6 +30,8 @@
 - **Routes:** Organized by domain in `src/v1/*/routes.js`.
 - **Modules:** This project uses ESmodules (import/export) throughout except in very specific scenarios. Whenever possible, look at sibling content to determine the standards of how to implement (eg: Should you use an index file? Should you `export default` or just `export`, etc).
 - **Functions:** Use async/await for asynchronous code. Use arrow functions whenever possible.
+- **Validation:** When validating input data inside a function or method, prefer using `sanitizeProperties` at the top of the function rather than writing manual if-blocks. Use its `requiredKeys`, `optionalKeys`, and related config options to handle presence/type checks. Use `propertyValidations` (via `propertyValidator`) sparingly — only when a validation truly cannot be expressed through key presence and type checks alone.
+- **Return conventions:** Internal methods (especially those in `src/internal`) should use `returnOrSendResponse` when returning error states, so their return shape is consistent and compatible with API callers. API endpoints should treat the return values of internal methods as authoritative for errors (propagating the `code` and `responseContent`), but are not required to use `returnOrSendResponse` for their own success responses.
 
 
 ## Key Files/Directories
