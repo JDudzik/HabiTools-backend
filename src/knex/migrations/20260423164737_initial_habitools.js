@@ -13,6 +13,7 @@ exports.up = (knex) => {
       table.string('habitica_user_id').notNullable();
       table.string('encrypted_api_key', 4096).notNullable();
       table.boolean('is_primary').defaultTo(false);
+      table.unique([ 'user_id', 'habitica_user_id' ]);
     })
     .createTable('habitica_user_data', (table) => {
       table
@@ -37,6 +38,22 @@ exports.up = (knex) => {
       table.integer('maxHealth').unsigned();
       table.integer('maxMP').unsigned();
       table.bigInteger('lastCron').unsigned();
+    })
+    .createTable('habitica_tools', (table) => {
+      uuidPrimaryKey(knex, table);
+      table.bigInteger('created_at').unsigned().notNullable();
+      table.bigInteger('updated_at').unsigned().nullable();
+      table.bigInteger('deleted_at').unsigned().nullable();
+      table
+        .uuid('habitica_user_id')
+        .references('id')
+        .inTable('habitica_users')
+        .onDelete('CASCADE')
+        .notNullable();
+      table.string('tool_slug', 255).notNullable();
+      table.bigInteger('expires_at').unsigned().nullable();
+      table.bigInteger('last_refreshed_at').unsigned().nullable();
+      table.json('data').nullable();
     })
     .createTable('habitica_content', (table) => {
       uuidPrimaryKey(knex, table);
@@ -141,6 +158,7 @@ exports.down = (knex) => {
     .dropTableIfExists('habitica_content_pets')
     .dropTableIfExists('habitica_content_gear')
     .dropTableIfExists('habitica_content')
+    .dropTableIfExists('habitica_tools')
     .dropTableIfExists('habitica_user_data')
     .dropTableIfExists('habitica_users');
 };
