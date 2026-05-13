@@ -34,5 +34,14 @@ export default class HabiticaUser extends Model {
         to: 'habitica_user_data.id',
       },
     },
+
+    habitica_tools: {
+      relation: Model.HasManyRelation,
+      modelClass: `${ __dirname }/HabiticaTool`,
+      join: {
+        from: 'habitica_users.id',
+        to: 'habitica_tools.habitica_user_id',
+      },
+    },
   };
 }
