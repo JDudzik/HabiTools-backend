@@ -8,6 +8,7 @@ export * from './methods/getLoggedInUser';
 export * from './methods/handleApiAnalytic';
 export * from './methods/handleApiError';
 export * from './methods/hashing';
+export * from './methods/habiticaEncryption';
 export * from './methods/propertyValidator';
 export * from './methods/restrictProperties';
 export * from './methods/returnOrSendResponse';
