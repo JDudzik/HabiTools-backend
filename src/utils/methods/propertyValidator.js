@@ -40,3 +40,17 @@ export const arrayOf = (paramName, validator, ...validatorArgs) => {
     return { result: true };
   };
 };
+
+export const isBoolean = (paramName, message) => {
+  return (payload) => {
+    const value = payload[paramName];
+    if (typeof value !== 'boolean') {
+      return {
+        valid: false,
+        field: paramName,
+        message: message || `"${ paramName }" must be a boolean.`,
+      };
+    }
+    return { valid: true };
+  };
+};
