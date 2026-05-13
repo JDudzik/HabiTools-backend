@@ -31,6 +31,7 @@ export default (app) => {
   app.use(...importRoute('hog'));
   app.use(...importRoute('users'));
   app.use(...importRoute('webhooks'));
+  app.use(...importRoute('habitica'));
 
   return router;
 };
