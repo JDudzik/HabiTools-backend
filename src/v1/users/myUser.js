@@ -231,7 +231,9 @@ const users = {
 
     const user = await retrieveUser({
       id: userId,
-      // eager: {},
+      eager: {
+        'habitica_user.[habitica_user_data, habitica_tools]': true,
+      },
       // eagerSelects: [],
     });
 

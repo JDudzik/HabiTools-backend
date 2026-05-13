@@ -24,6 +24,9 @@ export async function login(req, res) {
   const user = await retrieveUser({
     email,
     password,
+    eager: {
+      'habitica_user.[habitica_user_data, habitica_tools]': true,
+    },
   });
 
   const userError = detectUserError(user);

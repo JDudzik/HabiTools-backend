@@ -160,8 +160,8 @@ export default class User extends Model {
       },
     },
 
-    habitica_users: {
-      relation: Model.HasManyRelation,
+    habitica_user: {
+      relation: Model.BelongsToOneRelation,
       modelClass: `${ __dirname }/HabiticaUser`,
       join: {
         from: 'users.id',
