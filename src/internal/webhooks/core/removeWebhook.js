@@ -1,7 +1,7 @@
 import Webhook from 'knex/models/Webhook';
 import { taskConfigs } from '../core/taskConfigs';
 import { allowValidUUID, returnOrSendResponse } from 'utils';
-import { handleApiError } from 'utils/methods/handleApiError';
+import { deleteWebhooks } from './deleteWebhooks';
 
 
 export const removeWebhook = async (config) => {
@@ -19,7 +19,7 @@ export const removeWebhook = async (config) => {
       }
     })
     .first();
-    
+
   if (!parameters) {
     return returnOrSendResponse(404, {
       status: 'WEBHOOK_NOT_FOUND',
@@ -27,33 +27,14 @@ export const removeWebhook = async (config) => {
     });
   }
 
-  if (!parameters || parameters?.deletes_attempted > 3) {
-    if (parameters?.deletes_attempted < 8) {
-      handleApiError(
-        new Error(`Failed to remove webhook after ${ parameters?.deletes_attempted } attempts. ID: ${ parameters?.id }, task_name: ${ parameters?.task_name }`),
-        'removeWebhook.webhookFailedRemovals',
-        { skipReq: true, skipRes: true },
-      ); 
-    }
-    if (parameters?.deletes_attempted >= 8) {
-      return { success: false };
-    }
-  }
-
   const selectedTask = taskConfigs[parameters?.task_name];
   selectedTask?.remove?.(parameters, cleanupData);  
 
-  const recordsPatched = await Webhook.query()
-    .patch({
-      deleted_at: Date.now(),
-      updated_at: Date.now(),
-      deletes_attempted: parameters.deletes_attempted > 0 ? parameters.deletes_attempted + 1 : 1,
-    })
-    .where({ id: parameters.id })
+  const deleteResult = await deleteWebhooks({ id: parameters.id })
     .catch((err) => { throw [ err, 'removeWebhook.removeFromDatabase' ]; });
 
   return {
-    success: (!!parameters || recordsPatched > 0),
+    success: (!!parameters || !!deleteResult?.success),
     webhook: parameters,
   };
 };

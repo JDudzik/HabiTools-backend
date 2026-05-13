@@ -203,7 +203,6 @@ exports.up = (knex) => {
       table.bigInteger('created_at').unsigned().notNullable();
       table.bigInteger('updated_at').unsigned().nullable();
       table.bigInteger('deleted_at').unsigned().nullable();
-      table.integer('deletes_attempted').unsigned().nullable();
       table.boolean('is_active').defaultTo(true);
       table.json('options').nullable();
       table.bigInteger('expires_at').unsigned().nullable();

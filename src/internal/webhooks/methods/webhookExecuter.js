@@ -24,7 +24,7 @@ export const webhookExecuter = async (config) => {
   if ((parameters.expires_at && Date.now() > parameters.expires_at) || (!!parameters.deleted_at)) {
     await removeWebhook({
       id: parameters.id,
-      cleanupData: receivedWebhookData,
+      cleanupData: { fromExpiration: true, receivedWebhookData },
     });
     return returnOrSendResponse(410, {
       status: 'WEBHOOK_EXPIRED',

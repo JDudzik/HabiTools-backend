@@ -3,6 +3,8 @@
 // it needs to be added here along with sensible default configuration.
 // Each function MUST have methods for 'execute', 'create', 'modify', and 'remove'.
 
+import { autoAcceptQuestsWebhookTaskConfigs } from 'internal/habitica/tools/autoAcceptQuests/core/autoAcceptQuestsWebhookTaskConfigs';
+
 
 export const taskConfigs = {
   'example-webhook-logger': {
@@ -15,7 +17,6 @@ export const taskConfigs = {
         webhookData: parameters.options?.showWebhookData ? webhookData : undefined,
       };
       console.debug('Executing example-webhook-logger webhook with result:', loggerResult);
-      return loggerResult;
     },
     create: (parameters) => {
       // This is where we will send configuration request to the external service.
@@ -34,4 +35,5 @@ export const taskConfigs = {
       return { parameters, cleanupData };
     },
   },
+  ...autoAcceptQuestsWebhookTaskConfigs,
 };
