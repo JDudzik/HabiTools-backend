@@ -16,7 +16,7 @@ export async function handleApiAnalytic(req, actionName, actionValue = 'N/A', so
     action_name: actionName.substring(0, 255),
     action_value: typeof actionValue === 'object'
       ? JSON.stringify(actionValue).substring(0, 8192)
-      : actionValue,
+      : actionValue.toString().substring(0, 8192),
     user_id: userId || undefined,
   };
 

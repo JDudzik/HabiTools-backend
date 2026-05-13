@@ -15,7 +15,7 @@ const analytics = {
     body.created_at = Date.now();
     body.user_id = await getLoggedInUser(req, [ 'id' ]);
     body.action_name = body?.action_name?.substring?.(0, 255);
-    body.action_value = body?.action_value?.substring?.(0, 4096);
+    body.action_value = body?.action_value?.substring?.(0, 8192);
     body.source = body?.source?.substring?.(0, 255);
 
     await Analytic.query()
