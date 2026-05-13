@@ -8,7 +8,7 @@ import { sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 const TOOL_SLUG = 'auto-accept-quests';
-const WEBHOOK_BASE_URL = process.env.HABITICA_WEBHOOK_BASE || process.env.BACKEND_HOST;
+const WEBHOOK_BASE_URL = process.env.HABITICA_WEBHOOK_URL_OVERRIDE || process.env.BACKEND_HOST;
 
 /**
  * Creates a new Auto Accept Quests tool instance for a user, including setting up the necessary webhooks and crons.
