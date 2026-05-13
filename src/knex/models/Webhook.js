@@ -19,7 +19,6 @@ export default class Webhook extends Model {
       created_at: { type: 'integer' },
       updated_at: { type: [ 'integer', 'null' ]},
       deleted_at: { type: [ 'integer', 'null' ]},
-      deletes_attempted: { type: [ 'integer', 'null' ]},
       is_active: { type: [ 'boolean', 'null' ]},
       options: { type: [ 'object', 'null' ]},
       expires_at: { type: [ 'integer', 'null' ]},
