@@ -7,6 +7,8 @@ import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaU
 import { sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const TOOL_SLUG = 'auto-accept-quests';
+const WEBHOOK_BASE_URL = process.env.HABITICA_WEBHOOK_BASE || process.env.BACKEND_HOST;
 
 /**
  * Creates a new Auto Accept Quests tool instance for a user, including setting up the necessary webhooks and crons.
@@ -32,7 +34,7 @@ export const createAutoAcceptQuestsTool = async (properties) => {
 
   // Enforce one active Tool Instance per tool per user
   const existingTool = await HabiticaTool.query()
-    .where({ habitica_user_id: habiticaUser.id, tool_slug: 'auto-accept-quests' })
+    .where({ habitica_user_id: habiticaUser.id, tool_slug: TOOL_SLUG })
     .whereNull('deleted_at')
     .where((qb) => {
       qb.whereNull('expires_at').orWhere('expires_at', '>', now);
@@ -49,7 +51,7 @@ export const createAutoAcceptQuestsTool = async (properties) => {
   const expiresAt = now + THIRTY_DAYS_MS;
   const toolInstance = await HabiticaTool.query().insertAndFetch({
     habitica_user_id: habiticaUser.id,
-    tool_slug: 'auto-accept-quests',
+    tool_slug: TOOL_SLUG,
     created_at: now,
     updated_at: now,
     expires_at: expiresAt,
@@ -61,14 +63,14 @@ export const createAutoAcceptQuestsTool = async (properties) => {
   const internalWebhook = await setWebhook({
     user_id: sanitizedProperties.user_id,
     resource_id: toolInstance.id,
-    task_name: 'auto-accept-quests',
+    task_name: TOOL_SLUG,
     expires_at: expiresAt,
     is_active: true,
     data: { habiticaUserId: habiticaUser.habitica_user_id },
     skipTaskSetup: true,
   });
 
-  const callbackUrl = `${ process.env.HABITICA_WEBHOOK_BASE || process.env.BACKEND_HOST }/v1/webhooks/trigger/${ internalWebhook.url_id }`;
+  const callbackUrl = `${ WEBHOOK_BASE_URL }/v1/webhooks/trigger/${ TOOL_SLUG }-${ internalWebhook.url_id }`;
 
   // Register the questActivity webhook on Habitica
   let habiticaWebhookId;
@@ -105,7 +107,7 @@ export const createAutoAcceptQuestsTool = async (properties) => {
   const internalCron = await setCron({
     userId: sanitizedProperties.user_id,
     resourceId: toolInstance.id,
-    taskName: 'auto-accept-quests',
+    taskName: TOOL_SLUG,
     expiresAt,
     isActive: true,
     immediateOnce: true,
