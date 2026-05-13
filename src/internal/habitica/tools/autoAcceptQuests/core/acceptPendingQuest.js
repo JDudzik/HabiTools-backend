@@ -2,6 +2,7 @@ import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
+import { handleApiAnalytic } from 'utils';
 
 
 /**
@@ -13,10 +14,9 @@ import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaU
  * @returns {Promise<Object>} - A success message if a quest was accepted, or a failure message if no pending quest was found or if there was an error.
  */
 export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId }) => {
-
   const userData = await getLinkedHabiticaUser({ userId, forceRefresh: true });
-  
   const RSVPNeeded = userData?.habitica_user_data?.party?.quest?.RSVPNeeded;
+  handleApiAnalytic(undefined, 'Checking pending quest', JSON.stringify(RSVPNeeded));
   if (!RSVPNeeded) {
     return { success: null };
   }
