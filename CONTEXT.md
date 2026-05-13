@@ -17,7 +17,7 @@ An encrypted Habitica API key stored reversibly for authorized outbound Habitica
 _Avoid_: Password hash, one-way hash
 
 **Tool Instance**:
-A user-owned automation configuration that executes one Habitools tool against a Linked Habitica Account.
+A user-owned Habitica tool record that is the lifecycle source of truth for one automation configuration against a Linked Habitica Account.
 _Avoid_: Standalone tool account, duplicated account mapping
 
 **Validated Link Activation**:
@@ -65,10 +65,17 @@ _Avoid_: State-dependent handler, replay-protected handler
 - A **Habitools User** has exactly one **Linked Habitica Account** in v1
 - A **Linked Habitica Account** belongs to exactly one **Habitools User**
 - A **Linked Habitica Account** stores one **Protected Habitica Credential**
+- A **Linked Habitica Account** can own many **Tool Instances**
 - A **Tool Instance** references exactly one **Linked Habitica Account**
+- A **Linked Habitica Account** can have at most one active **Tool Instance** per tool type
+- A **Tool Instance** ID is the `resource_id` anchor for its webhook, cron, and event-message records
+- A **Tool Instance** can have many cron, webhook, and event-message records over time
+- Cron, webhook, and event-message records may also exist without any resource link
 - A **Linked Habitica Account** is considered active only after **Validated Link Activation**
 - Each **Tool Instance** has its own **Tool Lease**
+- Each **Tool Instance** has one **Tool Lifecycle Status**
 - **Lease Refresh** applies only to non-expired **Tool Leases**
+- **Tool Lease** expiration alone does not represent all lifecycle outcomes
 - Expired **Tool Leases** require **Tool Reprovision**
 - **Catastrophic Drift** triggers **Fail-Closed Tool Disablement** even if the lease is still active
 - **Substantial Event Message** uses should_notify=true
@@ -76,27 +83,3 @@ _Avoid_: State-dependent handler, replay-protected handler
 - **Habitica Inbound Webhook** is trusted by URL obscurity only
 - A **Stateless Quest Handler** always fetches live Habitica state before acting
 - No delivery deduplication is applied; Habitica is assumed to deliver each event once
-
-## Example dialogue
-
-> **Dev:** "Can one **Habitools User** run automation across two Habitica accounts?"
-> **Domain expert:** "No. In v1, each **Habitools User** has one **Linked Habitica Account** only."
-
-## Flagged ambiguities
-
-- "linked account" was left open to many-per-user; resolved: exactly one **Linked Habitica Account** per **Habitools User** in v1.
-- "encrypt like password hashing" was ambiguous; resolved: use reversible encryption with per-record salt-derived keying, not one-way hashing.
-- tool ownership was ambiguous; resolved: the **Linked Habitica Account** is source of truth and all **Tool Instances** reference it.
-- initial-link failure behavior was ambiguous; resolved: linking fails closed unless credential validation and initial user pull both succeed, and the API response informs the user of failure.
-- expiration scope was ambiguous; resolved: the 30-day timer is per **Tool Instance** via an independent **Tool Lease**.
-- refresh semantics were ambiguous; resolved: **Lease Refresh** only extends time for a non-expired instance, while expired instances must be replaced via **Tool Reprovision**.
-- drift handling was ambiguous; resolved: catastrophic infra mismatch (for example, cron missing while webhook remains) triggers a high-priority user message and **Fail-Closed Tool Disablement**.
-- event-message scope was ambiguous; resolved: lifecycle/health failures notify the user, while routine Auto Accept Quest executions remain tool-local.
-- webhook trust model was ambiguous; resolved: trust is URL-obscurity only (Habitica provides no signature), no idempotency key, handlers are **Stateless Quest Handlers** that always re-query Habitica, and unverifiable origin rejects and emits a **Substantial Event Message** only after repeated failures.
-- hourly cron scope was ambiguous; resolved: the cron is purely a redundant state-correcting check that fetches live party/quest state and accepts any pending invitation — no lease validation, no webhook re-registration.
-- quest acceptance filtering was ambiguous; resolved: accept all pending quest invitations unconditionally in v1.
-- webhook type scope was ambiguous; resolved: register only the `questActivity` Habitica webhook type with the `questInvited` event enabled.
-- webhook expiration behavior was ambiguous; resolved: on Tool Lease expiry or Fail-Closed Tool Disablement, the Habitica webhook is deleted from Habitica's servers entirely, not merely disabled.
-- webhook callback URL construction was ambiguous; resolved: use `BACKEND_HOST` env var as the base (e.g. `${BACKEND_HOST}/v1/webhooks/trigger/${url_id}`).
-- credential encryption key material was ambiguous; resolved: use a dedicated `HABITICA_ENCRYPTION_SECRET` env var as the master key; derive a per-record key via HMAC from master + per-record salt; encrypt with AES-256-GCM storing salt + IV + ciphertext in `encrypted_api_key`.
-- Habitica webhook ID storage was ambiguous; resolved: store the Habitica-assigned webhook ID in `data.habiticaWebhookId` on the corresponding internal `webhooks` row.
