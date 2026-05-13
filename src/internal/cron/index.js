@@ -1,4 +1,5 @@
 // core
+export * from './core/deleteCrons';
 export * from './core/removeCron';
 export * from './core/retrieveAllCrons';
 export * from './core/retrieveCron';

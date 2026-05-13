@@ -4,7 +4,7 @@ export const withCronManager = (config) => {
 
   // If the expiration has expired, remove the cron
   if (parameters.expiresAt && Date.now() > parameters.expiresAt) {
-    return parameters.removeThisCron();
+    return parameters.removeThisCron({ fromExpiration: true });
   }
 
   if (!parameters.isActive) {

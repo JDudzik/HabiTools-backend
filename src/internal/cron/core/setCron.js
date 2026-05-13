@@ -86,7 +86,7 @@ export const setCron = async (topParameters) => {
         }),
         parameters?.options,
       ),
-      cleanup: cleanupData => taskConfigs[taskName]?.cleanup?.(parameters, cleanupData),
+      cleanup: (_, cleanupData) => taskConfigs[taskName]?.cleanup?.(parameters, cleanupData),
     };
     
     activeCrons[parameters?.uuid].task.on('execution:failed', ctx => cronFailedManager('execution:failed', activeCrons[parameters?.uuid], ctx));
