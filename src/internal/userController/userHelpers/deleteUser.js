@@ -6,6 +6,9 @@ import {
 import { retrieveUser } from './retrieveUser';
 import { removeCron } from 'internal/cron';
 import stripeLib from 'stripe';
+import {
+  unlinkHabiticaUser,
+} from 'internal/habitica';
 
 let stripe;
 if (process.env.STRIPE_SECRET_KEY) {
@@ -27,6 +30,8 @@ export async function deleteUser(userId, req, res) {
       [ 'crons', [ 'id' ]],
     ],
   });
+
+  await unlinkHabiticaUser({ user_id: userId, shouldNotify: false });
 
   try {
     await transaction(User.knex(), async (trx) => {
