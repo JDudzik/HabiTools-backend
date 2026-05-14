@@ -1,5 +1,6 @@
 import HabiticaUser from 'knex/models/HabiticaUser';
 import HabiticaUserData from 'knex/models/HabiticaUserData';
+import HabiticaUserEncryptedKey from 'knex/models/HabiticaUserEncryptedKey';
 import { habiticaEncryption, sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
 import { callHabiticaApi } from '../helpers/callHabiticaApi';
 
@@ -79,9 +80,13 @@ export const linkHabiticaUser = async (properties) => {
   const habiticaUser = await HabiticaUser.query().insertAndFetch({
     user_id: sanitizedProperties.user_id,
     habitica_user_id: sanitizedProperties.habitica_user_id,
-    encrypted_api_key,
     is_primary: true,
     created_at: Date.now(),
+  });
+
+  await HabiticaUserEncryptedKey.query().insert({
+    id: habiticaUser.id,
+    encrypted_api_key,
   });
 
   const rawUser = userData.data;

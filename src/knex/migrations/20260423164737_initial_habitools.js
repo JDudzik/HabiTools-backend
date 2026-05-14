@@ -11,9 +11,17 @@ exports.up = (knex) => {
         .inTable('users')
         .onDelete('CASCADE');
       table.string('habitica_user_id').notNullable();
-      table.string('encrypted_api_key', 4096).notNullable();
       table.boolean('is_primary').defaultTo(false);
       table.unique([ 'user_id', 'habitica_user_id' ]);
+    })
+    .createTable('habitica_user_encrypted_keys', (table) => {
+      table
+        .uuid('id')
+        .references('id')
+        .inTable('habitica_users')
+        .primary()
+        .onDelete('CASCADE');
+      table.string('encrypted_api_key', 4096).notNullable();
     })
     .createTable('habitica_user_data', (table) => {
       table
@@ -160,5 +168,7 @@ exports.down = (knex) => {
     .dropTableIfExists('habitica_content')
     .dropTableIfExists('habitica_tools')
     .dropTableIfExists('habitica_user_data')
+    .dropTableIfExists('habitica_user_encrypted_keys')
     .dropTableIfExists('habitica_users');
 };
+

@@ -5,13 +5,12 @@ export default class HabiticaUser extends Model {
 
   static jsonSchema = {
     type: 'object',
-    required: [ 'created_at', 'user_id', 'habitica_user_id', 'encrypted_api_key' ],
+    required: [ 'created_at', 'user_id', 'habitica_user_id' ],
     properties: {
       id:                 { type: 'string' },
       created_at:         { type: 'integer' },
       user_id:            { type: 'string' },
       habitica_user_id:   { type: 'string', minLength: 1, maxLength: 255 },
-      encrypted_api_key:  { type: 'string', minLength: 1, maxLength: 4096 },
       is_primary:         { type: 'boolean' },
     },
   };
@@ -32,6 +31,15 @@ export default class HabiticaUser extends Model {
       join: {
         from: 'habitica_users.id',
         to: 'habitica_user_data.id',
+      },
+    },
+
+    habitica_user_encrypted_key: {
+      relation: Model.HasOneRelation,
+      modelClass: `${ __dirname }/HabiticaUserEncryptedKey`,
+      join: {
+        from: 'habitica_users.id',
+        to: 'habitica_user_encrypted_keys.id',
       },
     },
 

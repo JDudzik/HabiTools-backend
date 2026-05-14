@@ -128,8 +128,5 @@ export const getLinkedHabiticaUser = async (properties) => {
     habiticaUser.habitica_user_data = persistedHabiticaUserData;
   }
 
-  const safeHabiticaUser = habiticaUser.toJSON();
-  delete safeHabiticaUser.encrypted_api_key;
-
-  return safeHabiticaUser;
+  return habiticaUser.toJSON();
 };

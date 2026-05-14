@@ -12,8 +12,14 @@ exports.seed = async (knex) => {
       created_at: new Date(realUserAuth?.timestamps?.created).getTime(),
       user_id: '00000001-0001-4000-a000-000000000000',
       habitica_user_id: realUserData?._id,
-      encrypted_api_key: 'encrypted-api-key-004',
       is_primary: true,
+    },
+  ]);
+
+  await knex('habitica_user_encrypted_keys').insert([
+    {
+      id: '10000004-0017-4000-a000-000000000004',
+      encrypted_api_key: 'encrypted-api-key-004',
     },
   ]);
 

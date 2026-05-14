@@ -29,13 +29,14 @@ export const getHabiticaCredentials = async (properties) => {
         qb.where({ habitica_user_id: sanitizedProperties.habiticaUserId });
       }
     })
-    .select([ 'habitica_user_id', 'encrypted_api_key' ])
+    .select([ 'habitica_user_id' ])
+    .withGraphFetched('habitica_user_encrypted_key')
     .first();
 
-  if (!habiticaUser) {
+  if (!habiticaUser?.habitica_user_encrypted_key?.encrypted_api_key) {
     throw new Error('No linked Habitica account found for the provided identifiers.');
   }
 
-  const apiKey = habiticaEncryption.decrypt(habiticaUser.encrypted_api_key);
+  const apiKey = habiticaEncryption.decrypt(habiticaUser.habitica_user_encrypted_key.encrypted_api_key);
   return { habiticaUserId: habiticaUser.habitica_user_id, apiKey };
 };
