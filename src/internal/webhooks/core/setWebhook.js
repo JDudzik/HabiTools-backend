@@ -28,7 +28,7 @@ export const setWebhook = async (topParameters) => {
   const webhookEntry = {
     id: passedId || crypto.randomUUID(),
     user_id,
-    url_id: isModifyingWebhook ? undefined : `${ crypto.randomUUID() }${ crypto.randomUUID() }`,
+    url_id: isModifyingWebhook ? undefined : `${ task_name }-${ crypto.randomUUID() }-${ crypto.randomUUID() }`,
     resource_id,
     created_at: isModifyingWebhook ? undefined : Date.now(),
     updated_at: Date.now(),

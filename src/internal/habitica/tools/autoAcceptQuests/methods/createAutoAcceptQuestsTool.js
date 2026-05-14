@@ -70,7 +70,7 @@ export const createAutoAcceptQuestsTool = async (properties) => {
     skipTaskSetup: true,
   });
 
-  const callbackUrl = `${ WEBHOOK_BASE_URL }/v1/webhooks/trigger/${ TOOL_SLUG }-${ internalWebhook.url_id }`;
+  const callbackUrl = `${ WEBHOOK_BASE_URL }/v1/webhooks/trigger/${ internalWebhook.url_id }`;
 
   // Register the questActivity webhook on Habitica
   let habiticaWebhookId;
