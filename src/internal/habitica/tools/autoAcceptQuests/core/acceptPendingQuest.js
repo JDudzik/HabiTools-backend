@@ -2,6 +2,7 @@ import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
+import { getHabiticaContent } from 'internal/habitica/core/getHabiticaContent';
 import { handleApiAnalytic } from 'utils';
 
 
@@ -17,7 +18,7 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId })
   const userData = await getLinkedHabiticaUser({ userId, forceRefresh: true });
   const questData = userData?.habitica_user_data?.party?.quest;
   handleApiAnalytic(undefined, 'Checking pending quest', JSON.stringify(questData));
-  if (questData?.RSVPNeeded) {
+  if (!questData?.RSVPNeeded) {
     return { success: null };
   }
 
@@ -52,15 +53,18 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId })
     return { success: false };
   }
 
-
+  const contentResult = await getHabiticaContent({ dataItems: [ 'quests' ], language: userData?.habitica_user_data?.preferences?.language || 'en' });
+  const questName = contentResult?.quests?.[questData?.key]?.text;
+  const questUrl = questName?.replace(/\s+/g, '_');
   await createEventMessage({
     user_id: userId,
     resource_id: resourceId,
     event_slug: 'quest-auto-accepted',
     event_name: 'Quest Auto-Accepted',
-    message_text: 'A quest invitation was automatically accepted.',
+    message_text: `A quest invitation for [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }) was automatically accepted.`,
     short_message: 'Quest auto-accepted',
     should_notify: true,
+    should_notify_habitica_via_admin: true,
     priority: 1,
   }).catch(() => {});
   return { success: true };
