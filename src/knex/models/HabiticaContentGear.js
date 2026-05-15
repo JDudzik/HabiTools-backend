@@ -31,18 +31,6 @@ export default class HabiticaDataGear extends Model {
     },
   };
 
-  $beforeInsert() {
-    if (this.id !== this.key) {
-      throw new Error('habitica_content_gear requires id and key to be identical');
-    }
-  }
-
-  $beforeUpdate() {
-    if (this.id && this.key && this.id !== this.key) {
-      throw new Error('habitica_content_gear requires id and key to be identical');
-    }
-  }
-
   static relationMappings = {
     habitica_content: {
       relation: Model.BelongsToOneRelation,

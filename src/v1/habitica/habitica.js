@@ -3,10 +3,12 @@ import {
   linkHabiticaUser,
   unlinkHabiticaUser,
   getLinkedHabiticaUser,
+  getHabiticaContent,
   createAutoAcceptQuestsTool,
   refreshToolInstance,
   teardownToolResources,
 } from 'internal/habitica';
+import { allowByPermissions } from 'internal/userController';
 
 
 // -- GET --
@@ -24,6 +26,29 @@ export const getHabitica = async (req, res) => {
     return;
   }
   res.json({ habiticaUser: result });
+};
+
+
+// -- POST --
+// {API_URL}/v1/auth/habitica/content
+// -- BODY --
+// dataItems: Array of strings of requested top-level Habitica content blocks.
+// language (optional): language code (defaults to 'en').
+export const getHabiticaContentData = async (req, res) => {
+  const allowed = await allowByPermissions(req, res, 'data_manipulation');
+  if (!allowed) { return; }
+
+  const result = await getHabiticaContent({
+    dataItems: req.body?.dataItems,
+    language: req.body?.language,
+  });
+
+  if (result?.code) {
+    res.status(result.code).json(result.responseContent);
+    return;
+  }
+
+  res.json(result);
 };
 
 

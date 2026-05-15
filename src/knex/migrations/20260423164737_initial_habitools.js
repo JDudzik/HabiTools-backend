@@ -99,10 +99,10 @@ exports.up = (knex) => {
       table.json('backgrounds');
     })
     .createTable('habitica_content_gear', (table) => {
-      table.string('id', 255).primary();
+      uuidPrimaryKey(knex, table);
       table.bigInteger('last_updated').unsigned().notNullable();
       table.string('language', 50).notNullable().defaultTo('en');
-      table.string('key', 255).notNullable().unique();
+      table.string('key', 255).notNullable();
       table.string('set', 255);
       table.string('specialClass', 255);
       table.string('text', 255);
@@ -125,12 +125,13 @@ exports.up = (knex) => {
         .inTable('habitica_content')
         .onDelete('CASCADE')
         .notNullable();
+      table.unique([ 'key', 'language' ]);
     })
     .createTable('habitica_content_pets', (table) => {
-      table.string('id', 255).primary();
+      uuidPrimaryKey(knex, table);
       table.bigInteger('last_updated').unsigned().notNullable();
       table.string('language', 50).notNullable().defaultTo('en');
-      table.string('key', 255).notNullable().unique();
+      table.string('key', 255).notNullable();
       table.string('type', 255);
       table.string('potion', 255);
       table.string('egg', 255);
@@ -141,12 +142,13 @@ exports.up = (knex) => {
         .inTable('habitica_content')
         .onDelete('CASCADE')
         .notNullable();
+      table.unique([ 'key', 'language' ]);
     })
     .createTable('habitica_content_mounts', (table) => {
-      table.string('id', 255).primary();
+      uuidPrimaryKey(knex, table);
       table.bigInteger('last_updated').unsigned().notNullable();
       table.string('language', 50).notNullable().defaultTo('en');
-      table.string('key', 255).notNullable().unique();
+      table.string('key', 255).notNullable();
       table.string('type', 255);
       table.string('potion', 255);
       table.string('egg', 255);
@@ -157,6 +159,7 @@ exports.up = (knex) => {
         .inTable('habitica_content')
         .onDelete('CASCADE')
         .notNullable();
+      table.unique([ 'key', 'language' ]);
     });
 };
 

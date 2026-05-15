@@ -1,3 +1,5 @@
+const { v4: uuidv4 } = require('uuid');
+
 let habiticaContentJson;
 let shouldSkipHabiticaContentSeed = false;
 
@@ -41,7 +43,7 @@ const buildGearRows = ({ contentData, habiticaContentId, lastUpdated, language }
   return Object.values(flatGear)
     .filter(gear => gear?.key)
     .map(gear => ({
-      id: gear.key,
+      id: uuidv4(),
       last_updated: lastUpdated,
       language,
       key: gear.key,
@@ -87,7 +89,7 @@ const buildAnimalRows = ({
       }
 
       return {
-        id: key,
+        id: uuidv4(),
         last_updated: lastUpdated,
         language,
         key: info.key || key,
