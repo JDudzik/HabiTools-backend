@@ -15,9 +15,9 @@ import { handleApiAnalytic } from 'utils';
  */
 export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId }) => {
   const userData = await getLinkedHabiticaUser({ userId, forceRefresh: true });
-  const RSVPNeeded = userData?.habitica_user_data?.party?.quest?.RSVPNeeded;
-  handleApiAnalytic(undefined, 'Checking pending quest', JSON.stringify(RSVPNeeded));
-  if (!RSVPNeeded) {
+  const questData = userData?.habitica_user_data?.party?.quest;
+  handleApiAnalytic(undefined, 'Checking pending quest', JSON.stringify(questData));
+  if (questData?.RSVPNeeded) {
     return { success: null };
   }
 
