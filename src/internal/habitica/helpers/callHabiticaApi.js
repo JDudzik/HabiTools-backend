@@ -63,18 +63,17 @@ export const callHabiticaApi = async (properties) => {
     ...(sanitizedProperties.body !== undefined ? { body: JSON.stringify(sanitizedProperties.body) } : {}),
   };
   const response = await fetch(url, payload);
-
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
     if (response.status === 401 && sanitizedProperties.userId) {
       createEventMessage({
         user_id: sanitizedProperties.userId,
-        event_slug: 'habitica-api-key-invalid',
-        event_name: 'Habitica API Key Invalid',
-        message_text: 'Your Habitica API key is no longer valid. Please re-link your account.',
-        short_message: 'API key invalid',
-        should_notify: true,
+        event_slug: 'api-key-invalid',
+        event_name: 'HabiTools: API Key Invalid',
+        message_text: 'Your Habitica API key connected to HabiTools is no longer valid. Please re-link your account.',
+        short_message: 'HabiTools: API key invalid',
+        should_notify_habitica_via_admin: true,
         priority: 3,
       }).catch(() => {});
     }
