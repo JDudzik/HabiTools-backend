@@ -1,4 +1,3 @@
-import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { getHabiticaCredentials } from './getHabiticaCredentials';
 import { sanitizeProperties } from 'utils/methods/sanitizeProperties';
 
@@ -66,18 +65,6 @@ export const callHabiticaApi = async (properties) => {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    if (response.status === 401 && sanitizedProperties.userId) {
-      createEventMessage({
-        user_id: sanitizedProperties.userId,
-        event_slug: 'api-key-invalid',
-        event_name: 'HabiTools: API Key Invalid',
-        message_text: 'Your Habitica API key connected to HabiTools is no longer valid. Please re-link your account.',
-        short_message: 'HabiTools: API key invalid',
-        should_notify_habitica_via_admin: true,
-        priority: 3,
-      }).catch(() => {});
-    }
-    
     const error = new Error(data?.message || `Habitica API error: ${ response.status }`);
     error.statusCode = response.status;
     error.habiticaError = data;
