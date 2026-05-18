@@ -4,11 +4,11 @@ import {
   restrictProperties,
   handleApiAnalytic,
   sha512,
-  getLoggedInUser,
   returnOrSendResponse,
   verifyHcaptcha,
   sanitizeProperties,
 } from 'utils';
+import { getLoggedInUser } from 'internal/userController/userHelpers';
 import { createUser, retrieveUser, deleteUser, changeUserEmail } from 'internal/userController';
 import { composeEmailConfirmation } from 'internal/emailConfirmations';
 import deepTrim from 'deep-trim';

@@ -1,4 +1,4 @@
-import { getLoggedInUser } from 'utils';
+import { getLoggedInUser } from 'internal/userController/userHelpers';
 import {
   linkHabiticaUser,
   unlinkHabiticaUser,

@@ -4,7 +4,7 @@ import {
   getStripeSessionsStatus,
   stripeWebhookRouter,
 } from 'internal/commerce';
-import { getLoggedInUser } from 'utils';
+import { getLoggedInUser } from 'internal/userController/userHelpers';
 
 
 // Create Stripe Checkout Session

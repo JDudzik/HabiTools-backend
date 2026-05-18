@@ -5,9 +5,7 @@ import {
   unacknowledgeEventMessages,
   selectEventMessages,
 } from 'internal/eventMessages';
-import {
-  getLoggedInUser,
-} from 'utils';
+import { getLoggedInUser } from 'internal/userController/userHelpers';
 
 
 // Create

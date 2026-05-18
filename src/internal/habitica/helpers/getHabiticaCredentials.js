@@ -1,5 +1,6 @@
 import HabiticaUser from 'knex/models/HabiticaUser';
-import { habiticaEncryption, sanitizeProperties } from 'utils';
+import { sanitizeProperties } from 'utils/methods/sanitizeProperties';
+import { habiticaEncryption } from './habiticaEncryption';
 
 /**
  * Helper function to retrieve Habitica credentials (user ID and API key) for a given user or Habitica account.

@@ -1,5 +1,5 @@
 import Permission from 'knex/models/Permission';
-import { getLoggedInUser } from 'utils';
+import { getLoggedInUser } from '../userHelpers/getLoggedInUser';
 import { fetchUsersPermissions } from '../permissionHelpers';
 
 

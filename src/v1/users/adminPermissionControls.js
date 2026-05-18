@@ -1,4 +1,5 @@
-import { sanitizeProperties, allowValidUUID, getLoggedInUser } from 'utils';
+import { sanitizeProperties, allowValidUUID } from 'utils';
+import { getLoggedInUser } from 'internal/userController/userHelpers';
 import {
   allowByPermissions,
   permissionsCheck,

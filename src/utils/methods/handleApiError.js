@@ -1,5 +1,5 @@
 import Error from 'knex/models/Error';
-import { getLoggedInUser } from './getLoggedInUser';
+import { getLoggedInUser } from 'internal/userController/userHelpers/getLoggedInUser';
 import { PostHog } from 'posthog-node';
 
 let posthogClient = undefined;

@@ -1,5 +1,6 @@
 import Analytic from 'knex/models/Analytic';
-import { restrictProperties, getLoggedInUser, allowValidUUID } from 'utils';
+import { restrictProperties, allowValidUUID } from 'utils';
+import { getLoggedInUser } from 'internal/userController/userHelpers';
 import { allowByPermissions } from 'internal/userController';
 
 const analytics = {

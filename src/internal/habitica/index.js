@@ -4,6 +4,7 @@ export * from './core/getLinkedHabiticaUser';
 export * from './core/getHabiticaContent';
 export * from './helpers/callHabiticaApi';
 export * from './helpers/getHabiticaCredentials';
+export * from './helpers/habiticaEncryption';
 export * from './helpers/refreshAndStoreHabiticaContent';
 export * from './methods/refreshToolInstance';
 export * from './methods/teardownToolResources';

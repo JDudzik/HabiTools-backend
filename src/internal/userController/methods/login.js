@@ -3,7 +3,7 @@ import {
   detectUserError,
   calculateToken,
 } from '../helpers';
-import { retrieveUser } from '../userHelpers';
+import { retrieveUser } from '../userHelpers/retrieveUser';
 import { createAndAssignStripeCustomer } from 'internal/commerce/core/createAndAssignStripeCustomer';
 
 

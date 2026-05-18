@@ -1,5 +1,5 @@
 import Analytic from 'knex/models/Analytic';
-import { getLoggedInUser } from './getLoggedInUser';
+import { getLoggedInUser } from 'internal/userController/userHelpers/getLoggedInUser';
 
 export async function handleApiAnalytic(req, actionName, actionValue = 'N/A', source = 'API') {
   let userId = undefined;

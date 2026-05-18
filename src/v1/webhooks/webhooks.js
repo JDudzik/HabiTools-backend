@@ -2,7 +2,7 @@ import { listUserWebhooks } from 'internal/webhooks/core/listUserWebhooks';
 import { removeWebhook } from 'internal/webhooks/core/removeWebhook';
 import { setWebhook } from 'internal/webhooks/core/setWebhook';
 import { webhookExecuter } from 'internal/webhooks/methods/webhookExecuter';
-import { getLoggedInUser } from 'utils';
+import { getLoggedInUser } from 'internal/userController/userHelpers';
 
 
 // List User Webhooks

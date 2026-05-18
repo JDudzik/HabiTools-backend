@@ -1,5 +1,6 @@
 import Article from 'knex/models/Article';
-import { getLoggedInUser, asyncArray, allowValidUUID } from 'utils';
+import { asyncArray, allowValidUUID } from 'utils';
+import { getLoggedInUser } from 'internal/userController/userHelpers';
 import { allowByPermissions } from 'internal/userController';
 import { 
   createArticle,

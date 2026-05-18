@@ -1,8 +1,9 @@
 import HabiticaUser from 'knex/models/HabiticaUser';
 import HabiticaUserData from 'knex/models/HabiticaUserData';
 import HabiticaUserEncryptedKey from 'knex/models/HabiticaUserEncryptedKey';
-import { habiticaEncryption, sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
 import { callHabiticaApi } from '../helpers/callHabiticaApi';
+import { habiticaEncryption } from '../helpers/habiticaEncryption';
 
 
 /**

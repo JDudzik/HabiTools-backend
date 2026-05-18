@@ -1,6 +1,6 @@
-import { getHabiticaCredentials } from './getHabiticaCredentials';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
-import { sanitizeProperties } from 'utils';
+import { getHabiticaCredentials } from './getHabiticaCredentials';
+import { sanitizeProperties } from 'utils/methods/sanitizeProperties';
 
 
 /**

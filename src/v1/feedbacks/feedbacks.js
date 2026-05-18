@@ -2,10 +2,10 @@ import Feedback from 'knex/models/Feedback';
 import {
   sanitizeProperties,
   feedbackEmail,
-  getLoggedInUser,
   returnOrSendResponse,
   allowValidUUID,
 } from 'utils';
+import { getLoggedInUser } from 'internal/userController/userHelpers';
 import { allowByPermissions } from 'internal/userController';
 import { presence, isLength, isEmail, optional } from 'property-validator';
 

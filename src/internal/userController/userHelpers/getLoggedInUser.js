@@ -1,4 +1,4 @@
-import { retrieveUser } from 'internal/userController/userHelpers/retrieveUser';
+import { retrieveUser } from './retrieveUser';
 
 
 export async function getLoggedInUser(req, selection, config = {}) {

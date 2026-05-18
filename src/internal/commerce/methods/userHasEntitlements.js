@@ -1,5 +1,5 @@
 import User_Subscription from 'knex/models/User_Subscription';
-import { getLoggedInUser } from 'utils';
+import { getLoggedInUser } from 'internal/userController/userHelpers';
 
 /**
  * Check if the logged-in user has a specific entitlement.
