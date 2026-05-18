@@ -3,8 +3,8 @@ import HabiticaUserData from 'knex/models/HabiticaUserData';
 import { sanitizeProperties, isUUID, isBoolean, optional, returnOrSendResponse } from 'utils';
 import { callHabiticaApi } from '../helpers/callHabiticaApi';
 
-
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+
 
 const mapHabiticaUserDataForStorage = (rawUser) => {
   const stats = rawUser?.stats || {};

@@ -2,7 +2,6 @@ import User from 'knex/models/User';
 import { sha512 } from 'utils/methods/hashing';
 import { eagerConstructor } from 'utils/methods/eagerConstructor';
 import { fetchUsersPermissions } from '../permissionHelpers';
-import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 
 
 export async function retrieveUser(config = {}) {
@@ -21,7 +20,6 @@ export async function retrieveUser(config = {}) {
     ...eager,
 
     permissions: undefined, // we don't actually want to apply this to the query, since we have a separate function to fetch permissions.
-    habitica_user: undefined, // we handle this relation separately in getLinkedHabiticaUser, so we don't want to include it in the eager loading here.
   });
 
   const user = await User.query()
@@ -60,12 +58,6 @@ export async function retrieveUser(config = {}) {
   if (eager?.permissions !== false) {
     user.permissions = await fetchUsersPermissions(user.email, 'email');
   }
-
-  if (eager?.habitica_user === true && user.id) {
-    const habiticaUserData = await getLinkedHabiticaUser({ userId: user.id });
-    user.habitica_user = habiticaUserData || null;
-  }
-
 
   return user;
 }
