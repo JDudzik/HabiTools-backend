@@ -232,7 +232,7 @@ const users = {
     const user = await retrieveUser({
       id: userId,
       eager: {
-        'habitica_user.[habitica_user_data, habitica_tools]': true,
+        habitica_user: true,
       },
       // eagerSelects: [],
     });

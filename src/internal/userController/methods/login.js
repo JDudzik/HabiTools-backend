@@ -25,7 +25,7 @@ export async function login(req, res) {
     email,
     password,
     eager: {
-      'habitica_user.[habitica_user_data, habitica_tools]': true,
+      habitica_user: true,
     },
   });
 
