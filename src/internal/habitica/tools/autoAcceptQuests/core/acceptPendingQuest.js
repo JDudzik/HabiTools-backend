@@ -53,7 +53,7 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId })
     return { success: false };
   }
 
-  const contentResult = await getHabiticaContent({ dataItems: [ 'quests' ], language: userData?.habitica_user_data?.preferences?.language || 'en' });
+  const contentResult = await getHabiticaContent({ dataItems: { quests: true }, language: userData?.habitica_user_data?.preferences?.language || 'en' });
   const questName = contentResult?.quests?.[questData?.key]?.text;
   const questUrl = questName?.replace(/\s+/g, '_');
   await createEventMessage({

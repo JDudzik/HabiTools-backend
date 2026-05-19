@@ -32,15 +32,19 @@ export const getHabitica = async (req, res) => {
 // -- POST --
 // {API_URL}/v1/auth/habitica/content
 // -- BODY --
-// dataItems: Array of strings of requested top-level Habitica content blocks.
+// dataItems: Object map of requested content blocks.
+//   Standard blocks use true (example: { quests: true, mystery: true }).
+//   Special blocks (gear, pets, mounts) use true or a callback query builder.
 // language (optional): language code (defaults to 'en').
 export const getHabiticaContentData = async (req, res) => {
   const allowed = await allowByPermissions(req, res, 'data_manipulation');
   if (!allowed) { return; }
 
   const result = await getHabiticaContent({
-    dataItems: req.body?.dataItems,
-    language: req.body?.language,
+    dataItems: {
+      gear: qb => qb.select('id', 'key', 'type', 'text').where('key', 'like', 'weapon%'),
+    },
+    language: 'en',
   });
 
   if (result?.code) {
