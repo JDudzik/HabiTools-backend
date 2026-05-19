@@ -5,7 +5,6 @@ import {
 } from '../helpers';
 import { retrieveUser } from '../userHelpers/retrieveUser';
 import { createAndAssignStripeCustomer } from 'internal/commerce/core/createAndAssignStripeCustomer';
-import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 
 
 export async function login(req, res) {
@@ -26,11 +25,6 @@ export async function login(req, res) {
     email,
     password,
   });
-  const habiticaUserData = await getLinkedHabiticaUser({ userId: user?.id });
-  if (user && habiticaUserData) {
-    user.habitica_user = habiticaUserData;
-  }
-
 
   const userError = detectUserError(user);
   if (userError) {

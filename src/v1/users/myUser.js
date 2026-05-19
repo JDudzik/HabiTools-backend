@@ -13,7 +13,6 @@ import { createUser, retrieveUser, deleteUser, changeUserEmail } from 'internal/
 import { composeEmailConfirmation } from 'internal/emailConfirmations';
 import deepTrim from 'deep-trim';
 import stripeLib from 'stripe';
-import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 
 let stripe;
 if (process.env.STRIPE_SECRET_KEY) {
@@ -231,10 +230,6 @@ const users = {
     const userId = await getLoggedInUser(req, [ 'id' ]);
 
     const user = await retrieveUser({ id: userId });
-    const habiticaUserData = await getLinkedHabiticaUser({ userId: user?.id });
-    if (user && habiticaUserData) {
-      user.habitica_user = habiticaUserData;
-    }
 
     return res.send(user);
   },
