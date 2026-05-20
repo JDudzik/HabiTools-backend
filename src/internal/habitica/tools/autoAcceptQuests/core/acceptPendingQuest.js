@@ -14,10 +14,9 @@ import { handleApiAnalytic } from 'utils';
  * @param {string} properties.habiticaUserId - The Habitica user ID to check for pending quests.
  * @returns {Promise<Object>} - A success message if a quest was accepted, or a failure message if no pending quest was found or if there was an error.
  */
-export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId }) => {
+export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, source }) => {
   const userData = await getLinkedHabiticaUser({ userId, forceRefresh: true });
   const questData = userData?.habitica_user_data?.party?.quest;
-  handleApiAnalytic(undefined, 'Checking pending quest', JSON.stringify(questData));
   if (!questData?.RSVPNeeded) {
     return { success: null };
   }
@@ -39,6 +38,7 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId })
         message_text: 'Failed to auto-accept a quest invitation due to invalid Habitica credentials. The associated tool resources have been removed. Please link your Habitica account again to continue using the tool.',
         short_message: 'Quest auto-accept failed',
         should_notify: true,
+        should_notify_habitica_via_admin: true,
         priority: 1,
       }).catch(() => {});
       await teardownToolResources({
@@ -67,5 +67,14 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId })
     should_notify_habitica_via_admin: true,
     priority: 1,
   }).catch(() => {});
+  if (source === 'cron') {
+    // If a cron accepted a quest, that implies that a webhook has failed to trigger for some reason.
+    handleApiAnalytic(undefined, 'Quest accepted via cron', JSON.stringify({
+      questData,
+      userId,
+      habitica_username: userData?.habitica_user_data?.username,
+      habitica_email: userData?.habitica_user_data?.email,
+    }));
+  }
   return { success: true };
 };

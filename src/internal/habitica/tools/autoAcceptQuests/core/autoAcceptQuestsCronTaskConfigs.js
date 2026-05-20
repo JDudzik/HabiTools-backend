@@ -6,13 +6,14 @@ import { teardownToolResources } from 'internal/habitica/methods/teardownToolRes
  */
 export const autoAcceptQuestsCronTaskConfigs = {
   'auto-accept-quests': {
-    schedule: 'RAND() RAND() * * * *',
+    schedule: 'RAND() RAND() 0-23/3 * * *',
 
     job: async (parameters, _cronData) => {
       await acceptPendingQuest({
         userId: parameters.userId,
         resourceId: parameters.resourceId,
         habiticaUserId: parameters.data?.habiticaUserId,
+        source: 'cron',
       });
     },
 
