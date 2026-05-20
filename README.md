@@ -1,4 +1,8 @@
 # HabiTools RESTful API
+This is the backend API codebase for HabiTools, a set of tools and automations for Habitica. The goal is to create a clean interface without requiring users to install or manage scripts yourself.
+
+The live site can be visited at [habitools.online](https://habitools.online/).
+
 
 ## Starting the local development environment
 ### 1: Start PostgreSQL:
@@ -45,60 +49,6 @@
   - It is recommended to actually remove this variable entirely, don't just set it to `false`. This reduces the risk of accidentally running it again in production and losing all you data!
 - The application will set it's port to 3000. It's recommended to forward this to port 3001, but any port will do.
 - You'll notice there aren't any specific commands or configurations provided. That's because this application should be part of a larger system and it would get far too complex to document even the most common use-cases.
-
-
----
-## Endpoint Status Codes:
-// Users
-- ALREADY_VERIFIED_EMAIL - This user has already verified their email address
-- EMAIL_ALREADY_EXISTS   - The provided email already exists in the database
-- INCORRECT_PASSWORD     - The provided password is incorrect for the requested user
-- INVALID_CREDENTIALS    - The login request credentials are incorrect in some way
-- INVALID_EMAIL          - The provided email address is not valid (based on either a regex or truthy check)
-- NO_USER_WITH_EMAIL     - There is no user matching the provided email
-- NO_USER_ID             - There is no user matching the provided ID
-- NO_USER_NAME           - There is no user matching the provided name value
-- PASSWORD_TOO_SHORT     - The provided password does not match minimum length for security
-- PASSWORDS_CANNOT_MATCH - The old and new passwords match each other. This is not allowed
-- UNPROVIDED_PASSWORD    - The request did not contain a password value
-- UNVERIFIED_EMAIL       - The request cannot be completed until the user verifies their email address
-- USER_IS_DELETED        - The request cannot be completed because the user has been deleted
-- VERIFICATION_EMAIL_SENT - This is not an error. The verification email was sent to the email
-
-// Articles
-- CANNOT_FIND_ARTICLE - The server could not find any article data with the query (search type will be passed in response data)
-- CHANGED_ARTICLE     - This is not an error. The article was found and should be updated on the client
-- DELETED_ARTICLE     - The article ID/Slug requested has been deleted and should be deleted on the client side too
-- NO_ARTICLE_ID       - There is no article matching the provided ID
-- NO_ARTICLES_TO_LIST - There are no articles available to list with provided parameters
-- SLUG_ALREADY_EXISTS - The slug that was provided already exists within the database
-- UNCHANGED_ARTICLE   - This is not an error. The client and server's article version match, thus it's unchanged
-
-// Authentication
-- BAD_TOKEN_OR_KEY        - The provided token and/or key is invalid
-- INADEQUATE_PERMISSION   - The user does not have the required permission for the requested action
-- NO_GROUP_NAME           - The provided name for the group does not exist
-- NO_PERMISSION_NAME      - The permission provided does not exist
-- TOKEN_EXPIRED           - The token passed with the request is expired
-- UNKNOWN_01              - Something failed in user validation. Will be logged in DB under "validateRequest: failed in try-catch"
-- UNPROVIDED_KEY_OR_TOKEN - The key and/or token was not provided with the request
-
-// Other
-- API_ERROR             - The server has encountered some kind of error. Might also be a DB property validation error
-- CONFIRMATION_ALREADY_COMPLETED - The confirmation has previously been completed
-- CONFIRMATION_EXPIRED           - The confirmation is too old and has expired
-- CONFIRMATION_INVALID           - The confirmation requested does not exist
-- INCORRECT_INSERT_DATA - The request contained incorrect data required or restricted by the endpoint/model
-- INCORRECT_UPDATE_DATA - The request contained incorrect data required or restricted by the endpoint/model
-- INVALID_PROPERTIES    - The requester provided incorrect/missing/etc properties to the request
-- INVALID_URL           - The requested URL does not exist
-- INVALID_ID            - The request did not provide a correct ID. Most likely it was not a UUID.
-- MISSING_VALUES        - Some required values are missing from the request
-- TOO_MANY_ATTEMPTS - The user has hit the endpoint too many times (a timestamp for wait time will be in the message)
-- UNDELETABLE_RESOURCE  - The request to delete a resource is not doable, as the resource is marked as not-deletable
-- UNEQUAL_CATEGORIES    - The client's category data doesn't match the DB (based on lengths)
-- TOO_MANY_CHARACTERS   - The provided string has too many characters
-- HCAPTCHA_VERIFICATION_FAILED - The token (or lack thereof) provided from the frontend failed external verification
 
 
 ## License
