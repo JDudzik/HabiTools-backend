@@ -130,7 +130,6 @@ export const activateAutoAcceptQuestsTool = async (properties) => {
     event_name: 'Tool Activated',
     message_text: 'The Auto Accept Quests tool has been activated.',
     short_message: 'Auto Accept Quests activated.',
-    should_notify: true,
     priority: 1,
   }).catch(() => {});
 
