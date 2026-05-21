@@ -4,6 +4,7 @@ import { setWebhook } from 'internal/webhooks/core/setWebhook';
 import { setCron } from 'internal/cron/core/setCron';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
+import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } from 'utils';
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -14,12 +15,13 @@ const WEBHOOK_BASE_URL = process.env.HABITICA_WEBHOOK_URL_OVERRIDE || process.en
  * Creates a new Auto Accept Quests tool instance for a user, including setting up the necessary webhooks and crons.
  * @param {Object} properties - The properties for creating the tool instance.
  * @param {string} properties.user_id - The user ID of the owner of the tool instance.
+ * @param {Object} [properties.req] - The Express request object, used for analytics. Optional if not creating through an API route.
  * @returns {Promise<Object>} - A success message with the new tool instance details, or an error response if the tool instance cannot be created.
  */
-export const createAutoAcceptQuestsTool = async (properties) => {
+export const activateAutoAcceptQuestsTool = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'user_id' ],
-    optionalKeys: [ 'req' ],
+    optionalKeys: [],
     trimPayload: true,
     removeDisallowedKeys: true,
     propertyValidations: [
@@ -115,11 +117,22 @@ export const createAutoAcceptQuestsTool = async (properties) => {
     data: { habiticaUserId: habiticaUser.habitica_user_id },
   });
 
-  handleApiAnalytic(sanitizedProperties?.req, 'activated_auto_accept_quests_tool', JSON.stringify({
-    habitica_username: habiticaUser?.username || null,
-    habitica_email: habiticaUser?.email || null,
-    TOOL_SLUG,
+  handleApiAnalytic(properties?.req, 'activated_tool', JSON.stringify({
+    habitica_username: habiticaUser?.habitica_user_data?.username || null,
+    habitica_email: habiticaUser?.habitica_user_data?.email || null,
+    tool_slug: TOOL_SLUG,
   }));
+
+  createEventMessage({
+    user_id: sanitizedProperties.user_id,
+    resource_id: toolInstance.id,
+    event_slug: 'auto-accept-quests-activated',
+    event_name: 'Tool Activated',
+    message_text: 'The Auto Accept Quests tool has been activated.',
+    short_message: 'Auto Accept Quests activated.',
+    should_notify: true,
+    priority: 1,
+  }).catch(() => {});
 
   return {
     success: true,

@@ -10,12 +10,13 @@ import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } f
  * @param {Object} properties - The properties for unlinking the Habitica account.
  * @param {string} properties.user_id - The user ID of the Habitools user unlinking their account.
  * @param {boolean} [properties.shouldNotify=false] - Whether to send a notification to the user about the unlinking.
+ * @param {Object} [properties.req] - The Express request object, used for analytics. Optional if not unlinking through an API route.
  * @returns {Promise<Object>} - A success message, or an error response if no linked account is found.
  */
 export const unlinkHabiticaUser = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'user_id' ],
-    optionalKeys: [ 'req', 'shouldNotify' ],
+    optionalKeys: [ 'shouldNotify' ],
     trimPayload: true,
     removeDisallowedKeys: true,
     parseBools: true,
@@ -46,7 +47,7 @@ export const unlinkHabiticaUser = async (properties) => {
   // Hard-delete habitica_users row (cascades to habitica_user_data)
   await HabiticaUser.query().deleteById(habiticaUser.id);
 
-  handleApiAnalytic(sanitizedProperties?.req, 'unlinked_habitica_user', JSON.stringify({
+  handleApiAnalytic(properties?.req, 'unlinked_habitica_user', JSON.stringify({
     habitica_username: habiticaUser?.username || null,
     habitica_email: habiticaUser?.email || null,
   }));

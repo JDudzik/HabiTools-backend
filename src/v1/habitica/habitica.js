@@ -95,7 +95,7 @@ export const unlink = async (req, res) => {
 // -- POST --
 // {API_URL}/v1/auth/habitica/tools/auto-accept-quests
 // Creates a new Auto Accept Quests Tool Instance.
-export const createAutoAcceptQuests = async (req, res) => {
+export const activateAutoAcceptQuests = async (req, res) => {
   const user_id = await getLoggedInUser(req, [ 'id' ]);
   const result = await activateAutoAcceptQuestsTool({ req, user_id });
   if (result?.code) {

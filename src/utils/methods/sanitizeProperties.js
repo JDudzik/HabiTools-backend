@@ -37,17 +37,17 @@ export const sanitizeProperties = (payload, config, req, res) => {
   } = config;
   const allowedKeys = [ ...optionalKeys, ...requiredKeys ];
   
-  if (trimPayload) {
-    payloadMap.forEach((value, key) => {
-      payloadMap.set(key, deepTrim(value));
-    });
-  }
-  
   if (removeDisallowedKeys) {
     payloadMap.forEach((_value, key) => {
       if (!allowedKeys.includes(key)) {
         payloadMap.delete(key);
       }
+    });
+  }
+
+  if (trimPayload) {
+    payloadMap.forEach((value, key) => {
+      payloadMap.set(key, deepTrim(value));
     });
   }
 

@@ -12,13 +12,14 @@ import { habiticaEncryption } from '../helpers/habiticaEncryption';
  * @param {string} properties.user_id - The user ID of the Habitools user linking their account.
  * @param {string} properties.habitica_user_id - The Habitica user ID to link.
  * @param {string} properties.api_key - The Habitica API key for the account being linked.
+ * @param {Object} [properties.req] - The Express request object, used for analytics. Optional if not linking through an API route.
  * @returns {Promise<Object>} - The linked Habitica user data, or an error response if credentials are invalid or if the user already has a linked account.
  */
 // eslint-disable-next-line complexity
 export const linkHabiticaUser = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'user_id', 'habitica_user_id', 'api_key' ],
-    optionalKeys: [ 'req' ],
+    optionalKeys: [],
     trimPayload: true,
     removeDisallowedKeys: true,
     propertyValidations: [
@@ -116,7 +117,7 @@ export const linkHabiticaUser = async (properties) => {
     lastCron: rawUser?.lastCron ? new Date(rawUser.lastCron).getTime() : null,
   });
 
-  handleApiAnalytic(sanitizedProperties?.req, 'linked_habitica_user', JSON.stringify({
+  handleApiAnalytic(properties?.req, 'linked_habitica_user', JSON.stringify({
     habitica_username: rawUser?.auth?.local?.username || null,
     habitica_email: rawUser?.auth?.local?.email || null,
   }));

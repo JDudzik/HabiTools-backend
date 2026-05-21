@@ -95,37 +95,41 @@ export const getLinkedHabiticaUser = async (properties) => {
   );
 
   if (shouldRefreshFromHabitica) {
-    const remoteHabiticaUserData = await callHabiticaApi({
-      method: 'GET',
-      path: '/user',
-      habiticaUserId: habiticaUser.habitica_user_id,
-      userId: habiticaUser.user_id,
-    });
-    if (remoteHabiticaUserData?.code) { return returnOrSendResponse(remoteHabiticaUserData.code, remoteHabiticaUserData.responseContent); } 
-
-    if (!remoteHabiticaUserData?.success || (remoteHabiticaUserData?.data?._id !== habiticaUser.habitica_user_id)) {
-      return returnOrSendResponse(401, {
-        status: 'INVALID_CREDENTIALS',
-        message: 'Habitica user ID does not match the provided credentials.',
+    try {
+      const remoteHabiticaUserData = await callHabiticaApi({
+        method: 'GET',
+        path: '/user',
+        habiticaUserId: habiticaUser.habitica_user_id,
+        userId: habiticaUser.user_id,
       });
+      if (remoteHabiticaUserData?.code) { return returnOrSendResponse(remoteHabiticaUserData.code, remoteHabiticaUserData.responseContent); } 
+  
+      if (!remoteHabiticaUserData?.success || (remoteHabiticaUserData?.data?._id !== habiticaUser.habitica_user_id)) {
+        return returnOrSendResponse(401, {
+          status: 'INVALID_CREDENTIALS',
+          message: 'Habitica user ID does not match the provided credentials.',
+        });
+      }
+  
+      const habiticaUserDataPayload = mapHabiticaUserDataForStorage(remoteHabiticaUserData.data);
+  
+      let persistedHabiticaUserData;
+      if (habiticaUser.habitica_user_data) {
+        persistedHabiticaUserData = await HabiticaUserData.query().patchAndFetchById(
+          habiticaUser.id,
+          habiticaUserDataPayload,
+        );
+      } else {
+        persistedHabiticaUserData = await HabiticaUserData.query().insertAndFetch({
+          id: habiticaUser.id,
+          ...habiticaUserDataPayload,
+        });
+      }
+  
+      habiticaUser.habitica_user_data = persistedHabiticaUserData;
+    } catch {
+      // Ignore errors here so that we can still return the existing local data if Habitica is unreachable.
     }
-
-    const habiticaUserDataPayload = mapHabiticaUserDataForStorage(remoteHabiticaUserData.data);
-
-    let persistedHabiticaUserData;
-    if (habiticaUser.habitica_user_data) {
-      persistedHabiticaUserData = await HabiticaUserData.query().patchAndFetchById(
-        habiticaUser.id,
-        habiticaUserDataPayload,
-      );
-    } else {
-      persistedHabiticaUserData = await HabiticaUserData.query().insertAndFetch({
-        id: habiticaUser.id,
-        ...habiticaUserDataPayload,
-      });
-    }
-
-    habiticaUser.habitica_user_data = persistedHabiticaUserData;
   }
 
   return habiticaUser.toJSON();

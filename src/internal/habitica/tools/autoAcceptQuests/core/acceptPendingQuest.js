@@ -21,8 +21,8 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
     userId,
     habitica_username: userData?.habitica_user_data?.username,
     habitica_email: userData?.habitica_user_data?.email,
-    questData,
     source,
+    questData,
   }));
 
   if (!questData?.RSVPNeeded) {

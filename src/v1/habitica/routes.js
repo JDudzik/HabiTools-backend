@@ -4,7 +4,7 @@ import {
   getHabiticaContentData,
   link,
   unlink,
-  createAutoAcceptQuests,
+  activateAutoAcceptQuests,
   refreshTool,
   teardownTool,
 } from './habitica';
@@ -26,7 +26,7 @@ module.exports = (router) => {
   router.delete(`${ securedPath }/unlink`, unlink);
   router.delete(`${ securedPath }/tools/teardown`, teardownTool);
   router.put(`${ securedPath }/tools/refresh`, refreshTool);
-  router.post(`${ securedPath }/tools/auto-accept-quests`, createAutoAcceptQuests);
+  router.post(`${ securedPath }/tools/auto-accept-quests`, activateAutoAcceptQuests);
 
   return router;
 };

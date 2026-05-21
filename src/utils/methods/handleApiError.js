@@ -53,12 +53,22 @@ export async function handleApiError(error, source = 'N/A', passedOptions) {
       return;
     }
     
-    if (!options.isFatal) {
-      await posthogClient.captureException(error, userId, errorData);
-    }
-    if (options.isFatal) {
-      await posthogClient.captureExceptionImmediate(error, userId, errorData);
-      await posthogClient.shutdown();
+    const safeError = (error instanceof globalThis.Error)
+      ? error
+      : new globalThis.Error(typeof error === 'string' ? error : `${ error }`);
+
+    try {
+      if (!options.isFatal) {
+        await posthogClient.captureException(safeError, userId, errorData);
+      }
+      if (options.isFatal) {
+        await posthogClient.captureExceptionImmediate(safeError, userId, errorData);
+        await posthogClient.shutdown();
+      }
+    } catch (posthogCaptureError) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to capture exception with PostHog:', posthogCaptureError);
+      }
     }
   }
 

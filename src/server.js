@@ -103,8 +103,7 @@ async function startServer() {
       handleApiError(
         error?.[0] || error,
         error?.[1] || 'unknown_source',
-        req,
-        res,
+        { req, res },
       );
     });
 
