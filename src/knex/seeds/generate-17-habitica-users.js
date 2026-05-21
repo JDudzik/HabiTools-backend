@@ -19,7 +19,7 @@ exports.seed = async (knex) => {
   await knex('habitica_user_encrypted_keys').insert([
     {
       id: '10000004-0017-4000-a000-000000000004',
-      encrypted_api_key: 'encrypted-api-key-004',
+      encrypted_api_key: 'bb9ae423efd019e3fd31995cb7ff6e1589ef435676cf8c93fd53e8dc5b95fb5b:46b49dcfbb66ae39ee383e66:0329a36f7d1f7dd94f29cd5e6d97f0ec:15134ab551fe93754738d28c7d450b76073d3c9c1b0bcdb4162e1848a2c18b474fab43af',
     },
   ]);
 
