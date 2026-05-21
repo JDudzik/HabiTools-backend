@@ -3,11 +3,14 @@ import HabiticaUser from 'knex/models/HabiticaUser';
 import { sanitizeProperties, presence, optional, isUUID, handleApiAnalytic, handleApiError } from 'utils';
 import { getHabiticaCredentials } from 'internal/habitica/helpers/getHabiticaCredentials';
 
+const recentlySentHabiticaMessages = new Map(); // Map to track recently sent error messages for each user
+const ERROR_MESSAGE_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes cooldown for sending the same message to the same user for the same event slug
+
 
 // Note: This helper method exists to prevent a difficult circular dependency that would occur by utilizing the habitica methods.
 // We don't want any kind of error handling in this method. Instead we want it to just silently fail.
 const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0) => {
-  const { user_id, message_text, should_notify_habitica, should_notify_habitica_via_admin } = sanitizedProperties;
+  const { user_id, event_slug, message_text, should_notify_habitica, should_notify_habitica_via_admin } = sanitizedProperties;
   if (!should_notify_habitica && !should_notify_habitica_via_admin) { return; }
 
   if (retryCount > 20) {
@@ -27,6 +30,26 @@ const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0)
       .select([ 'habitica_user_id' ])
       .first();
     if (!receivingHabiticaUser) { return; }
+
+    const habiticaUserId = receivingHabiticaUser?.habitica_user_id;
+    const shouldApplyCooldown = Boolean(habiticaUserId && event_slug);
+    const dedupeKey = shouldApplyCooldown ? `${ habiticaUserId }::${ event_slug }` : null;
+
+    if (dedupeKey) {
+      const now = Date.now();
+      const cutoff = now - ERROR_MESSAGE_COOLDOWN_MS;
+
+      for (const [ key, sentAt ] of recentlySentHabiticaMessages.entries()) {
+        if (sentAt < cutoff) {
+          recentlySentHabiticaMessages.delete(key);
+        }
+      }
+
+      const mostRecentSentAt = recentlySentHabiticaMessages.get(dedupeKey);
+      if (mostRecentSentAt && (now - mostRecentSentAt) < ERROR_MESSAGE_COOLDOWN_MS) {
+        return;
+      }
+    }
 
     const senderCredentials = await getHabiticaCredentials({
       habiticaUserId: should_notify_habitica_via_admin && process.env.HABITICA_ADMIN_FOR_NOTIFICATIONS,
@@ -48,6 +71,10 @@ const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0)
       }),
     };
     const response = await fetch(url, payload);
+    if (response.ok && dedupeKey) {
+      recentlySentHabiticaMessages.set(dedupeKey, Date.now());
+    }
+
     if (!response.ok) {
       if (response.status === 429) {
         const retryAfter = parseInt(response.headers.get('retry-after') || '0', 10);
@@ -59,7 +86,7 @@ const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0)
       }
     }
   } catch (err) {
-    console.error('Error notifying Habitica of event message:', err);
+    handleApiError(err, 'createEventMessage.notifyHabiticaOfEventMessage.failed');
     // Silently fail on any errors.
     return;
   }
