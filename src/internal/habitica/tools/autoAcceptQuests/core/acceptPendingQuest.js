@@ -35,7 +35,6 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
     habiticaUserId: habiticaUserId,
     userId,
   });
-
   if (!habiticaResponse?.success) {
     if (habiticaResponse?.code === 401 || habiticaResponse?.code === 403) {
       await createEventMessage({

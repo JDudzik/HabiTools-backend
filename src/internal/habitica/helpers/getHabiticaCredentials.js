@@ -1,5 +1,6 @@
 import HabiticaUser from 'knex/models/HabiticaUser';
 import { sanitizeProperties } from 'utils/methods/sanitizeProperties';
+import { returnOrSendResponse } from 'utils/methods/returnOrSendResponse';
 import { habiticaEncryption } from './habiticaEncryption';
 
 /**
@@ -39,5 +40,7 @@ export const getHabiticaCredentials = async (properties) => {
   }
 
   const apiKey = habiticaEncryption.decrypt(habiticaUser.habitica_user_encrypted_key.encrypted_api_key);
+  if (apiKey?.code) { return returnOrSendResponse(apiKey.code, apiKey.responseContent); }
+
   return { habiticaUserId: habiticaUser.habitica_user_id, apiKey };
 };

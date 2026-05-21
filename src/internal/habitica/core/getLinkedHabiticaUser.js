@@ -1,7 +1,8 @@
 import HabiticaUser from 'knex/models/HabiticaUser';
 import HabiticaUserData from 'knex/models/HabiticaUserData';
-import { sanitizeProperties, isUUID, isBoolean, optional, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isUUID, isBoolean, optional, returnOrSendResponse, handleApiAnalytic } from 'utils';
 import { callHabiticaApi } from '../helpers/callHabiticaApi';
+import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 
 const THIRTY_MINUTES_MS = 30 * 60 * 1000;
 
@@ -102,7 +103,7 @@ export const getLinkedHabiticaUser = async (properties) => {
         habiticaUserId: habiticaUser.habitica_user_id,
         userId: habiticaUser.user_id,
       });
-      if (remoteHabiticaUserData?.code) { return returnOrSendResponse(remoteHabiticaUserData.code, remoteHabiticaUserData.responseContent); } 
+      if (remoteHabiticaUserData?.code) { throw remoteHabiticaUserData.responseContent; }
   
       if (!remoteHabiticaUserData?.success || (remoteHabiticaUserData?.data?._id !== habiticaUser.habitica_user_id)) {
         return returnOrSendResponse(401, {
@@ -127,8 +128,33 @@ export const getLinkedHabiticaUser = async (properties) => {
       }
   
       habiticaUser.habitica_user_data = persistedHabiticaUserData;
-    } catch {
-      // Ignore errors here so that we can still return the existing local data if Habitica is unreachable.
+    } catch (err) {
+      handleApiAnalytic(undefined, 'failed_refresh_habitica_user_data', JSON.stringify({
+        habitica_username: habiticaUser?.habitica_user_data?.username || null,
+        habitica_email: habiticaUser?.habitica_user_data?.email || null,
+        last_updated: lastUpdated,
+        error: err,
+      }));
+      if (err.status === 'DECRYPTION_FAILED') {
+        await createEventMessage({
+          user_id: sanitizedProperties?.user_id || habiticaUser?.user_id,
+          event_slug: 'unable_to_decrypt_habitica_credentials',
+          event_name: 'Unable to Decrypt Habitica Credentials',
+          message_text: `We were unable to decrypt your Habitica credentials. You may need to unlink and relink your Habitica account to fix this issue. You can manage your Habitica account from the [My Account page on HabiTools](${ process.env.FRONTEND_HOST }/my-account). If you continue to see this message after relinking, please contact support.`,
+          short_message: 'Unable to decrypt Habitica credentials.',
+          should_notify: true,
+          should_notify_habitica_via_admin: true,
+          priority: 3,
+        }).catch(() => {}); 
+      }
+      if (sanitizedProperties.forceRefresh) {
+        return returnOrSendResponse(503, {
+          status: 'HABITICA_UNREACHABLE',
+          message: 'Unable to reach Habitica to refresh your data. Please try again later.',
+        });
+      }
+
+      // Ignore any other errors here so that we can still return the existing local data if Habitica is unreachable.
     }
   }
 

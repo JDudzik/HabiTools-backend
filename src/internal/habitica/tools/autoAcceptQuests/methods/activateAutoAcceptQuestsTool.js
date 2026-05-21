@@ -76,21 +76,18 @@ export const activateAutoAcceptQuestsTool = async (properties) => {
   const callbackUrl = `${ WEBHOOK_BASE_URL }/v1/webhooks/trigger/${ internalWebhook.url_id }`;
 
   // Register the questActivity webhook on Habitica
-  let habiticaWebhookId;
-  try {
-    const habiticaResult = await callHabiticaApi({
-      method: 'POST',
-      path: '/user/webhook',
-      habiticaUserId: habiticaUser.habitica_user_id,
-      body: {
-        url: callbackUrl,
-        enabled: true,
-        type: 'questActivity',
-        options: { questInvited: true },
-      },
-    });
-    habiticaWebhookId = habiticaResult?.data?.id;
-  } catch (error) {
+  const habiticaResult = await callHabiticaApi({
+    method: 'POST',
+    path: '/user/webhook',
+    habiticaUserId: habiticaUser.habitica_user_id,
+    body: {
+      url: callbackUrl,
+      enabled: true,
+      type: 'questActivity',
+      options: { questInvited: true },
+    },
+  });
+  if (habiticaResult?.code) {
     // Roll back internal records so state stays clean
     await Webhook.query()
       .where({ id: internalWebhook.id })
@@ -98,8 +95,9 @@ export const activateAutoAcceptQuestsTool = async (properties) => {
     await HabiticaTool.query()
       .where({ id: toolInstance.id })
       .del();
-    throw error;
+    return returnOrSendResponse(habiticaResult.code, habiticaResult.responseContent);
   }
+  const habiticaWebhookId = habiticaResult?.data?.id;
 
   // Persist the Habitica webhook ID so teardown can delete it later
   await Webhook.query()

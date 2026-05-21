@@ -1,11 +1,11 @@
 import { getHabiticaCredentials } from './getHabiticaCredentials';
 import { sanitizeProperties } from 'utils/methods/sanitizeProperties';
+import { returnOrSendResponse } from 'utils/methods/returnOrSendResponse';
 
 
 const wait = delay => new Promise((resolve) => {
   setTimeout(resolve, delay);
 });
-
 
 const calculateRetryDelay = ({ attempt, retryConfig, response, fetchError }) => {
   const { maxRetries, baseDelayMs, retryOnRateLimit, retryOnNetworkError, retryOnStatusCodes } = retryConfig; 
@@ -47,7 +47,6 @@ const calculateRetryDelay = ({ attempt, retryConfig, response, fetchError }) => 
  * @param {boolean} [properties.retryConfig.retryOnNetworkError=false] - Retries transient network/fetch failures.
  * @param {number[]} [properties.retryConfig.retryOnStatusCodes=[]] - Extra HTTP status codes to retry (ex: [503]).
  * @returns {Promise<Object>} - The response data from the Habitica API.
- * @throws Will throw an error if the API call fails or if required properties are missing.
  */
 export const callHabiticaApi = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
@@ -73,7 +72,10 @@ export const callHabiticaApi = async (properties) => {
     && !sanitizedProperties.userId
     && !(sanitizedProperties.credentialOverride?.habiticaUserId && sanitizedProperties.credentialOverride?.apiKey)
   ) {
-    throw new Error('callHabiticaApi requires userId, habiticaUserId, or credentialOverride.');
+    returnOrSendResponse(400, {
+      status: 'MISSING_CREDENTIALS',
+      message: 'Either userId, habiticaUserId, or credentialOverride with habiticaUserId and apiKey must be provided.',
+    });
   }
 
 
@@ -88,6 +90,8 @@ export const callHabiticaApi = async (properties) => {
       habiticaUserId: sanitizedProperties.habiticaUserId,
       userId: sanitizedProperties.userId,
     });
+    if (credentials?.code) { return returnOrSendResponse(credentials.code, credentials.responseContent); }
+    
     habiticaCredentials = {
       habiticaUserId: credentials.habiticaUserId,
       apiKey: credentials.apiKey,
@@ -142,8 +146,10 @@ export const callHabiticaApi = async (properties) => {
       error.originalError = fetchResult.fetchError;
       error.retryAttemptCount = attempt;
       error.fetchFailedPath = sanitizedProperties.path;
-
-      throw error;
+      return returnOrSendResponse(503, {
+        status: 'HABITICA_API_NETWORK_ERROR',
+        message: 'Network error while trying to reach Habitica API. Please try again later.',
+      });
     }
 
     const response = fetchResult.response;
@@ -157,7 +163,9 @@ export const callHabiticaApi = async (properties) => {
     error.habiticaError = data;
     error.retryAttemptCount = attempt;
     error.fetchFailedPath = sanitizedProperties.path;
-
-    throw error;
+    return returnOrSendResponse(response.status, {
+      status: data?.status || 'HABITICA_API_ERROR',
+      message: data?.message || 'An error occurred while communicating with the Habitica API.',
+    });
   }
 };

@@ -3,6 +3,8 @@ import HabiticaUser from 'knex/models/HabiticaUser';
 import { returnOrSendResponse } from 'utils';
 import { v4 as uuidv4 } from 'uuid';
 import { callHabiticaApi } from './callHabiticaApi';
+import { getLinkedHabiticaUser } from '../core/getLinkedHabiticaUser';
+
 
 const toChunks = (items, size = 250) => {
   const chunks = [];
@@ -155,29 +157,12 @@ export const refreshAndStoreHabiticaContent = async (language = 'en') => {
     });
   }
 
-  let remoteHabiticaContent;
-  try {
-    remoteHabiticaContent = await callHabiticaApi({
-      method: 'GET',
-      path: `/content?language=${ language }`,
-      habiticaUserId: sourceHabiticaUser.habitica_user_id,
-    });
-  } catch (error) {
-    const originalError = Array.isArray(error) ? error[0] : error;
-    const statusCode = originalError?.statusCode;
-
-    if (statusCode === 401) {
-      return returnOrSendResponse(401, {
-        status: 'INVALID_CREDENTIALS',
-        message: 'Linked Habitica credentials are invalid for refreshing content.',
-      });
-    }
-
-    return returnOrSendResponse(503, {
-      status: 'HABITICA_UNREACHABLE',
-      message: 'Could not retrieve Habitica content. Please try again later.',
-    });
-  }
+  const remoteHabiticaContent = await callHabiticaApi({
+    method: 'GET',
+    path: `/content?language=${ language }`,
+    habiticaUserId: sourceHabiticaUser.habitica_user_id,
+  });
+  if (remoteHabiticaContent?.code) { return returnOrSendResponse(remoteHabiticaContent.code, remoteHabiticaContent.responseContent); }
 
   if (!remoteHabiticaContent?.success || !remoteHabiticaContent?.data) {
     return returnOrSendResponse(503, {

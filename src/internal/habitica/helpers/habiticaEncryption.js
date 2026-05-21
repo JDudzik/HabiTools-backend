@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { handleApiAnalytic, returnOrSendResponse } from 'utils';
 
 const ALGORITHM = 'aes-256-gcm';
 const SALT_BYTES = 32;
@@ -44,22 +45,33 @@ const encrypt = (plaintext) => {
 
 // Decrypts a colon-delimited hex string produced by encryptHabiticaApiKey.
 const decrypt = (encryptedString) => {
-  const parts = encryptedString.split(':');
-  if (parts.length !== 4) {
-    throw new Error('Invalid encrypted API key format');
+  try {
+    const parts = encryptedString.split(':');
+    if (parts.length !== 4) {
+      throw new Error('Invalid encrypted API key format');
+    }
+  
+    const [ saltHex, ivHex, authTagHex, ciphertextHex ] = parts;
+    const salt = Buffer.from(saltHex, 'hex');
+    const iv = Buffer.from(ivHex, 'hex');
+    const authTag = Buffer.from(authTagHex, 'hex');
+    const ciphertext = Buffer.from(ciphertextHex, 'hex');
+    const key = deriveKey(salt);
+  
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+    decipher.setAuthTag(authTag);
+  
+    return Buffer.concat([ decipher.update(ciphertext), decipher.final() ]).toString('utf8');
+  } catch (err) {
+    err.status = 'DECRYPTION_FAILED';
+    handleApiAnalytic(undefined, 'failed_decrypt_habitica_credential', JSON.stringify({
+      error_message: err.message,
+    }));
+    return returnOrSendResponse(500, {
+      status: 'DECRYPTION_FAILED',
+      message: err.message,
+    });
   }
-
-  const [ saltHex, ivHex, authTagHex, ciphertextHex ] = parts;
-  const salt = Buffer.from(saltHex, 'hex');
-  const iv = Buffer.from(ivHex, 'hex');
-  const authTag = Buffer.from(authTagHex, 'hex');
-  const ciphertext = Buffer.from(ciphertextHex, 'hex');
-  const key = deriveKey(salt);
-
-  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-  decipher.setAuthTag(authTag);
-
-  return Buffer.concat([ decipher.update(ciphertext), decipher.final() ]).toString('utf8');
 };
 
 

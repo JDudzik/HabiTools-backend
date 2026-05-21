@@ -40,29 +40,15 @@ export const linkHabiticaUser = async (properties) => {
   }
 
   // Validate credentials and pull initial user data
-  let userData;
-  try {
-    userData = await callHabiticaApi({
-      method: 'GET',
-      path: '/user',
-      credentialOverride: {
-        habiticaUserId: sanitizedProperties.habitica_user_id,
-        apiKey: sanitizedProperties.api_key,
-      },
-    });
-  } catch (err) {
-    const status = err?.statusCode;
-    if (status === 401) {
-      return returnOrSendResponse(401, {
-        status: 'INVALID_CREDENTIALS',
-        message: 'Habitica credentials are invalid.',
-      });
-    }
-    return returnOrSendResponse(503, {
-      status: 'HABITICA_UNREACHABLE',
-      message: 'Could not reach Habitica. Please try again.',
-    });
-  }
+  const userData = await callHabiticaApi({
+    method: 'GET',
+    path: '/user',
+    credentialOverride: {
+      habiticaUserId: sanitizedProperties.habitica_user_id,
+      apiKey: sanitizedProperties.api_key,
+    },
+  });
+  if (userData?.code) { return returnOrSendResponse(userData.code, userData.responseContent); }
 
   if (!userData?.success || !userData?.data?._id) {
     return returnOrSendResponse(401, {
