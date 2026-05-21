@@ -102,7 +102,7 @@ export const callHabiticaApi = async (properties) => {
       'x-api-user': habiticaCredentials.habiticaUserId,
       'x-api-key': habiticaCredentials.apiKey,
       'Content-Type': 'application/json',
-      'x-client': `${ process.env.HABITICA_APP_CLIENT }-${ process.env.BACKEND_HOST || 'app' }`,
+      'x-client': `${ process.env.HABITICA_APP_CLIENT }`,
     },
     ...(sanitizedProperties.body !== undefined ? { body: JSON.stringify(sanitizedProperties.body) } : {}),
   };

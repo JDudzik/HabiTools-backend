@@ -40,7 +40,7 @@ const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0)
         'x-api-user': senderCredentials.habiticaUserId,
         'x-api-key': senderCredentials.apiKey,
         'Content-Type': 'application/json',
-        'x-client': `${ process.env.HABITICA_APP_CLIENT }-${ process.env.BACKEND_HOST || 'app' }`,
+        'x-client': `${ process.env.HABITICA_APP_CLIENT }`,
       },
       body: JSON.stringify({
         toUserId: receivingHabiticaUser?.habitica_user_id,
