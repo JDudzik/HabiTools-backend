@@ -2,7 +2,7 @@ import HabiticaUser from 'knex/models/HabiticaUser';
 import HabiticaTool from 'knex/models/HabiticaTool';
 import { teardownToolResources } from '../methods/teardownToolResources';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
-import { sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } from 'utils';
 
 
 /**
@@ -15,7 +15,7 @@ import { sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
 export const unlinkHabiticaUser = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'user_id' ],
-    optionalKeys: [ 'shouldNotify' ],
+    optionalKeys: [ 'req', 'shouldNotify' ],
     trimPayload: true,
     removeDisallowedKeys: true,
     parseBools: true,
@@ -45,6 +45,11 @@ export const unlinkHabiticaUser = async (properties) => {
 
   // Hard-delete habitica_users row (cascades to habitica_user_data)
   await HabiticaUser.query().deleteById(habiticaUser.id);
+
+  handleApiAnalytic(sanitizedProperties?.req, 'unlinked_habitica_user', JSON.stringify({
+    habitica_username: habiticaUser?.username || null,
+    habitica_email: habiticaUser?.email || null,
+  }));
 
   if (sanitizedProperties.shouldNotify) {
     await createEventMessage({

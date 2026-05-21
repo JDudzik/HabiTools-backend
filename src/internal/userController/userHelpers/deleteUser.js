@@ -2,6 +2,7 @@ import { transaction } from 'objection';
 import User from 'knex/models/User';
 import {
   allowValidUUID,
+  handleApiAnalytic,
 } from 'utils';
 import { retrieveUser } from './retrieveUser';
 import { removeCron } from 'internal/cron';
@@ -31,7 +32,7 @@ export async function deleteUser(userId, req, res) {
     ],
   });
 
-  await unlinkHabiticaUser({ user_id: userId, shouldNotify: false });
+  await unlinkHabiticaUser({ req, user_id: userId, shouldNotify: false });
 
   try {
     await transaction(User.knex(), async (trx) => {
@@ -64,6 +65,8 @@ export async function deleteUser(userId, req, res) {
         await stripe.customers.del(userToDelete.stripe_customer_id);
       }
     } catch { /**/ }
+
+    handleApiAnalytic(req, 'deleted_user', JSON.stringify({ userId }));
 
     res.send(userToDelete);
     return userToDelete;

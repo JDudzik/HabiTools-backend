@@ -4,7 +4,7 @@ import {
   unlinkHabiticaUser,
   getLinkedHabiticaUser,
   getHabiticaContent,
-  createAutoAcceptQuestsTool,
+  activateAutoAcceptQuestsTool,
   refreshToolInstance,
   teardownToolResources,
 } from 'internal/habitica';
@@ -70,7 +70,7 @@ export const link = async (req, res) => {
     return;
   }
 
-  const result = await linkHabiticaUser({ user_id, habitica_user_id, api_key });
+  const result = await linkHabiticaUser({ req, user_id, habitica_user_id, api_key });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;
@@ -83,7 +83,7 @@ export const link = async (req, res) => {
 // {API_URL}/v1/auth/habitica/unlink
 export const unlink = async (req, res) => {
   const user_id = await getLoggedInUser(req, [ 'id' ]);
-  const result = await unlinkHabiticaUser({ user_id });
+  const result = await unlinkHabiticaUser({ req, user_id });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;
@@ -97,7 +97,7 @@ export const unlink = async (req, res) => {
 // Creates a new Auto Accept Quests Tool Instance.
 export const createAutoAcceptQuests = async (req, res) => {
   const user_id = await getLoggedInUser(req, [ 'id' ]);
-  const result = await createAutoAcceptQuestsTool({ user_id });
+  const result = await activateAutoAcceptQuestsTool({ req, user_id });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;

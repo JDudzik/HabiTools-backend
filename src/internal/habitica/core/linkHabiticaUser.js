@@ -1,7 +1,7 @@
 import HabiticaUser from 'knex/models/HabiticaUser';
 import HabiticaUserData from 'knex/models/HabiticaUserData';
 import HabiticaUserEncryptedKey from 'knex/models/HabiticaUserEncryptedKey';
-import { sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } from 'utils';
 import { callHabiticaApi } from '../helpers/callHabiticaApi';
 import { habiticaEncryption } from '../helpers/habiticaEncryption';
 
@@ -14,9 +14,11 @@ import { habiticaEncryption } from '../helpers/habiticaEncryption';
  * @param {string} properties.api_key - The Habitica API key for the account being linked.
  * @returns {Promise<Object>} - The linked Habitica user data, or an error response if credentials are invalid or if the user already has a linked account.
  */
+// eslint-disable-next-line complexity
 export const linkHabiticaUser = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'user_id', 'habitica_user_id', 'api_key' ],
+    optionalKeys: [ 'req' ],
     trimPayload: true,
     removeDisallowedKeys: true,
     propertyValidations: [
@@ -113,6 +115,11 @@ export const linkHabiticaUser = async (properties) => {
     maxMP: stats?.maxMP ?? null,
     lastCron: rawUser?.lastCron ? new Date(rawUser.lastCron).getTime() : null,
   });
+
+  handleApiAnalytic(sanitizedProperties?.req, 'linked_habitica_user', JSON.stringify({
+    habitica_username: rawUser?.auth?.local?.username || null,
+    habitica_email: rawUser?.auth?.local?.email || null,
+  }));
 
   return { habiticaUser };
 };

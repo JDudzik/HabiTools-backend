@@ -17,6 +17,14 @@ import { handleApiAnalytic } from 'utils';
 export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, source }) => {
   const userData = await getLinkedHabiticaUser({ userId, forceRefresh: true });
   const questData = userData?.habitica_user_data?.party?.quest;
+  handleApiAnalytic(undefined, 'checked_pending_quest', JSON.stringify({
+    userId,
+    habitica_username: userData?.habitica_user_data?.username,
+    habitica_email: userData?.habitica_user_data?.email,
+    questData,
+    source,
+  }));
+
   if (!questData?.RSVPNeeded) {
     return { success: null };
   }
@@ -69,7 +77,7 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
   }).catch(() => {});
   if (source === 'cron') {
     // If a cron accepted a quest, that implies that a webhook has failed to trigger for some reason.
-    handleApiAnalytic(undefined, 'Quest accepted via cron', JSON.stringify({
+    handleApiAnalytic(undefined, 'quest_accepted_via_cron', JSON.stringify({
       questData,
       userId,
       habitica_username: userData?.habitica_user_data?.username,

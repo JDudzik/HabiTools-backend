@@ -4,7 +4,7 @@ import { setWebhook } from 'internal/webhooks/core/setWebhook';
 import { setCron } from 'internal/cron/core/setCron';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
-import { sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } from 'utils';
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 const TOOL_SLUG = 'auto-accept-quests';
@@ -19,6 +19,7 @@ const WEBHOOK_BASE_URL = process.env.HABITICA_WEBHOOK_URL_OVERRIDE || process.en
 export const createAutoAcceptQuestsTool = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'user_id' ],
+    optionalKeys: [ 'req' ],
     trimPayload: true,
     removeDisallowedKeys: true,
     propertyValidations: [
@@ -113,6 +114,12 @@ export const createAutoAcceptQuestsTool = async (properties) => {
     immediateOnce: true,
     data: { habiticaUserId: habiticaUser.habitica_user_id },
   });
+
+  handleApiAnalytic(sanitizedProperties?.req, 'activated_auto_accept_quests_tool', JSON.stringify({
+    habitica_username: habiticaUser?.username || null,
+    habitica_email: habiticaUser?.email || null,
+    TOOL_SLUG,
+  }));
 
   return {
     success: true,

@@ -1,2 +1,2 @@
-export * from './methods/createAutoAcceptQuestsTool';
+export * from './methods/activateAutoAcceptQuestsTool';
 export * from './core/acceptPendingQuest';
