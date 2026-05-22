@@ -6,7 +6,7 @@ import { teardownToolResources } from 'internal/habitica/methods/teardownToolRes
  * The webhook task configurations for the Auto-Accept Quests tool, which includes a task to check for and accept pending quest invitations for linked Habitica accounts, and a cleanup function to tear down resources and notify the user if the webhook task is removed.
  */
 export const autoAcceptQuestsWebhookTaskConfigs = {
-  'auto-accept-quests': {
+  'auto-accept-quests-webhook': {
     options: {},
 
     execute: (parameters, _webhookData) => {

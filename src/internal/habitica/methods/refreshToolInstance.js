@@ -67,7 +67,6 @@ export const refreshToolInstance = async (properties) => {
     .where({
       user_id: userId,
       resource_id: selectedTool.id,
-      task_name: selectedTool.tool_slug,
     })
     .whereNull('deleted_at');
 
@@ -83,7 +82,6 @@ export const refreshToolInstance = async (properties) => {
     .where({
       user_id: userId,
       resource_id: selectedTool.id,
-      task_name: selectedTool.tool_slug,
     })
     .whereNull('deleted_at')
     .where((qb) => {

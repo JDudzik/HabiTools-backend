@@ -66,7 +66,7 @@ export const activateAutoAcceptQuestsTool = async (properties) => {
   const internalWebhook = await setWebhook({
     user_id: sanitizedProperties.user_id,
     resource_id: toolInstance.id,
-    task_name: TOOL_SLUG,
+    task_name: `${ TOOL_SLUG }-webhook`,
     expires_at: expiresAt,
     is_active: true,
     data: { habiticaUserId: habiticaUser.habitica_user_id },
@@ -108,7 +108,7 @@ export const activateAutoAcceptQuestsTool = async (properties) => {
   const internalCron = await setCron({
     userId: sanitizedProperties.user_id,
     resourceId: toolInstance.id,
-    taskName: TOOL_SLUG,
+    taskName: `${ TOOL_SLUG }-cron`,
     expiresAt,
     isActive: true,
     immediateOnce: true,
