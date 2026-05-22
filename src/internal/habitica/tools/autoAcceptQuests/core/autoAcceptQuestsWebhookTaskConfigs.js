@@ -14,6 +14,7 @@ export const autoAcceptQuestsWebhookTaskConfigs = {
         userId: parameters.user_id,
         resourceId: parameters.resource_id,
         habiticaUserId: parameters.data?.habiticaUserId,
+        source: 'webhook',
       });
     },
 

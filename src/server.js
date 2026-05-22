@@ -19,8 +19,7 @@ import { stripeWebhookValidator } from './internal/commerce';
 
 
 async function startServer() {
-  try { 
-
+  try {
     const app = express();
     app.set('query parser', 'extended');
     const knex = Knex(knexConfig[process.env.NODE_ENV]);
