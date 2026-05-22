@@ -9,7 +9,7 @@ module.exports = (router) => {
   
   // Brute-force prevention
   bruteStopper(router, `${ securedPath }/create`, { freeRetries: 30 });
-  bruteStopper(router, `${ securedPath }/list`, { freeRetries: 250, minWait: 100, maxWait: 2500 });
+  bruteStopper(router, `${ securedPath }/list`, { freeRetries: 100, minWait: 50, maxWait: 1500, lifetime: 50 });
   bruteStopper(router, `${ securedPath }/acknowledge`, { freeRetries: 30 });
   bruteStopper(router, `${ securedPath }/unacknowledge`, { freeRetries: 30 });
   bruteStopper(router, `${ securedPath }/delete/:message_id`, { freeRetries: 30 });
