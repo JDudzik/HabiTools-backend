@@ -46,7 +46,7 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
         short_message: 'Quest auto-accept failed',
         should_notify: true,
         should_notify_habitica_via_admin: true,
-        priority: 1,
+        priority: 3,
       }).catch(() => {});
       await teardownToolResources({
         resourceId,
@@ -70,8 +70,6 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
     event_name: 'Quest Auto-Accepted',
     message_text: `A quest invitation for [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }) was automatically accepted.`,
     short_message: 'Quest auto-accepted',
-    should_notify: true,
-    should_notify_habitica_via_admin: true,
     priority: 1,
   }).catch(() => {});
   if (source === 'cron') {
