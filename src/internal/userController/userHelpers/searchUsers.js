@@ -35,7 +35,7 @@ export async function searchUsers(searchOptions) {
     : [
       'id',           'created_at',   'disabled_at', 'first_name',
       'last_name',    'email',
-      'has_verified_email',
+      'has_verified_email', 'stripe_customer_id',
     ];
 
   const eagerValues = eagerConstructor({
