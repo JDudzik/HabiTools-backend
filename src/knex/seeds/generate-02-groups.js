@@ -55,6 +55,10 @@ exports.seed = (knex) => {
         group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
         permission_id: '48e6b8da-3892-4f89-8c95-b57902dac16c',
       },
+      { // global_habitica_notification
+        group_id: 'cd209fb3-55c7-478a-8786-104e1fd087f2',
+        permission_id: '9c6f8331-b019-46a2-ab0c-97d29630ad1f',
+      },
 
 
       // admin

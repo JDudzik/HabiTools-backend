@@ -4,6 +4,7 @@ import {
   unlinkHabiticaUser,
   getLinkedHabiticaUser,
   getHabiticaContent,
+  sendGlobalHabiticaNotification,
   activateAutoAcceptQuestsTool,
   refreshToolInstance,
   teardownToolResources,
@@ -149,5 +150,28 @@ export const teardownTool = async (req, res) => {
   }
 
   res.json({ success: true });
+};
+
+
+// -- POST --
+// {API_URL}/v1/auth/habitica/global-notification
+// -- BODY --
+// message_text: required message body.
+// short_message, event_name, event_slug, priority, acknowledged: optional.
+export const sendGlobalNotification = async (req, res) => {
+  const allowed = await allowByPermissions(req, res, 'global_habitica_notification');
+  if (!allowed) { return; }
+
+  const result = await sendGlobalHabiticaNotification({
+    ...req.body,
+    req,
+  });
+
+  if (result?.code) {
+    res.status(result.code).json(result.responseContent);
+    return;
+  }
+
+  res.status(201).json(result);
 };
 

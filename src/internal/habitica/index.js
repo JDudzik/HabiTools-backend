@@ -7,5 +7,6 @@ export * from './helpers/getHabiticaCredentials';
 export * from './helpers/habiticaEncryption';
 export * from './helpers/refreshAndStoreHabiticaContent';
 export * from './methods/refreshToolInstance';
+export * from './methods/sendGlobalHabiticaNotification';
 export * from './methods/teardownToolResources';
 export * from './tools/autoAcceptQuests';

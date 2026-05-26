@@ -120,5 +120,13 @@ exports.seed = (knex) => {
       is_deletable: false,
       permission_required_for_assignment: 'admin_permission_assignment',
     },
+    {
+      id: '9c6f8331-b019-46a2-ab0c-97d29630ad1f',
+      created_at: Date.now(),
+      name: 'global_habitica_notification',
+      description: 'Permission to send a global Habitica notification to all linked Habitica users via admin account.',
+      is_deletable: false,
+      permission_required_for_assignment: 'super_admin_permission_control',
+    },
   ]);
 };
