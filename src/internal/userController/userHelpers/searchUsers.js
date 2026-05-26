@@ -41,6 +41,7 @@ export async function searchUsers(searchOptions) {
   const eagerValues = eagerConstructor({
     groups: [ 'permissions' ],
     permissions: true,
+    'habitica_user.[habitica_user_data, habitica_tools]': true,
   });
 
   if (!minimalResults) {
