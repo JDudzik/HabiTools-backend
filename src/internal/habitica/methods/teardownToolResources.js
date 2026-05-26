@@ -112,6 +112,7 @@ export const teardownToolResources = async (properties) => {
       short_message: notification?.fromExpiration
         ? `${ notification?.name } has expired.`
         : `${ notification?.name } has been disabled.`,
+      should_notify_habitica_via_admin: true,
       should_notify: true,
       priority: 2,
     }).catch(() => {});
