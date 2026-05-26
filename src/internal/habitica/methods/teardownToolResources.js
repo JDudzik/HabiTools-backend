@@ -3,7 +3,7 @@ import Webhook from 'knex/models/Webhook';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { deleteWebhooks } from 'internal/webhooks/core/deleteWebhooks';
 import { deleteCrons } from 'internal/cron/core/deleteCrons';
-import { sanitizeProperties, isUUID } from 'utils';
+import { sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 
 
@@ -32,29 +32,13 @@ const deleteExternalWebhooks = async (resourceId) => {
 
 
 const deleteToolRecords = async (resourceId) => {
-  const tools = await HabiticaTool.query()
+  const toolDeletes = await HabiticaTool.query()
     .where({ id: resourceId })
     .whereNull('deleted_at')
-    .catch((err) => { throw [ err, 'teardownToolResources.deleteToolRecords.findTools' ]; });
+    .del()
+    .catch((err) => { throw [ err, 'teardownToolResources.deleteToolRecords.patchTool' ]; });
 
-  const localToolSoftDelete = await Promise.all(tools.map(async (tool) => {
-    const recordsDeleted = await HabiticaTool.query()
-      .where({ id: tool.id })
-      .whereNull('deleted_at')
-      .del()
-      .catch((err) => { throw [ err, 'teardownToolResources.deleteToolRecords.patchTool' ]; });
-
-    return {
-      toolId: tool.id,
-      found: true,
-      success: recordsDeleted > 0,
-    };
-  }));
-
-  return {
-    tools,
-    localToolSoftDelete,
-  };
+  return toolDeletes;
 };
 
 
@@ -97,7 +81,15 @@ export const teardownToolResources = async (properties) => {
   await deleteExternalWebhooks(sanitizedProperties.resourceId);
   await deleteWebhooks({ resourceId: sanitizedProperties.resourceId });
   await deleteCrons({ resourceId: sanitizedProperties.resourceId, runCleanup: false });
-  await deleteToolRecords(sanitizedProperties.resourceId);
+  const toolDeletes = await deleteToolRecords(sanitizedProperties.resourceId);
+
+  // We validate tool existence after deletions just in-case there's any stragglers that need to be removed.
+  if (!toolDeletes) {
+    return returnOrSendResponse(404, {
+      status: 'TOOL_NOT_FOUND',
+      message: 'No active tool instance found for the provided resourceId.',
+    });
+  }
 
   // If userId and notification details are provided, send a notification about the teardown.
   if (sanitizedProperties?.userId && notification?.slugPrefix && notification?.name) {
@@ -112,7 +104,7 @@ export const teardownToolResources = async (properties) => {
       short_message: notification?.fromExpiration
         ? `${ notification?.name } has expired.`
         : `${ notification?.name } has been disabled.`,
-      should_notify_habitica_via_admin: true,
+      should_notify_habitica_via_admin: notification?.fromExpiration,
       should_notify: true,
       priority: 2,
     }).catch(() => {});
