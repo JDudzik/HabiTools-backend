@@ -4,6 +4,8 @@ import HabiticaUserEncryptedKey from 'knex/models/HabiticaUserEncryptedKey';
 import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } from 'utils';
 import { callHabiticaApi } from '../helpers/callHabiticaApi';
 import { habiticaEncryption } from '../helpers/habiticaEncryption';
+import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
+import welcomeMessage from './content/welcomeMessage';
 
 
 /**
@@ -107,6 +109,17 @@ export const linkHabiticaUser = async (properties) => {
     habitica_username: rawUser?.auth?.local?.username || null,
     habitica_email: rawUser?.auth?.local?.email || null,
   }));
+
+  await createEventMessage({
+    user_id: sanitizedProperties.user_id,
+    event_slug: 'welcome_to_habitools',
+    event_name: 'Welcome to HabiTools',
+    message_text: welcomeMessage,
+    short_message: 'Welcome to HabiTools! Your Habitica account has been successfully linked.',
+    should_notify_habitica_via_admin: true,
+    priority: 2,
+    acknowledged: true,
+  }).catch(() => {});
 
   return { habiticaUser };
 };
