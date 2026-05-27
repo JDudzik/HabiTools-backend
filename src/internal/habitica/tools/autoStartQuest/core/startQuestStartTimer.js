@@ -91,7 +91,7 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
   const questUrl = questName?.replace(/\s+/g, '_');
   const hoursToWait = toolData?.hoursToWait || 23;
   await setCron({
-    schedule: `RAND() DELAY(15,${ hoursToWait }) * * *`,
+    schedule: `RAND(0,9)-59/10 DELAY(15,${ hoursToWait }) * * *`,
     userId,
     resourceId,
     taskName: 'auto-start-quests-launch',
