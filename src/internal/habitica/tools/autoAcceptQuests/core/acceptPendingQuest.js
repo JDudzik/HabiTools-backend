@@ -4,6 +4,7 @@ import { teardownToolResources } from 'internal/habitica/methods/teardownToolRes
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 import { getHabiticaContent } from 'internal/habitica/core/getHabiticaContent';
 import { handleApiAnalytic } from 'utils';
+import toolInvalidCredentials from '../../content/toolInvalidCredentials';
 
 
 /**
@@ -42,7 +43,7 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
         resource_id: resourceId,
         event_slug: 'quest-auto-accept-failed',
         event_name: 'Quest Auto-Accept Failed',
-        message_text: 'Failed to auto-accept a quest invitation due to invalid Habitica credentials. The associated tool resources have been removed. Please link your Habitica account again to continue using the tool.',
+        message_text: toolInvalidCredentials('Auto Accept Quests'),
         short_message: 'Quest auto-accept failed',
         should_notify: true,
         should_notify_habitica_via_admin: true,
