@@ -10,6 +10,11 @@ import { deleteCrons } from 'internal/cron/core/deleteCrons';
 import toolInvalidCredentials from '../../content/toolInvalidCredentials';
 
 
+const WAIT_MODE_MAP = {
+  '24': 22,
+  '3': 2,
+};
+
 /**
  * Checks for a pending quest invitation for the linked Habitica account and accepts it if found. If the Habitica credentials are invalid or if there was an error during the process, sends a notification to the user and tears down the associated tool resources.
  * @param {Object} properties - The properties for accepting the pending quest.
@@ -89,7 +94,8 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
   const contentResult = await getHabiticaContent({ dataItems: { quests: true }, language: userData?.habitica_user_data?.preferences?.language || 'en' });
   const questName = contentResult?.quests?.[questKey]?.text;
   const questUrl = questName?.replace(/\s+/g, '_');
-  const hoursToWait = toolData?.hoursToWait || 23;
+
+  const hoursToWait = WAIT_MODE_MAP[toolData?.waitMode || '24'];
   await setCron({
     schedule: `RAND(0,9)-59/10 DELAY(15,${ hoursToWait }) * * *`,
     userId,
@@ -98,7 +104,7 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
     expiresAt: Date.now() + (5 * 24 * 60 * 60 * 1000), // 5 days
     isActive: true,
     immediateOnce: false,
-    data: { habiticaUserId, questKey, questName, questUrl, hoursToWait, partyLeader, questLeader },
+    data: { habiticaUserId, questKey, questName, questUrl },
   });
 
   await createEventMessage({

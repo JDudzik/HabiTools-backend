@@ -22,7 +22,7 @@ const WEBHOOK_BASE_URL = process.env.HABITICA_WEBHOOK_URL_OVERRIDE || process.en
 export const activateAutoStartQuestsTool = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'user_id' ],
-    optionalKeys: [ 'hoursToWait' ],
+    optionalKeys: [ 'waitMode' ],
     trimPayload: true,
     removeDisallowedKeys: true,
     propertyValidations: [
@@ -60,7 +60,7 @@ export const activateAutoStartQuestsTool = async (properties) => {
     updated_at: now,
     expires_at: expiresAt,
     last_refreshed_at: now,
-    data: { hoursToWait: sanitizedProperties.hoursToWait || 23 },
+    data: { waitMode: sanitizedProperties.waitMode || '24' },
   });
 
   // Create the internal webhook record first to obtain the url_id for the callback URL
