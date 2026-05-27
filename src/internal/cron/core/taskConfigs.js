@@ -2,6 +2,7 @@
 // Anytime a new function is created that should be available as a cron,
 // it needs to be added here along with sensible default configuration.
 import { autoAcceptQuestsCronTaskConfigs } from 'internal/habitica/tools/autoAcceptQuests/core/autoAcceptQuestsCronTaskConfigs';
+import { autoStartQuestsCronTaskConfigs } from 'internal/habitica/tools/autoStartQuest/core/autoStartQuestsCronTaskConfigs';
 
 // Note: When using the special fuctions like `SEC(10)`, `MIN(10)`, `RAND()`, etc,
 // there's a good chance the cron will be set only a few seconds/minutes into the future.
@@ -62,5 +63,7 @@ export const taskConfigs = {
       console.debug('Self-destruct cleanup cleanupData:', cleanupData);
     },
   },
+
   ...autoAcceptQuestsCronTaskConfigs,
+  ...autoStartQuestsCronTaskConfigs,
 };
