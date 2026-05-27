@@ -82,7 +82,7 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
       short_message: 'Skipped',
       priority: 0,
     }).catch(() => {});
-    return { success: false };
+    return { success: null };
   }
 
   const contentResult = await getHabiticaContent({ dataItems: { quests: true }, language: userData?.habitica_user_data?.preferences?.language || 'en' });
