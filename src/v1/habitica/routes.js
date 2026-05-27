@@ -6,6 +6,7 @@ import {
   unlink,
   sendGlobalNotification,
   activateAutoAcceptQuests,
+  activateAutoStartQuests,
   refreshTool,
   teardownTool,
 } from './habitica';
@@ -20,6 +21,7 @@ module.exports = (router) => {
   bruteStopper(router, `${ securedPath }/tools/teardown`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/tools/refresh`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/tools/auto-accept-quests`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
+  bruteStopper(router, `${ securedPath }/tools/auto-start-quests`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/global-notification`, { freeRetries: 20, minWait: 1000, maxWait: 300000 });
 
   router.get(`${ securedPath }`, getHabitica);
@@ -29,6 +31,7 @@ module.exports = (router) => {
   router.delete(`${ securedPath }/tools/teardown`, teardownTool);
   router.put(`${ securedPath }/tools/refresh`, refreshTool);
   router.post(`${ securedPath }/tools/auto-accept-quests`, activateAutoAcceptQuests);
+  router.post(`${ securedPath }/tools/auto-start-quests`, activateAutoStartQuests);
   router.post(`${ securedPath }/global-notification`, sendGlobalNotification);
 
   return router;

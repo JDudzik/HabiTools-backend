@@ -95,7 +95,7 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
   const questName = contentResult?.quests?.[questKey]?.text;
   const questUrl = questName?.replace(/\s+/g, '_');
 
-  const hoursToWait = WAIT_MODE_MAP[toolData?.waitMode || '24'];
+  const hoursToWait = WAIT_MODE_MAP[toolData?.waitMode || '24'] || 22;
   await setCron({
     schedule: `RAND(0,9)-59/10 DELAY(15,${ hoursToWait }) * * *`,
     userId,

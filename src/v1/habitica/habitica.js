@@ -6,6 +6,7 @@ import {
   getHabiticaContent,
   sendGlobalHabiticaNotification,
   activateAutoAcceptQuestsTool,
+  activateAutoStartQuestsTool,
   refreshToolInstance,
   teardownToolResources,
 } from 'internal/habitica';
@@ -98,15 +99,35 @@ export const unlink = async (req, res) => {
 // Creates a new Auto Accept Quests Tool Instance.
 export const activateAutoAcceptQuests = async (req, res) => {
   const user_id = await getLoggedInUser(req, [ 'id' ]);
+
   const result = await activateAutoAcceptQuestsTool({ req, user_id });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;
   }
+
   res.status(201).json(result);
 };
 
 
+// -- POST --
+// {API_URL}/v1/auth/habitica/tools/auto-start-quests
+// Creates a new Auto Start Quests Tool Instance.
+// -- BODY --
+// wait_mode: The string version of hours to wait.
+export const activateAutoStartQuests = async (req, res) => {
+  const user_id = await getLoggedInUser(req, [ 'id' ]);
+
+  const result = await activateAutoStartQuestsTool({ req, user_id, waitMode: req.body?.wait_mode });
+  if (result?.code) {
+    res.status(result.code).json(result.responseContent);
+    return;
+  }
+
+  res.status(201).json(result);
+};
+
+  
 // -- PUT --
 // {API_URL}/v1/auth/habitica/tools/refresh
 // Extends the Tool Lease. Only valid for a non-expired instance.
