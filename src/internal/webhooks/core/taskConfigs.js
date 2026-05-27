@@ -4,6 +4,7 @@
 // Each function MUST have methods for 'execute', 'create', 'modify', and 'remove'.
 
 import { autoAcceptQuestsWebhookTaskConfigs } from 'internal/habitica/tools/autoAcceptQuests/core/autoAcceptQuestsWebhookTaskConfigs';
+import { autoStartQuestsWebhookTaskConfigs } from 'internal/habitica/tools/autoStartQuest/core/autoStartQuestsWebhookTaskConfigs';
 
 
 export const taskConfigs = {
@@ -36,4 +37,5 @@ export const taskConfigs = {
     },
   },
   ...autoAcceptQuestsWebhookTaskConfigs,
+  ...autoStartQuestsWebhookTaskConfigs,
 };
