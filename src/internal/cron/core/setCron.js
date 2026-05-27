@@ -4,6 +4,7 @@ import { taskConfigs } from './taskConfigs';
 import { removeCron } from './removeCron';
 import { replaceRandom } from '../helpers/replaceRandom';
 import { replaceTimeAdjustments } from '../helpers/replaceTimeAdjustments';
+import { replaceDelay } from '../helpers/replaceDelay';
 import { withCronManager, cronFailedManager } from './withCronManager';
 import Cron from 'knex/models/Cron';
 
@@ -67,7 +68,15 @@ export const setCron = async (topParameters) => {
     taskName,
     immediateAlways,
     isActive: !!isActive,
-    schedule: replaceTimeAdjustments(replaceRandom(derivedSchedule), (options?.timezone || 'America/New_York') ),
+    schedule: (
+      replaceDelay(
+        replaceTimeAdjustments(
+          replaceRandom(derivedSchedule),
+          (options?.timezone || 'America/New_York'),
+        ),
+        (options?.timezone || 'America/New_York'),
+      )
+    ),
     options: { ...taskConfig?.options, ...options },
     data: JSON.parse(JSON.stringify(data)),
     removeThisCron: cleanupData => removeCron(uuid, parameters, cleanupData),
