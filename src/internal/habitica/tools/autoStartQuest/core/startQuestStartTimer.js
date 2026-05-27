@@ -66,7 +66,8 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
   await deleteCrons({ resourceId: resourceId, runCleanup: false });
 
   const questKey = habiticaPartyInfo?.data?.quest?.key;
-  if (!questKey) {
+  const isQuestActive = habiticaPartyInfo?.data?.quest?.active;
+  if (!questKey || isQuestActive) {
     return { success: null };
   }
 

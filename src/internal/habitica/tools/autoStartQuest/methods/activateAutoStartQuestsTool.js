@@ -67,7 +67,7 @@ export const activateAutoStartQuestsTool = async (properties) => {
   const internalWebhook = await setWebhook({
     user_id: sanitizedProperties.user_id,
     resource_id: toolInstance.id,
-    task_name: `${ TOOL_SLUG }-webhook`,
+    task_name: 'auto-start-quests-start-timer',
     expires_at: expiresAt,
     is_active: true,
     data: { habiticaUserId: habiticaUser.habitica_user_id },
@@ -84,7 +84,10 @@ export const activateAutoStartQuestsTool = async (properties) => {
       url: callbackUrl,
       enabled: true,
       type: 'questActivity',
-      options: { questInvited: true },
+      options: {
+        questInvited: true,
+        questStarted: true,
+      },
     },
   });
   if (habiticaResult?.code) {
