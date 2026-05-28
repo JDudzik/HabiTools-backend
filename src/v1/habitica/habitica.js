@@ -129,9 +129,8 @@ export const activateAutoStartQuests = async (req, res) => {
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
   const sanitizedProperties = sanitizedPayload.properties;
 
-  const user_id = await getLoggedInUser(req, [ 'id' ]);
-
-  const result = await activateAutoStartQuestsTool({ req, user_id, waitHours: sanitizedProperties.wait_hours });
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+  const result = await activateAutoStartQuestsTool({ req, userId, waitHours: sanitizedProperties.wait_hours });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;

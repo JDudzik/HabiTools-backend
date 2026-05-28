@@ -15,25 +15,25 @@ const WEBHOOK_BASE_URL = process.env.HABITICA_WEBHOOK_URL_OVERRIDE || process.en
 /**
  * Creates a new Auto Start Quests tool instance for a user, including setting up the necessary webhooks and crons.
  * @param {Object} properties - The properties for creating the tool instance.
- * @param {string} properties.user_id - The user ID of the owner of the tool instance.
+ * @param {string} properties.userId - The user ID of the owner of the tool instance.
  * @param {Object} [properties.req] - The Express request object, used for analytics. Optional if not creating through an API route.
  * @returns {Promise<Object>} - A success message with the new tool instance details, or an error response if the tool instance cannot be created.
  */
 export const activateAutoStartQuestsTool = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
-    requiredKeys: [ 'user_id' ],
+    requiredKeys: [ 'userId' ],
     optionalKeys: [ 'waitHours' ],
     trimPayload: true,
     removeDisallowedKeys: true,
     propertyValidations: [
-      isUUID('user_id', 'user_id must be a valid UUID'),
+      isUUID('userId', 'userId must be a valid UUID'),
     ],
   });
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
   const sanitizedProperties = sanitizedPayload.properties;
 
   const now = Date.now();
-  const habiticaUser = await getLinkedHabiticaUser({ userId: sanitizedProperties.user_id });
+  const habiticaUser = await getLinkedHabiticaUser({ userId: sanitizedProperties.userId });
   if (habiticaUser?.code) { return returnOrSendResponse(habiticaUser.code, habiticaUser.responseContent); }
 
   // Enforce one active Tool Instance per tool per user
@@ -65,7 +65,7 @@ export const activateAutoStartQuestsTool = async (properties) => {
 
   // Create the internal webhook record first to obtain the url_id for the callback URL
   const internalWebhook = await setWebhook({
-    user_id: sanitizedProperties.user_id,
+    user_id: sanitizedProperties.userId,
     resource_id: toolInstance.id,
     task_name: 'auto-start-quests-start-timer',
     expires_at: expiresAt,
@@ -117,7 +117,7 @@ export const activateAutoStartQuestsTool = async (properties) => {
   }));
 
   createEventMessage({
-    user_id: sanitizedProperties.user_id,
+    user_id: sanitizedProperties.userId,
     resource_id: toolInstance.id,
     event_slug: 'auto-start-quests-activated',
     event_name: 'Tool Activated',
@@ -128,7 +128,7 @@ export const activateAutoStartQuestsTool = async (properties) => {
 
   // Run an initial check to start the timer if there is already an active quest when the tool is activated.
   await startQuestStartTimer({
-    userId: sanitizedProperties.user_id,
+    userId: sanitizedProperties.userId,
     resourceId: toolInstance.id,
     habiticaUserId: habiticaUser.habitica_user_id,
   });
