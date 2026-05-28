@@ -45,7 +45,7 @@ const calculateRetryDelay = ({ attempt, retryConfig, response, fetchError }) => 
  * @param {number} [properties.retryConfig.baseDelayMs=1000] - Base delay used for incremental backoff.
  * @param {boolean} [properties.retryConfig.retryOnRateLimit=false] - Retries HTTP 429 responses by default.
  * @param {boolean} [properties.retryConfig.retryOnNetworkError=false] - Retries transient network/fetch failures.
- * @param {number[]} [properties.retryConfig.retryOnStatusCodes=[]] - Extra HTTP status codes to retry (ex: [503]).
+ * @param {number[]} [properties.retryConfig.retryOnStatusCodes=[ 408, 425, 500, 502, 503, 504 ]] - HTTP status codes to retry (ex: [503]).
  * @returns {Promise<Object>} - The response data from the Habitica API.
  */
 export const callHabiticaApi = async (properties) => {
@@ -97,7 +97,6 @@ export const callHabiticaApi = async (properties) => {
       apiKey: credentials.apiKey,
     };
   }
-
 
   const url = `${ process.env.HABITICA_API_URL }${ sanitizedProperties.path }`;
   const payload = {
@@ -163,6 +162,7 @@ export const callHabiticaApi = async (properties) => {
     error.habiticaError = data;
     error.retryAttemptCount = attempt;
     error.fetchFailedPath = sanitizedProperties.path;
+
     return returnOrSendResponse(response.status, {
       status: data?.status || 'HABITICA_API_ERROR',
       message: data?.message || 'An error occurred while communicating with the Habitica API.',
