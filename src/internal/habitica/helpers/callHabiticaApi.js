@@ -72,7 +72,7 @@ export const callHabiticaApi = async (properties) => {
     && !sanitizedProperties.userId
     && !(sanitizedProperties.credentialOverride?.habiticaUserId && sanitizedProperties.credentialOverride?.apiKey)
   ) {
-    returnOrSendResponse(400, {
+    return returnOrSendResponse(400, {
       status: 'MISSING_CREDENTIALS',
       message: 'Either userId, habiticaUserId, or credentialOverride with habiticaUserId and apiKey must be provided.',
     });
