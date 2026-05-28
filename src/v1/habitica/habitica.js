@@ -114,11 +114,11 @@ export const activateAutoAcceptQuests = async (req, res) => {
 // {API_URL}/v1/auth/habitica/tools/auto-start-quests
 // Creates a new Auto Start Quests Tool Instance.
 // -- BODY --
-// wait_mode: The string version of hours to wait.
+// wait_hours: The number of hours to wait.
 export const activateAutoStartQuests = async (req, res) => {
   const user_id = await getLoggedInUser(req, [ 'id' ]);
 
-  const result = await activateAutoStartQuestsTool({ req, user_id, waitMode: req.body?.wait_mode });
+  const result = await activateAutoStartQuestsTool({ req, user_id, waitHours: req.body?.wait_hours });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;

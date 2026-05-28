@@ -10,11 +10,6 @@ import { deleteCrons } from 'internal/cron/core/deleteCrons';
 import toolInvalidCredentials from '../../content/toolInvalidCredentials';
 
 
-const WAIT_MODE_MAP = {
-  '24': 22,
-  '3': 2,
-};
-
 /**
  * Checks for a pending quest invitation for the linked Habitica account and accepts it if found. If the Habitica credentials are invalid or if there was an error during the process, sends a notification to the user and tears down the associated tool resources.
  * @param {Object} properties - The properties for accepting the pending quest.
@@ -94,10 +89,10 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
   const contentResult = await getHabiticaContent({ dataItems: { quests: true }, language: userData?.habitica_user_data?.preferences?.language || 'en' });
   const questName = contentResult?.quests?.[questKey]?.text;
   const questUrl = questName?.replace(/\s+/g, '_');
-
-  const hoursToWait = WAIT_MODE_MAP[toolData?.waitMode || '24'] || 22;
+  const waitHours = Number(toolData?.waitHours ?? 24);
+  const finalWaitHours = Math.min(waitHours, 23); // This number is not the final cron number, it's the input for the delay function.
   await setCron({
-    schedule: `RAND(0,9)-59/10 DELAY(15,${ hoursToWait }) * * *`,
+    schedule: `RAND(0,9)-59/10 DELAY(15,${ finalWaitHours }) * * *`,
     userId,
     resourceId,
     taskName: 'auto-start-quests-launch',
@@ -112,12 +107,12 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
     resource_id: resourceId,
     event_slug: 'quest_timer_started',
     event_name: 'Quest Timer Started',
-    message_text: `The automatic-start timer for your quest, [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }), has been started. The quest will launch in ${ toolData?.waitMode || '24' } hours.`,
+    message_text: `The automatic-start timer for your quest, [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }), has been started. The quest will launch in ${ waitHours } hours.`,
     short_message: 'Quest Timer Started',
     priority: 1,
   }).catch(() => {});
 
-  handleApiAnalytic(undefined, 'start-quests-timer', JSON.stringify({
+  handleApiAnalytic(undefined, 'auto_start_quest_timer', JSON.stringify({
     userId,
     habitica_username: userData?.habitica_user_data?.username,
     habitica_email: userData?.habitica_user_data?.email,
@@ -125,7 +120,7 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
       key: questKey,
       name: questName,
     },
-    hoursToWait,
+    waitHours,
   }));
 
   return { success: true };
