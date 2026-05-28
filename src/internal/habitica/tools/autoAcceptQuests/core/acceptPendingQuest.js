@@ -52,10 +52,6 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
       await teardownToolResources({
         resourceId,
         userId,
-        notification: {
-          slugPrefix: 'auto-accept-quests',
-          name: 'Auto Accept Quests',
-        },
       });
     }
     return { success: false };
