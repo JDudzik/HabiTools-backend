@@ -35,6 +35,8 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
     path: '/groups/party/quests/accept',
     habiticaUserId: habiticaUserId,
     userId,
+    retryOnNetworkError: true,
+    retryOnRateLimit: true,
   });
   if (!habiticaResponse?.success) {
     if (habiticaResponse?.code === 401 || habiticaResponse?.code === 403) {

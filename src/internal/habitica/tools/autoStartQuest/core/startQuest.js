@@ -30,6 +30,8 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
     path: '/groups/party/quests/force-start',
     habiticaUserId: habiticaUserId,
     userId,
+    retryOnNetworkError: true,
+    retryOnRateLimit: true,
   });
   if (!habiticaResponse?.success) {
     if (habiticaResponse?.code === 401 || habiticaResponse?.code === 403) {

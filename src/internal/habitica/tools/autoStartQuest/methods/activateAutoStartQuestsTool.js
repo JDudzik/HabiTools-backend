@@ -89,6 +89,8 @@ export const activateAutoStartQuestsTool = async (properties) => {
         questStarted: true,
       },
     },
+    retryOnNetworkError: true,
+    retryOnRateLimit: true,
   });
   if (habiticaResult?.code) {
     // Roll back internal records so state stays clean

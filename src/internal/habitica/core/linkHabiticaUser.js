@@ -49,6 +49,8 @@ export const linkHabiticaUser = async (properties) => {
       habiticaUserId: sanitizedProperties.habitica_user_id,
       apiKey: sanitizedProperties.api_key,
     },
+    retryOnNetworkError: true,
+    retryOnRateLimit: true,
   });
   if (userData?.code) { return returnOrSendResponse(userData.code, userData.responseContent); }
 

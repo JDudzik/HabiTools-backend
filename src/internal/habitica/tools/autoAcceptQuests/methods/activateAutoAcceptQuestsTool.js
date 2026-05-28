@@ -86,6 +86,8 @@ export const activateAutoAcceptQuestsTool = async (properties) => {
       type: 'questActivity',
       options: { questInvited: true },
     },
+    retryOnNetworkError: true,
+    retryOnRateLimit: true,
   });
   if (habiticaResult?.code) {
     // Roll back internal records so state stays clean
