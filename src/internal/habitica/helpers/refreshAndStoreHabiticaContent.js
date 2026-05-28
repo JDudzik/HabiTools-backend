@@ -3,7 +3,6 @@ import HabiticaUser from 'knex/models/HabiticaUser';
 import { returnOrSendResponse } from 'utils';
 import { v4 as uuidv4 } from 'uuid';
 import { callHabiticaApi } from './callHabiticaApi';
-import { getLinkedHabiticaUser } from '../core/getLinkedHabiticaUser';
 
 
 const toChunks = (items, size = 250) => {

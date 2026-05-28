@@ -57,7 +57,6 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
     return { success: false };
   }
 
-
   const selectedTool = await HabiticaTool.query()
     .alias('tool')
     .joinRelated('habitica_user')
@@ -65,7 +64,7 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
     .whereNull('tool.deleted_at')
     .where('habitica_user.user_id', userId)
     .first();
-  const toolData = selectedTool?.data && JSON.parse(selectedTool.data);
+  const toolData = selectedTool?.data;
 
   // Clear out any existing cron timers for this tool before starting a new one.
   await deleteCrons({ resourceId: resourceId, runCleanup: false });
@@ -113,7 +112,7 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
     resource_id: resourceId,
     event_slug: 'quest_timer_started',
     event_name: 'Quest Timer Started',
-    message_text: `The automatic-start timer for your quest, [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }), has been started. The quest will launch in ${ hoursToWait } hours.`,
+    message_text: `The automatic-start timer for your quest, [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }), has been started. The quest will launch in ${ toolData?.waitMode || '24' } hours.`,
     short_message: 'Quest Timer Started',
     priority: 1,
   }).catch(() => {});
