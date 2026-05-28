@@ -18,7 +18,7 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
   const userData = await getLinkedHabiticaUser({ userId, forceRefresh: true });
   const questData = userData?.habitica_user_data?.party?.quest;
 
-  if (!questData?.questKey || questData?.questKey !== questKey) {
+  if (!questData?.key || questData?.key !== questKey) {
     if (removeThisCron) {
       await removeThisCron();
     }
@@ -58,7 +58,7 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
     return { success: false };
   }
 
-  handleApiAnalytic(undefined, 'auto-started-quest', JSON.stringify({
+  handleApiAnalytic(undefined, 'auto_start_quest_launched', JSON.stringify({
     userId,
     habitica_username: userData?.habitica_user_data?.username,
     habitica_email: userData?.habitica_user_data?.email,
