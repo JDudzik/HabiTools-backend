@@ -7,9 +7,11 @@ import {
   sendGlobalHabiticaNotification,
   activateAutoAcceptQuestsTool,
   activateAutoStartQuestsTool,
+  modifyAutoStartQuestsToolData,
   refreshToolInstance,
   teardownToolResources,
 } from 'internal/habitica';
+import { sanitizeProperties, isUUID, isInt } from 'utils';
 import { allowByPermissions } from 'internal/userController';
 
 
@@ -116,15 +118,62 @@ export const activateAutoAcceptQuests = async (req, res) => {
 // -- BODY --
 // wait_hours: The number of hours to wait.
 export const activateAutoStartQuests = async (req, res) => {
+  const sanitizedPayload = sanitizeProperties(req.body, {
+    requiredKeys: [ 'wait_hours' ],
+    trimPayload: true,
+    removeDisallowedKeys: true,
+    propertyValidations: [
+      isInt('wait_hours', { min: 0, max: 24 }, 'wait_hours must be an integer between 0 and 24'),
+    ],
+  });
+  if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
+  const sanitizedProperties = sanitizedPayload.properties;
+
   const user_id = await getLoggedInUser(req, [ 'id' ]);
 
-  const result = await activateAutoStartQuestsTool({ req, user_id, waitHours: req.body?.wait_hours });
+  const result = await activateAutoStartQuestsTool({ req, user_id, waitHours: sanitizedProperties.wait_hours });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;
   }
 
   res.status(201).json(result);
+};
+
+
+// -- PUT --
+// {API_URL}/v1/auth/habitica/tools/auto-start-quests/edit
+// Modifies an existing Auto Start Quests Tool Instance.
+// -- BODY --
+// resource_id: Required resource ID for the target tool instance.
+// wait_hours: Replacement for the tool wait-hours value.
+export const modifyAutoStartQuestsTool = async (req, res) => {
+  const sanitizedPayload = sanitizeProperties(req.body, {
+    requiredKeys: [ 'resource_id', 'wait_hours' ],
+    trimPayload: true,
+    removeDisallowedKeys: true,
+    propertyValidations: [
+      isUUID('resource_id', 'resource_id must be a valid UUID'),
+      isInt('wait_hours', { min: 0, max: 24 }, 'wait_hours must be an integer between 0 and 24'),
+    ],
+  });
+  if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
+  const sanitizedProperties = sanitizedPayload.properties;
+    
+  
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+  const result = await modifyAutoStartQuestsToolData({
+    userId,
+    resourceId: sanitizedProperties.resource_id,
+    waitHours: sanitizedProperties.wait_hours,
+  });
+
+  if (result?.code) {
+    res.status(result.code).json(result.responseContent);
+    return;
+  }
+
+  res.json(result);
 };
 
   
