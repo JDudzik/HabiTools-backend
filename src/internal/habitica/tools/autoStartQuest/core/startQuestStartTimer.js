@@ -28,11 +28,14 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
   if (userData?.code) { return returnOrSendResponse(userData.code, userData.responseContent); }
 
   const habiticaPartyInfo = await callHabiticaApi({
-    method: 'POST',
+    method: 'GET',
     path: '/groups/party',
     habiticaUserId: habiticaUserId,
     userId,
+    retryOnNetworkError: true,
+    retryOnRateLimit: true,
   });
+  
   if (!habiticaPartyInfo?.success) {
     if (habiticaPartyInfo?.code === 401 || habiticaPartyInfo?.code === 403) {
       await createEventMessage({
@@ -49,14 +52,11 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
       await teardownToolResources({
         resourceId,
         userId,
-        notification: {
-          slugPrefix: 'auto-start-quests',
-          name: 'Auto Start Quests',
-        },
       });
     }
     return { success: false };
   }
+
 
   const selectedTool = await HabiticaTool.query()
     .alias('tool')
@@ -72,6 +72,7 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
 
   const questKey = habiticaPartyInfo?.data?.quest?.key;
   const isQuestActive = habiticaPartyInfo?.data?.quest?.active;
+
   if (!questKey || isQuestActive) {
     return { success: null };
   }
