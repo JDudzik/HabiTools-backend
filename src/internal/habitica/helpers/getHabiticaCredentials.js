@@ -21,7 +21,6 @@ export const getHabiticaCredentials = async (properties) => {
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
   const sanitizedProperties = sanitizedPayload.properties;
 
-
   const habiticaUser = await HabiticaUser.query()
     .modify((qb) => {
       if (sanitizedProperties.userId) {

@@ -12,6 +12,10 @@ const ERROR_MESSAGE_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes cooldown for sen
 const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0) => {
   const { user_id, event_slug, message_text, should_notify_habitica, should_notify_habitica_via_admin } = sanitizedProperties;
   if (!should_notify_habitica && !should_notify_habitica_via_admin) { return; }
+  if (should_notify_habitica && should_notify_habitica_via_admin) {
+    handleApiError(new Error('Both "should_notify_habitica" and "should_notify_habitica_via_admin" cannot be true at the same time.'), 'createEventMessage.notifyHabiticaOfEventMessage.invalidProperties');
+    return;
+  }
 
   if (retryCount > 20) {
     if (should_notify_habitica) {
@@ -51,10 +55,19 @@ const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0)
       }
     }
 
-    const senderCredentials = await getHabiticaCredentials({
-      habiticaUserId: should_notify_habitica_via_admin && process.env.HABITICA_ADMIN_FOR_NOTIFICATIONS,
-      userId: should_notify_habitica && sanitizedProperties.user_id,
-    });
+    let senderCredentials = undefined;
+    try {
+      senderCredentials = await getHabiticaCredentials({
+        habiticaUserId: should_notify_habitica_via_admin && process.env.HABITICA_ADMIN_FOR_NOTIFICATIONS,
+        userId: should_notify_habitica && sanitizedProperties.user_id,
+      });
+    } catch (err) {
+      if (should_notify_habitica_via_admin && err.message.includes('No linked Habitica account found for the provided identifiers')) {
+        const errWithContext = new Error('Admin Habitica account for Habitica notifications is not properly linked to a HabiTools account.');
+        handleApiError(errWithContext, 'createEventMessage.notifyHabiticaOfEventMessage.invalidAdminCredentials');
+        return;
+      }
+    }
 
     const url = `${ process.env.HABITICA_API_URL }/members/send-private-message`;
     const payload = {
