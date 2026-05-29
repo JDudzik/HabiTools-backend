@@ -89,7 +89,6 @@ async function startServer() {
       }
   
       // If the route is anything but the root, it must not exist and is a 404.
-      handleApiAnalytic(req, 'unmatched_api_path', req.originalUrl);
       res.status(404);
       res.json({
         status: 'INVALID_URL',
