@@ -112,6 +112,7 @@ export const modifyToolInstanceData = async (properties) => {
       }
     }
 
+    // Update inactive crons in the database.
     await Promise.all(inactiveCronIds.map((cronData) => {
       return Cron.query()
         .patch({ data: cronData.data, updated_at: now })

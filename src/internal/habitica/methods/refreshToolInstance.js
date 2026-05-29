@@ -103,6 +103,7 @@ export const refreshToolInstance = async (properties) => {
       }
     }
 
+    // Update inactive crons in the database.
     if (inactiveCronIds.length) {
       await Cron.query()
         .patch({ expires_at: newExpiration, updated_at: now })
