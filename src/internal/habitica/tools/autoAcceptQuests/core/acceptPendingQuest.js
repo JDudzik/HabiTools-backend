@@ -3,7 +3,7 @@ import { createEventMessage } from 'internal/eventMessages/core/createEventMessa
 import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 import { getHabiticaContent } from 'internal/habitica/core/getHabiticaContent';
-import { handleApiAnalytic } from 'utils';
+import { handleApiAnalytic, handleApiError } from 'utils';
 import toolInvalidCredentials from '../../content/toolInvalidCredentials';
 
 
@@ -23,7 +23,7 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
     habitica_username: userData?.habitica_user_data?.username,
     habitica_email: userData?.habitica_user_data?.email,
     source,
-    questData,
+    questKey: questData?.key,
   }));
 
   if (!questData?.RSVPNeeded) {
@@ -71,14 +71,21 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
     short_message: 'Quest auto-accepted',
     priority: 1,
   }).catch(() => {});
+  handleApiAnalytic(undefined, 'quest_accepted_via_cron', JSON.stringify({
+    questKey: questData?.key,
+    userId,
+    habitica_username: userData?.habitica_user_data?.username,
+    habitica_email: userData?.habitica_user_data?.email,
+  }));
   if (source === 'cron') {
     // If a cron accepted a quest, that implies that a webhook has failed to trigger for some reason.
     handleApiAnalytic(undefined, 'quest_accepted_via_cron', JSON.stringify({
-      questData,
+      questKey: questData?.key,
       userId,
       habitica_username: userData?.habitica_user_data?.username,
       habitica_email: userData?.habitica_user_data?.email,
     }));
+    handleApiError(new Error('Quest accepted via cron'), 'acceptPendingQuest.acceptedViaCron');
   }
   return { success: true };
 };
