@@ -49,10 +49,6 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
       await teardownToolResources({
         resourceId,
         userId,
-        notification: {
-          slugPrefix: 'auto-start-quests',
-          name: 'Auto Start Quests',
-        },
       });
     }
     return { success: false };
