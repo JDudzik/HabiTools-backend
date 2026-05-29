@@ -9,6 +9,11 @@ import { withCronManager, cronFailedManager } from './withCronManager';
 import Cron from 'knex/models/Cron';
 
 
+const DEFAULT_OPTIONS = {
+  timezone: 'America/New_York',
+  maxRandomDelay: 1000,
+};
+
 /**
  * Create or update a cron job with the given parameters.
  * @param {object} topParameters - The parameters for the cron job.
@@ -22,11 +27,10 @@ import Cron from 'knex/models/Cron';
  * @param {boolean} topParameters.immediateOnce - Whether to execute the cron immediately.
  * @param {boolean} topParameters.isActive - Whether the cron is active.
  * @param {string} topParameters.schedule - Cron schedule string.
- * @param {object} topParameters.options - Options for the cron job.
+ * @param {Options} topParameters.options - Options for the cron job (optionally contains: name, timezone, noOverlap, maxExecutions, maxRandomDelay). https://www.nodecron.com/scheduling-options.html
  * @param {object} topParameters.data - Data to pass to the cron job.
  * @returns {void}
  */
-
 export const setCron = async (topParameters) => {
   const {
     fromDatabase = false,
@@ -57,8 +61,9 @@ export const setCron = async (topParameters) => {
   if (isModifyingTask) {
     activeCrons[cronId].task.destroy();
   }
-
+  
   const uuid = cronId || crypto.randomUUID();
+  const combinedOptions = { ...DEFAULT_OPTIONS, ...taskConfig?.options, ...options };
   const parameters = {
     uuid,
     userId,
@@ -72,12 +77,12 @@ export const setCron = async (topParameters) => {
       replaceDelay(
         replaceTimeAdjustments(
           replaceRandom(derivedSchedule),
-          (options?.timezone || 'America/New_York'),
+          combinedOptions?.timezone,
         ),
-        (options?.timezone || 'America/New_York'),
+        combinedOptions?.timezone,
       )
     ),
-    options: { ...taskConfig?.options, ...options },
+    options: combinedOptions,
     data: JSON.parse(JSON.stringify(data)),
     removeThisCron: cleanupData => removeCron(uuid, parameters, cleanupData),
     setThisCron: newParameters => setCron({ ...newParameters, cronId: uuid }),

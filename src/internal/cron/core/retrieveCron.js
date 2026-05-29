@@ -2,9 +2,11 @@ import activeCrons from './activeCrons';
 
 
 export const retrieveCron = (uuid) => {
-  if (!activeCrons[uuid]) {
+  const selectedCron = activeCrons[uuid];
+
+  if (!selectedCron) {
     throw [ new Error(`No active cron found with uuid: ${ uuid }`), 'retrieveCron' ];
   }
 
-  return activeCrons[uuid];
+  return selectedCron;
 };
