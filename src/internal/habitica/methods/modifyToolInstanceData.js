@@ -36,7 +36,6 @@ export const modifyToolInstanceData = async (properties) => {
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
   const sanitizedProperties = sanitizedPayload.properties;
 
-
   const selectedTool = await HabiticaTool.query()
     .alias('tool')
     .joinRelated('habitica_user')
