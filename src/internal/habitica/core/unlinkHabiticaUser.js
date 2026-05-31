@@ -15,19 +15,19 @@ import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } f
  */
 export const unlinkHabiticaUser = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
-    requiredKeys: [ 'user_id' ],
+    requiredKeys: [ 'userId' ],
     optionalKeys: [ 'shouldNotify' ],
     trimPayload: true,
     removeDisallowedKeys: true,
     parseBools: true,
     propertyValidations: [
-      isUUID('user_id', 'user_id must be a valid UUID'),
+      isUUID('userId', 'userId must be a valid UUID'),
     ],
   });
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
   const sanitizedProperties = sanitizedPayload.properties;
 
-  const habiticaUser = await HabiticaUser.query().where({ user_id: sanitizedProperties.user_id }).first();
+  const habiticaUser = await HabiticaUser.query().where({ user_id: sanitizedProperties.userId }).first();
   if (!habiticaUser) {
     return returnOrSendResponse(404, {
       status: 'NOT_LINKED',
@@ -54,7 +54,7 @@ export const unlinkHabiticaUser = async (properties) => {
 
   if (sanitizedProperties.shouldNotify) {
     await createEventMessage({
-      user_id: sanitizedProperties.user_id,
+      user_id: sanitizedProperties.userId,
       event_slug: 'habitica-user-unlinked',
       event_name: 'Habitica User Unlinked',
       message_text: 'Your Habitica account has been unlinked and all associated tools have been disabled.',

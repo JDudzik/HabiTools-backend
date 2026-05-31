@@ -19,8 +19,8 @@ import { allowByPermissions } from 'internal/userController';
 // {API_URL}/v1/auth/habitica
 // Returns the linked Habitica account for the logged-in user.
 export const getHabitica = async (req, res) => {
-  const user_id = await getLoggedInUser(req, [ 'id' ]);
-  const result = await getLinkedHabiticaUser({ userId: user_id });
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+  const result = await getLinkedHabiticaUser({ userId });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;
@@ -66,7 +66,7 @@ export const getHabiticaContentData = async (req, res) => {
 // habitica_user_id: The Habitica user UUID.
 // api_key: The Habitica API key.
 export const link = async (req, res) => {
-  const user_id = await getLoggedInUser(req, [ 'id' ]);
+  const userId = await getLoggedInUser(req, [ 'id' ]);
   const { habitica_user_id, api_key } = req.body;
 
   if (!habitica_user_id || !api_key) {
@@ -74,7 +74,7 @@ export const link = async (req, res) => {
     return;
   }
 
-  const result = await linkHabiticaUser({ req, user_id, habitica_user_id, api_key });
+  const result = await linkHabiticaUser({ req, userId, habiticaUserId: habitica_user_id, apiKey: api_key });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;
@@ -86,8 +86,8 @@ export const link = async (req, res) => {
 // -- DELETE --
 // {API_URL}/v1/auth/habitica/unlink
 export const unlink = async (req, res) => {
-  const user_id = await getLoggedInUser(req, [ 'id' ]);
-  const result = await unlinkHabiticaUser({ req, user_id });
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+  const result = await unlinkHabiticaUser({ req, userId });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;
@@ -100,9 +100,9 @@ export const unlink = async (req, res) => {
 // {API_URL}/v1/auth/habitica/tools/auto-accept-quests
 // Creates a new Auto Accept Quests Tool Instance.
 export const activateAutoAcceptQuests = async (req, res) => {
-  const user_id = await getLoggedInUser(req, [ 'id' ]);
+  const userId = await getLoggedInUser(req, [ 'id' ]);
 
-  const result = await activateAutoAcceptQuestsTool({ req, user_id });
+  const result = await activateAutoAcceptQuestsTool({ req, userId });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;
@@ -180,7 +180,7 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
 // {API_URL}/v1/auth/habitica/tools/refresh
 // Extends the Tool Lease. Only valid for a non-expired instance.
 export const refreshTool = async (req, res) => {
-  const user_id = await getLoggedInUser(req, [ 'id' ]);
+  const userId = await getLoggedInUser(req, [ 'id' ]);
   const { resource_id } = req.body;
 
   if (!resource_id) {
@@ -188,7 +188,7 @@ export const refreshTool = async (req, res) => {
     return;
   }
 
-  const result = await refreshToolInstance({ userId: user_id, resourceId: resource_id });
+  const result = await refreshToolInstance({ userId, resourceId: resource_id });
   if (result.code) { return res.status(result.code).send(result.responseContent); }
 
   res.json(result);
@@ -199,7 +199,7 @@ export const refreshTool = async (req, res) => {
 // {API_URL}/v1/auth/habitica/tools/teardown
 // Deactivates and fully removes the tool Instance.
 export const teardownTool = async (req, res) => {
-  const user_id = await getLoggedInUser(req, [ 'id' ]);
+  const userId = await getLoggedInUser(req, [ 'id' ]);
   const { resource_id, notification } = req.body;
 
   if (!resource_id) {
@@ -208,7 +208,7 @@ export const teardownTool = async (req, res) => {
   }
 
   const result = await teardownToolResources({
-    userId: user_id,
+    userId,
     resourceId: resource_id,
     notification,
   });

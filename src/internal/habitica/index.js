@@ -12,6 +12,7 @@ export * from './methods/refreshToolInstance';
 export * from './methods/sendGlobalHabiticaNotification';
 export * from './methods/teardownToolResources';
 export * from './methods/modifyToolInstanceData';
+export * from './methods/activateToolInstance';
 
 export * from './tools/autoAcceptQuests';
 export * from './tools/autoStartQuest';

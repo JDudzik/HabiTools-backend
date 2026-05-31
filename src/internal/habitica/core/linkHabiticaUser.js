@@ -20,20 +20,20 @@ import welcomeMessage from './content/welcomeMessage';
 // eslint-disable-next-line complexity
 export const linkHabiticaUser = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
-    requiredKeys: [ 'user_id', 'habitica_user_id', 'api_key' ],
+    requiredKeys: [ 'userId', 'habiticaUserId', 'apiKey' ],
     optionalKeys: [],
     trimPayload: true,
     removeDisallowedKeys: true,
     propertyValidations: [
-      isUUID('user_id', 'user_id must be a valid UUID'),
-      isUUID('habitica_user_id', 'habitica_user_id must be a valid UUID'),
+      isUUID('userId', 'userId must be a valid UUID'),
+      isUUID('habiticaUserId', 'habiticaUserId must be a valid UUID'),
     ],
   });
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
   const sanitizedProperties = sanitizedPayload.properties;
 
   // Enforce exactly one linked account per Habitools user
-  const existingLink = await HabiticaUser.query().where({ user_id: sanitizedProperties.user_id }).first();
+  const existingLink = await HabiticaUser.query().where({ user_id: sanitizedProperties.userId }).first();
   if (existingLink) {
     return returnOrSendResponse(409, {
       status: 'ALREADY_LINKED',
@@ -46,8 +46,8 @@ export const linkHabiticaUser = async (properties) => {
     method: 'GET',
     path: '/user',
     credentialOverride: {
-      habiticaUserId: sanitizedProperties.habitica_user_id,
-      apiKey: sanitizedProperties.api_key,
+      habiticaUserId: sanitizedProperties.habiticaUserId,
+      apiKey: sanitizedProperties.apiKey,
     },
     retryOnNetworkError: true,
     retryOnRateLimit: true,
@@ -62,18 +62,18 @@ export const linkHabiticaUser = async (properties) => {
   }
 
   // Confirm user ID matches what Habitica returned
-  if (userData.data._id !== sanitizedProperties.habitica_user_id) {
+  if (userData.data._id !== sanitizedProperties.habiticaUserId) {
     return returnOrSendResponse(401, {
       status: 'INVALID_CREDENTIALS',
       message: 'Habitica user ID does not match the provided credentials.',
     });
   }
 
-  const encrypted_api_key = habiticaEncryption.encrypt(sanitizedProperties.api_key);
+  const encrypted_api_key = habiticaEncryption.encrypt(sanitizedProperties.apiKey);
 
   const habiticaUser = await HabiticaUser.query().insertAndFetch({
-    user_id: sanitizedProperties.user_id,
-    habitica_user_id: sanitizedProperties.habitica_user_id,
+    user_id: sanitizedProperties.userId,
+    habitica_user_id: sanitizedProperties.habiticaUserId,
     is_primary: true,
     created_at: Date.now(),
   });
@@ -113,7 +113,7 @@ export const linkHabiticaUser = async (properties) => {
   }));
 
   await createEventMessage({
-    user_id: sanitizedProperties.user_id,
+    user_id: sanitizedProperties.userId,
     event_slug: 'welcome_to_habitools',
     event_name: 'Welcome to HabiTools',
     message_text: welcomeMessage,
