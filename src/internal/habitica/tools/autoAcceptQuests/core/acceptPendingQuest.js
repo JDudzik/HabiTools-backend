@@ -71,11 +71,12 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
     short_message: 'Quest auto-accepted',
     priority: 1,
   }).catch(() => {});
-  handleApiAnalytic(undefined, 'quest_accepted_via_cron', JSON.stringify({
+  handleApiAnalytic(undefined, 'quest_accepted', JSON.stringify({
     questKey: questData?.key,
     userId,
     habitica_username: userData?.habitica_user_data?.username,
     habitica_email: userData?.habitica_user_data?.email,
+    source,
   }));
   if (source === 'cron') {
     // If a cron accepted a quest, that implies that a webhook has failed to trigger for some reason.
@@ -84,6 +85,7 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
       userId,
       habitica_username: userData?.habitica_user_data?.username,
       habitica_email: userData?.habitica_user_data?.email,
+      source,
     }));
     handleApiError(new Error('Quest accepted via cron'), 'acceptPendingQuest.acceptedViaCron');
   }
