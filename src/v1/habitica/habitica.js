@@ -5,14 +5,15 @@ import {
   getLinkedHabiticaUser,
   getHabiticaContent,
   sendGlobalHabiticaNotification,
-  activateAutoAcceptQuestsTool,
-  activateAutoStartQuestsTool,
   modifyAutoStartQuestsToolData,
   refreshToolInstance,
   teardownToolResources,
 } from 'internal/habitica';
 import { sanitizeProperties, isUUID, isInt } from 'utils';
 import { allowByPermissions } from 'internal/userController';
+import { activateToolInstance } from 'internal/habitica/methods/activateToolInstance';
+import { startQuestStartTimer } from 'internal/habitica/tools/autoStartQuest/core/startQuestStartTimer';
+
 
 
 // -- GET --
@@ -102,13 +103,29 @@ export const unlink = async (req, res) => {
 export const activateAutoAcceptQuests = async (req, res) => {
   const userId = await getLoggedInUser(req, [ 'id' ]);
 
-  const result = await activateAutoAcceptQuestsTool({ req, userId });
-  if (result?.code) {
-    res.status(result.code).json(result.responseContent);
+  const activatedResult = activateToolInstance({
+    req,
+    userId,
+    toolSlug: 'auto-accept-quests',
+    toolName: 'Auto Accept Quests',
+    webhooks: [{
+      taskName: 'auto-accept-quests-webhook',
+      externalWebhookBody: {
+        type: 'questActivity',
+        options: { questInvited: true },
+      },
+    }],
+    crons: [{
+      taskName: 'auto-accept-quests-cron',
+      immediateOnce: true,
+    }],
+  });
+  if (activatedResult?.code) {
+    res.status(activatedResult.code).json(activatedResult.responseContent);
     return;
   }
 
-  res.status(201).json(result);
+  res.status(201).json(activatedResult);
 };
 
 
@@ -130,13 +147,36 @@ export const activateAutoStartQuests = async (req, res) => {
   const sanitizedProperties = sanitizedPayload.properties;
 
   const userId = await getLoggedInUser(req, [ 'id' ]);
-  const result = await activateAutoStartQuestsTool({ req, userId, waitHours: sanitizedProperties.wait_hours });
-  if (result?.code) {
-    res.status(result.code).json(result.responseContent);
+
+  const activatedResult = await activateToolInstance({
+    req,
+    userId,
+    toolSlug: 'auto_start_quests',
+    toolName: 'Auto Start Quests',
+    toolData: { waitHours: sanitizedProperties.wait_hours ?? 24 },
+    webhooks: [{
+      taskName: 'auto-start-quests-start-timer',
+      externalWebhookBody: {
+        type: 'questActivity',
+        options: {
+          questInvited: true,
+          questStarted: true,
+        },
+      },
+    }],
+  });
+  if (activatedResult?.code) {
+    res.status(activatedResult.code).json(activatedResult.responseContent);
     return;
   }
+  
+  await startQuestStartTimer({
+    userId,
+    resourceId: activatedResult.toolInstance.id,
+    habiticaUserId: activatedResult.habiticaUser.habitica_user_id,
+  });
 
-  res.status(201).json(result);
+  res.status(201).json(activatedResult);
 };
 
 
