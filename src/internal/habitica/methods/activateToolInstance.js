@@ -162,7 +162,13 @@ export const activateToolInstance = async (config) => {
         data: { habiticaUserId: habiticaUser.habitica_user_id, ...cronData },
       });
 
-      createdCrons.push(internalCron);
+      createdCrons.push({
+        parameters: internalCron.parameters,
+        task: {
+          cronExpression: internalCron.task.cronExpression,
+          timezone: internalCron.task.timezone,
+        },
+      });
     }
   } catch {
     await teardownToolResources({ resourceId: toolInstance.id });

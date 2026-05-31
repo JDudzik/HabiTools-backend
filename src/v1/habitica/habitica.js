@@ -102,7 +102,7 @@ export const unlink = async (req, res) => {
 export const activateAutoAcceptQuests = async (req, res) => {
   const userId = await getLoggedInUser(req, [ 'id' ]);
 
-  const activatedResult = activateToolInstance({
+  const activatedResult = await activateToolInstance({
     req,
     userId,
     toolSlug: 'auto-accept-quests',
