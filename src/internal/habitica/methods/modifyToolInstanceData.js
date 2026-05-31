@@ -2,6 +2,7 @@ import HabiticaTool from 'knex/models/HabiticaTool';
 import Webhook from 'knex/models/Webhook';
 import Cron from 'knex/models/Cron';
 import activeCrons from 'internal/cron/core/activeCrons';
+import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
 
 
@@ -19,12 +20,14 @@ const hasPlainObjectValues = (value) => {
  * @param {Object} [properties.toolData] - Data to merge into the HabiticaTool.data payload.
  * @param {Object} [properties.webhookData] - Data to merge into each related Webhook.data payload.
  * @param {Object} [properties.cronData] - Data to merge into each related Cron.data payload.
+ * @param {Object} [properties.eventMessage] - Data to create an event message.
+ * @param {boolean} [properties.skipEventMessage] - Whether to skip creating an event message.
  * @returns {Promise<Object>} - A success response with update counts or an error response.
  */
 export const modifyToolInstanceData = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'resourceId', 'userId' ],
-    optionalKeys: [ 'toolData', 'webhookData', 'cronData' ],
+    optionalKeys: [ 'toolData', 'webhookData', 'cronData', 'eventMessage', 'skipEventMessage' ],
     trimPayload: true,
     atLeastOneOptionalProp: true,
     removeDisallowedKeys: true,
@@ -119,6 +122,19 @@ export const modifyToolInstanceData = async (properties) => {
     }));
 
     updatedSummary.cronsUpdated = crons.length;
+  }
+
+  if (!sanitizedProperties.skipEventMessage) {
+    createEventMessage({
+      user_id: sanitizedProperties.userId,
+      resource_id: selectedTool.id,
+      priority: 1,
+      event_slug: `${ sanitizedProperties.resourceId }-modified`,
+      event_name: 'Tool Updated',
+      message_text: 'This tool\'s settings have been updated.',
+      short_text: 'Tool updated.',
+      ...(sanitizedProperties.eventMessage || {}),
+    }).catch(() => {});
   }
 
 

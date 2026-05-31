@@ -202,6 +202,10 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
     userId,
     resourceId: sanitizedProperties.resource_id,
     toolData: { waitHours: sanitizedProperties.wait_hours },
+    eventMessage: {
+      message_text: `The Auto Start Quests tool has been updated with a new wait time of ${ sanitizedProperties.wait_hours } hours.`,
+      short_message: 'Auto Start Quests tool was updated.',
+    },
   });
   if (result?.code) { return returnOrSendResponse(result.code, result.responseContent, req, res); }
   
@@ -216,6 +220,43 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
   
   res.json({ success: true, result });
 };
+
+
+// -- POST --
+// {API_URL}/v1/auth/habitica/tools/party-pulse
+// Creates a new Party Pulse Tool Instance.
+// -- BODY --
+// scoreDisplayDirection: A string defining the direction to display party member scores. Can be 'ascending' or 'descending'. Defaults to 'ascending'.
+// export const activatePartyPulse = async (req, res) => {
+//   const userId = await getLoggedInUser(req, [ 'id' ]);
+
+//   return activateToolInstance({
+//     req,
+//     userId,
+//     toolSlug: 'party_pulse',
+//     toolName: 'Party Pulse',
+//     toolData: {
+//       lastPulseAt: null,
+//       scoreDisplayDirection: 'ascending',
+//       members: {},
+//     },
+//     crons: [{
+//       taskName: 'party_pulse-cron',
+//       immediateOnce: true,
+//     }],
+//     onSuccess: ({ toolInstance, crons }) => ({
+//       success: true,
+//       toolInstance,
+//       cron: crons?.[0],
+//     }),
+//   });
+//   // if (activatedResult?.code) {
+//   //   res.status(activatedResult.code).json(activatedResult.responseContent);
+//   //   return;
+//   // }
+
+//   // res.status(201).json(activatedResult);
+// };
 
   
 // -- PUT --
