@@ -149,7 +149,7 @@ export const activateAutoStartQuests = async (req, res) => {
   const activatedResult = await activateToolInstance({
     req,
     userId,
-    toolSlug: 'auto_start_quests',
+    toolSlug: 'auto-start-quests',
     toolName: 'Auto Start Quests',
     toolData: { waitHours: sanitizedProperties.wait_hours ?? 24 },
     webhooks: [{
@@ -233,7 +233,7 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
 //   return activateToolInstance({
 //     req,
 //     userId,
-//     toolSlug: 'party_pulse',
+//     toolSlug: 'party-pulse',
 //     toolName: 'Party Pulse',
 //     toolData: {
 //       lastPulseAt: null,
@@ -241,7 +241,7 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
 //       members: {},
 //     },
 //     crons: [{
-//       taskName: 'party_pulse-cron',
+//       taskName: 'party-pulse-cron',
 //       immediateOnce: true,
 //     }],
 //     onSuccess: ({ toolInstance, crons }) => ({
