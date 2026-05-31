@@ -34,14 +34,14 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
   if (!habiticaPartyInfo?.success) {
     if (habiticaPartyInfo?.code === 401 || habiticaPartyInfo?.code === 403) {
       await createEventMessage({
-        user_id: userId,
-        resource_id: resourceId,
-        event_slug: 'quest-auto-start-failed',
-        event_name: 'Quest Auto-Start Failed',
-        message_text: toolInvalidCredentials('Auto Start Quests'),
-        short_message: 'Quest Auto-Start Failed',
-        should_notify: true,
-        should_notify_habitica_via_admin: true,
+        userId,
+        resourceId,
+        eventSlug: 'quest-auto-start-failed',
+        eventName: 'Quest Auto-Start Failed',
+        messageText: toolInvalidCredentials('Auto Start Quests'),
+        shortMessage: 'Quest Auto-Start Failed',
+        shouldNotify: true,
+        shouldNotifyHabiticaViaAdmin: true,
         priority: 3,
       }).catch(() => {});
       await teardownToolResources({
@@ -75,12 +75,12 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
   const questLeader = habiticaPartyInfo?.data?.quest?.leader;
   if (questKey && habiticaUserId !== partyLeader && habiticaUserId !== questLeader) {
     await createEventMessage({
-      user_id: userId,
-      resource_id: resourceId,
-      event_slug: 'quest-auto-start-skipped',
-      event_name: 'Skipped',
-      message_text: 'Auto-start was skipped this time because you must either be the party leader or the quest leader.',
-      short_message: 'Skipped',
+      userId,
+      resourceId,
+      eventSlug: 'quest-auto-start-skipped',
+      eventName: 'Skipped',
+      messageText: 'Auto-start was skipped this time because you must either be the party leader or the quest leader.',
+      shortMessage: 'Skipped',
       priority: 0,
     }).catch(() => {});
     return { success: null };
@@ -103,12 +103,12 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
   });
 
   await createEventMessage({
-    user_id: userId,
-    resource_id: resourceId,
-    event_slug: 'quest_timer_started',
-    event_name: 'Quest Timer Started',
-    message_text: `The automatic-start timer for your quest, [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }), has been started. The quest will launch in ${ waitHours } hours.`,
-    short_message: 'Quest Timer Started',
+    userId,
+    resourceId,
+    eventSlug: 'quest_timer_started',
+    eventName: 'Quest Timer Started',
+    messageText: `The automatic-start timer for your quest, [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }), has been started. The quest will launch in ${ waitHours } hours.`,
+    shortMessage: 'Quest Timer Started',
     priority: 1,
   }).catch(() => {});
 

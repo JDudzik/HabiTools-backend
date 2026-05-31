@@ -114,11 +114,11 @@ export const stripeWebhookRouter = async (payload, respond) => {
       .first();
 
     await createEventMessage({
-      user_id: '00000001-0001-4000-a000-000000000000',
-      short_message: `SW: ${ eventType }`,
-      should_notify: true,
+      userId: '00000001-0001-4000-a000-000000000000',
+      shortMessage: `SW: ${ eventType }`,
+      shouldNotify: true,
       priority: 1,
-      message_text:
+      messageText:
 `
 ### Type: \`${ eventType }\`
 \`\`\`

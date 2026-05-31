@@ -10,18 +10,18 @@ const ERROR_MESSAGE_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes cooldown for sen
 // Note: This helper method exists to prevent a difficult circular dependency that would occur by utilizing the habitica methods.
 // We don't want any kind of error handling in this method. Instead we want it to just silently fail.
 const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0) => {
-  const { user_id, event_slug, message_text, should_notify_habitica, should_notify_habitica_via_admin } = sanitizedProperties;
-  if (!should_notify_habitica && !should_notify_habitica_via_admin) { return; }
-  if (should_notify_habitica && should_notify_habitica_via_admin) {
-    handleApiError(new Error('Both "should_notify_habitica" and "should_notify_habitica_via_admin" cannot be true at the same time.'), 'createEventMessage.notifyHabiticaOfEventMessage.invalidProperties');
+  const { userId, eventSlug, messageText, shouldNotifyHabitica, shouldNotifyHabiticaViaAdmin } = sanitizedProperties;
+  if (!shouldNotifyHabitica && !shouldNotifyHabiticaViaAdmin) { return; }
+  if (shouldNotifyHabitica && shouldNotifyHabiticaViaAdmin) {
+    handleApiError(new Error('Both "shouldNotifyHabitica" and "shouldNotifyHabiticaViaAdmin" cannot be true at the same time.'), 'createEventMessage.notifyHabiticaOfEventMessage.invalidProperties');
     return;
   }
 
   if (retryCount > 20) {
-    if (should_notify_habitica) {
+    if (shouldNotifyHabitica) {
       handleApiAnalytic(undefined, 'too_many_failed_habitica_messages', JSON.stringify(sanitizedProperties));
     }
-    if (should_notify_habitica_via_admin) {
+    if (shouldNotifyHabiticaViaAdmin) {
       const err = new Error(`Failed to send Habitica notification after ${ retryCount } retries. ${ JSON.stringify(sanitizedProperties) }`);
       handleApiError(err, 'createEventMessage.notifyHabiticaOfEventMessage.failed_admin_notification_loop');
     }
@@ -30,14 +30,14 @@ const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0)
 
   try {
     const receivingHabiticaUser = await HabiticaUser.query()
-      .where({ user_id })
+      .where({ user_id: userId })
       .select([ 'habitica_user_id' ])
       .first();
     if (!receivingHabiticaUser) { return; }
 
     const habiticaUserId = receivingHabiticaUser?.habitica_user_id;
-    const shouldApplyCooldown = Boolean(habiticaUserId && event_slug);
-    const dedupeKey = shouldApplyCooldown ? `${ habiticaUserId }::${ event_slug }` : null;
+    const shouldApplyCooldown = Boolean(habiticaUserId && eventSlug);
+    const dedupeKey = shouldApplyCooldown ? `${ habiticaUserId }::${ eventSlug }` : null;
 
     if (dedupeKey) {
       const now = Date.now();
@@ -58,11 +58,11 @@ const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0)
     let senderCredentials = undefined;
     try {
       senderCredentials = await getHabiticaCredentials({
-        habiticaUserId: should_notify_habitica_via_admin && process.env.HABITICA_ADMIN_FOR_NOTIFICATIONS,
-        userId: should_notify_habitica && sanitizedProperties.user_id,
+        habiticaUserId: shouldNotifyHabiticaViaAdmin && process.env.HABITICA_ADMIN_FOR_NOTIFICATIONS,
+        userId: shouldNotifyHabitica && sanitizedProperties.userId,
       });
     } catch (err) {
-      if (should_notify_habitica_via_admin && err.message.includes('No linked Habitica account found for the provided identifiers')) {
+      if (shouldNotifyHabiticaViaAdmin && err.message.includes('No linked Habitica account found for the provided identifiers')) {
         const errWithContext = new Error('Admin Habitica account for Habitica notifications is not properly linked to a HabiTools account.');
         handleApiError(errWithContext, 'createEventMessage.notifyHabiticaOfEventMessage.invalidAdminCredentials');
         return;
@@ -80,7 +80,7 @@ const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0)
       },
       body: JSON.stringify({
         toUserId: receivingHabiticaUser?.habitica_user_id,
-        message: `## HabiTools Notification:\n${ message_text }`,
+        message: `## HabiTools Notification:\n${ messageText }`,
       }),
     };
     const response = await fetch(url, payload);
@@ -108,31 +108,31 @@ const notifyHabiticaOfEventMessage = async (sanitizedProperties, retryCount = 0)
 /**
  * Creates a new event message for a user, which can be used to notify the user of important events or updates. Optionally, the event message can trigger a notification to the user's Habitica account.
  * @param {Object} payload - The properties for creating the event message.
- * @param {string} payload.user_id - The user ID of the recipient of the event message.
- * @param {string} payload.message_text - The main text content of the event message.
+ * @param {string} payload.userId - The user ID of the recipient of the event message.
+ * @param {string} payload.messageText - The main text content of the event message.
  * @param {integer} payload.priority - The priority level of the event message (0="debug", 1="normal", 2="high", 3="severe").
- * @param {string} [payload.resource_id] - An optional resource ID associated with the event.
- * @param {string} [payload.event_slug] - An optional slug to categorize the event.
- * @param {string} [payload.event_name] - An optional human-readable name for the event.
- * @param {string} [payload.short_message] - An optional shorter version of the message text for notifications.
- * @param {boolean} [payload.should_notify] - Whether to trigger a notification within HabiTools for this event message.
- * @param {boolean} [payload.should_notify_habitica] - Whether to send a private message notification to the user's Habitica account about this event.
- * @param {boolean} [payload.should_notify_habitica_via_admin] - Whether to send a private message notification to the user's Habitica account using the admin account (useful if the user has not linked their own account or if their credentials are invalid).
+ * @param {string} [payload.resourceId] - An optional resource ID associated with the event.
+ * @param {string} [payload.eventSlug] - An optional slug to categorize the event.
+ * @param {string} [payload.eventName] - An optional human-readable name for the event.
+ * @param {string} [payload.shortMessage] - An optional shorter version of the message text for notifications.
+ * @param {boolean} [payload.shouldNotify] - Whether to trigger a notification within HabiTools for this event message.
+ * @param {boolean} [payload.shouldNotifyHabitica] - Whether to send a private message notification to the user's Habitica account about this event.
+ * @param {boolean} [payload.shouldNotifyHabiticaViaAdmin] - Whether to send a private message notification to the user's Habitica account using the admin account (useful if the user has not linked their own account or if their credentials are invalid).
  * @param {boolean} [payload.acknowledged] - Whether the event message has been acknowledged by the user (default: false).
  * @returns {Promise<Object>} - The created event message record, or an error response if validation fails.
  */
 export const createEventMessage = async (payload) => {
   try {
     const sanitizedPayload = sanitizeProperties(payload, {
-      requiredKeys: [ 'user_id', 'message_text', 'priority' ],
-      optionalKeys: [ 'resource_id', 'event_slug', 'event_name', 'short_message', 'should_notify', 'should_notify_habitica', 'should_notify_habitica_via_admin', 'acknowledged' ],
+      requiredKeys: [ 'userId', 'messageText', 'priority' ],
+      optionalKeys: [ 'resourceId', 'eventSlug', 'eventName', 'shortMessage', 'shouldNotify', 'shouldNotifyHabitica', 'shouldNotifyHabiticaViaAdmin', 'acknowledged' ],
       trimPayload: true,
       removeDisallowedKeys: true,
       parseInts: true,
       parseBools: true,
       propertyValidations: [
-        presence('user_id', 'The user ID is required'),
-        optional(isUUID('resource_id', 'The resource ID must be a valid UUID')),
+        presence('userId', 'The user ID is required'),
+        optional(isUUID('resourceId', 'The resource ID must be a valid UUID')),
       ],
     });
     if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
@@ -140,19 +140,19 @@ export const createEventMessage = async (payload) => {
 
     // Insert the new event message into the database
     const newMessage = await EventMessage.query().insert({
-      user_id: sanitizedProperties.user_id,
-      resource_id: sanitizedProperties.resource_id || null,
-      event_slug: sanitizedProperties.event_slug,
-      event_name: sanitizedProperties.event_name,
-      message_text: sanitizedProperties.message_text,
-      short_message: sanitizedProperties.short_message || null,
-      should_notify: sanitizedProperties.should_notify || false,
+      user_id: sanitizedProperties.userId,
+      resource_id: sanitizedProperties.resourceId || null,
+      event_slug: sanitizedProperties.eventSlug,
+      event_name: sanitizedProperties.eventName,
+      message_text: sanitizedProperties.messageText,
+      short_message: sanitizedProperties.shortMessage || null,
+      should_notify: sanitizedProperties.shouldNotify || false,
       priority: sanitizedProperties.priority,
       acknowledged: sanitizedProperties.acknowledged || false,
       created_at: Date.now(),
     });
 
-    if (sanitizedProperties.should_notify_habitica || sanitizedProperties.should_notify_habitica_via_admin) {
+    if (sanitizedProperties.shouldNotifyHabitica || sanitizedProperties.shouldNotifyHabiticaViaAdmin) {
       // We add a random delay to prevent stampeding Habitica servers (eg: If an urgent message requires a notification sent to every user).
       const randomDelay = Math.floor(Math.random() * 4000) + 500; // Random delay between 500ms (0.5s) and 4500ms (4.5s)
       setTimeout(() => {

@@ -41,14 +41,14 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
   if (!habiticaResponse?.success) {
     if (habiticaResponse?.code === 401 || habiticaResponse?.code === 403) {
       await createEventMessage({
-        user_id: userId,
-        resource_id: resourceId,
-        event_slug: 'quest-auto-accept-failed',
-        event_name: 'Quest Auto-Accept Failed',
-        message_text: toolInvalidCredentials('Auto Accept Quests'),
-        short_message: 'Quest auto-accept failed',
-        should_notify: true,
-        should_notify_habitica_via_admin: true,
+        userId,
+        resourceId,
+        eventSlug: 'quest-auto-accept-failed',
+        eventName: 'Quest Auto-Accept Failed',
+        messageText: toolInvalidCredentials('Auto Accept Quests'),
+        shortMessage: 'Quest auto-accept failed',
+        shouldNotify: true,
+        shouldNotifyHabiticaViaAdmin: true,
         priority: 3,
       }).catch(() => {});
       await teardownToolResources({
@@ -63,12 +63,12 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
   const questName = contentResult?.quests?.[questData?.key]?.text;
   const questUrl = questName?.replace(/\s+/g, '_');
   await createEventMessage({
-    user_id: userId,
-    resource_id: resourceId,
-    event_slug: 'quest-auto-accepted',
-    event_name: 'Quest Auto-Accepted',
-    message_text: `A quest invitation for [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }) was automatically accepted.`,
-    short_message: 'Quest auto-accepted',
+    userId,
+    resourceId,
+    eventSlug: 'quest-auto-accepted',
+    eventName: 'Quest Auto-Accepted',
+    messageText: `A quest invitation for [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }) was automatically accepted.`,
+    shortMessage: 'Quest auto-accepted',
     priority: 1,
   }).catch(() => {});
   handleApiAnalytic(undefined, 'quest_accepted', JSON.stringify({

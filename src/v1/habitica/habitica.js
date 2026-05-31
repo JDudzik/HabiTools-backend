@@ -203,8 +203,8 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
     resourceId: sanitizedProperties.resource_id,
     toolData: { waitHours: sanitizedProperties.wait_hours },
     eventMessage: {
-      message_text: `The Auto Start Quests tool has been updated with a new wait time of ${ sanitizedProperties.wait_hours } hours.`,
-      short_message: 'Auto Start Quests tool was updated.',
+      messageText: `The Auto Start Quests tool has been updated with a new wait time of ${ sanitizedProperties.wait_hours } hours.`,
+      shortMessage: 'Auto Start Quests tool was updated.',
     },
   });
   if (result?.code) { return returnOrSendResponse(result.code, result.responseContent, req, res); }
@@ -308,8 +308,8 @@ export const teardownTool = async (req, res) => {
 // -- POST --
 // {API_URL}/v1/auth/habitica/global-notification
 // -- BODY --
-// message_text: required message body.
-// short_message, event_name, event_slug, priority, acknowledged: optional.
+// messageText: required message body.
+// shortMessage, eventName, eventSlug, priority, acknowledged: optional.
 export const sendGlobalNotification = async (req, res) => {
   const allowed = await allowByPermissions(req, res, 'global_habitica_notification');
   if (!allowed) { return; }

@@ -137,13 +137,13 @@ export const getLinkedHabiticaUser = async (properties) => {
       }));
       if (err.status === 'DECRYPTION_FAILED') {
         await createEventMessage({
-          user_id: sanitizedProperties?.user_id || habiticaUser?.user_id,
-          event_slug: 'unable_to_decrypt_habitica_credentials',
-          event_name: 'Unable to Decrypt Habitica Credentials',
-          message_text: `We were unable to decrypt your Habitica credentials. You may need to unlink and relink your Habitica account to fix this issue. You can manage your Habitica account from the [My Account page on HabiTools](${ process.env.FRONTEND_HOST }/my-account). If you continue to see this message after relinking, please contact support.`,
-          short_message: 'Unable to decrypt Habitica credentials.',
-          should_notify: true,
-          should_notify_habitica_via_admin: true,
+          userId: sanitizedProperties?.userId || habiticaUser?.user_id,
+          eventSlug: 'unable_to_decrypt_habitica_credentials',
+          eventName: 'Unable to Decrypt Habitica Credentials',
+          messageText: `We were unable to decrypt your Habitica credentials. You may need to unlink and relink your Habitica account to fix this issue. You can manage your Habitica account from the [My Account page on HabiTools](${ process.env.FRONTEND_HOST }/my-account). If you continue to see this message after relinking, please contact support.`,
+          shortMessage: 'Unable to decrypt Habitica credentials.',
+          shouldNotify: true,
+          shouldNotifyHabiticaViaAdmin: true,
           priority: 3,
         }).catch(() => {}); 
       }

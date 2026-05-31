@@ -54,12 +54,12 @@ export const unlinkHabiticaUser = async (properties) => {
 
   if (sanitizedProperties.shouldNotify) {
     await createEventMessage({
-      user_id: sanitizedProperties.userId,
-      event_slug: 'habitica-user-unlinked',
-      event_name: 'Habitica User Unlinked',
-      message_text: 'Your Habitica account has been unlinked and all associated tools have been disabled.',
-      short_message: 'Habitica account unlinked.',
-      should_notify: true,
+      userId: sanitizedProperties.userId,
+      eventSlug: 'habitica-user-unlinked',
+      eventName: 'Habitica User Unlinked',
+      messageText: 'Your Habitica account has been unlinked and all associated tools have been disabled.',
+      shortMessage: 'Habitica account unlinked.',
+      shouldNotify: true,
       priority: 2,
     }).catch(() => {});
   }

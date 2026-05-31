@@ -96,18 +96,18 @@ export const teardownToolResources = async (properties) => {
   // If userId and notification details are provided, send a notification about the teardown.
   if (sanitizedProperties?.userId && notification?.slugPrefix && notification?.name) {
     await createEventMessage({
-      user_id: sanitizedProperties.userId,
-      resource_id: sanitizedProperties.resourceId,
-      event_slug: notification?.fromExpiration ? `${ notification?.slugPrefix }-expired` : `${ notification?.slugPrefix }-disabled`,
-      event_name: notification?.fromExpiration ? `${ notification?.name } Expired` : `${ notification?.name } Disabled`,
-      message_text: notification?.fromExpiration
+      userId: sanitizedProperties.userId,
+      resourceId: sanitizedProperties.resourceId,
+      eventSlug: notification?.fromExpiration ? `${ notification?.slugPrefix }-expired` : `${ notification?.slugPrefix }-disabled`,
+      eventName: notification?.fromExpiration ? `${ notification?.name } Expired` : `${ notification?.name } Disabled`,
+      messageText: notification?.fromExpiration
         ? `The ${ notification?.name } tool has expired because it wasn't refreshed. You can enable it again from the tool page.`
         : `${ notification?.name } has been disabled.`,
-      short_message: notification?.fromExpiration
+      shortMessage: notification?.fromExpiration
         ? `${ notification?.name } has expired.`
         : `${ notification?.name } has been disabled.`,
-      should_notify_habitica_via_admin: notification?.fromExpiration,
-      should_notify: true,
+      shouldNotifyHabiticaViaAdmin: notification?.fromExpiration,
+      shouldNotify: true,
       priority: 2,
     }).catch(() => {});
   }

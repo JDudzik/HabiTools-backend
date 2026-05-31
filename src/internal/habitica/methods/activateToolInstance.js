@@ -179,13 +179,13 @@ export const activateToolInstance = async (config) => {
   }));
 
   createEventMessage({
-    user_id: userId,
-    resource_id: toolInstance.id,
+    userId,
+    resourceId: toolInstance.id,
     priority: 1,
-    event_slug: `${ toolSlug }-activated`,
-    event_name: 'Tool Activated',
-    message_text: `The ${ toolName } tool has been activated.`,
-    short_message: `${ toolName } activated.`,
+    eventSlug: `${ toolSlug }-activated`,
+    eventName: 'Tool Activated',
+    messageText: `The ${ toolName } tool has been activated.`,
+    shortMessage: `${ toolName } activated.`,
     ...(eventMessage || {}),
   }).catch(() => {});
 

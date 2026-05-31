@@ -113,12 +113,12 @@ export const linkHabiticaUser = async (properties) => {
   }));
 
   await createEventMessage({
-    user_id: sanitizedProperties.userId,
-    event_slug: 'welcome_to_habitools',
-    event_name: 'Welcome to HabiTools',
-    message_text: welcomeMessage,
-    short_message: 'Welcome to HabiTools! Your Habitica account has been successfully linked.',
-    should_notify_habitica_via_admin: true,
+    userId: sanitizedProperties.userId,
+    eventSlug: 'welcome_to_habitools',
+    eventName: 'Welcome to HabiTools',
+    messageText: welcomeMessage,
+    shortMessage: 'Welcome to HabiTools! Your Habitica account has been successfully linked.',
+    shouldNotifyHabiticaViaAdmin: true,
     priority: 2,
     acknowledged: true,
   }).catch(() => {});

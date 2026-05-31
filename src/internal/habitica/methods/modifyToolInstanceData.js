@@ -126,13 +126,13 @@ export const modifyToolInstanceData = async (properties) => {
 
   if (!sanitizedProperties.skipEventMessage) {
     createEventMessage({
-      user_id: sanitizedProperties.userId,
-      resource_id: selectedTool.id,
+      userId: sanitizedProperties.userId,
+      resourceId: selectedTool.id,
       priority: 1,
-      event_slug: `${ sanitizedProperties.resourceId }-modified`,
-      event_name: 'Tool Updated',
-      message_text: 'This tool\'s settings have been updated.',
-      short_text: 'Tool updated.',
+      eventSlug: `${ sanitizedProperties.resourceId }-modified`,
+      eventName: 'Tool Updated',
+      messageText: 'This tool\'s settings have been updated.',
+      shortMessage: 'Tool updated.',
       ...(sanitizedProperties.eventMessage || {}),
     }).catch(() => {});
   }

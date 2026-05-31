@@ -36,14 +36,14 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
   if (!habiticaResponse?.success) {
     if (habiticaResponse?.code === 401 || habiticaResponse?.code === 403) {
       await createEventMessage({
-        user_id: userId,
-        resource_id: resourceId,
-        event_slug: 'quest-auto-start-failed',
-        event_name: 'Quest Auto-Start Failed',
-        message_text: toolInvalidCredentials('Auto Start Quests'),
-        short_message: 'Quest Auto-Start Failed',
-        should_notify: true,
-        should_notify_habitica_via_admin: true,
+        userId,
+        resourceId,
+        eventSlug: 'quest-auto-start-failed',
+        eventName: 'Quest Auto-Start Failed',
+        messageText: toolInvalidCredentials('Auto Start Quests'),
+        shortMessage: 'Quest Auto-Start Failed',
+        shouldNotify: true,
+        shouldNotifyHabiticaViaAdmin: true,
         priority: 3,
       }).catch(() => {});
       await teardownToolResources({
@@ -65,12 +65,12 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
   }));
 
   await createEventMessage({
-    user_id: userId,
-    resource_id: resourceId,
-    event_slug: 'quest-auto-started',
-    event_name: 'Quest Auto-Started',
-    message_text: `Started the quest for [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl })`,
-    short_message: 'Quest Auto-Started',
+    userId,
+    resourceId,
+    eventSlug: 'quest-auto-started',
+    eventName: 'Quest Auto-Started',
+    messageText: `Started the quest for [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl })`,
+    shortMessage: 'Quest Auto-Started',
     priority: 1,
   }).catch(() => {});
 

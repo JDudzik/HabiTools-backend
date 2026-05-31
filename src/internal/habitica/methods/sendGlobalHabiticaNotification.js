@@ -6,10 +6,10 @@ import { createEventMessage } from 'internal/eventMessages/core/createEventMessa
 /**
  * Sends a global Habitica notification (via admin sender) to every user with a linked Habitica account.
  * @param {Object} properties - Notification payload.
- * @param {string} properties.message_text - Markdown-compatible message body to send to Habitica users.
- * @param {string} [properties.short_message] - Short in-app summary for the event message.
- * @param {string} [properties.event_name] - Human-readable event name.
- * @param {string} [properties.event_slug] - Optional event slug; defaults to a timestamped slug to avoid cooldown dedupe collisions.
+ * @param {string} properties.messageText - Markdown-compatible message body to send to Habitica users.
+ * @param {string} [properties.shortMessage] - Short in-app summary for the event message.
+ * @param {string} [properties.eventName] - Human-readable event name.
+ * @param {string} [properties.eventSlug] - Optional event slug; defaults to a timestamped slug to avoid cooldown dedupe collisions.
  * @param {number} [properties.priority=2] - Event priority.
  * @param {boolean} [properties.acknowledged=true] - Whether to mark created event messages as acknowledged.
  * @param {Object} [properties.req] - Express request object for analytics context.
@@ -18,8 +18,8 @@ import { createEventMessage } from 'internal/eventMessages/core/createEventMessa
 export const sendGlobalHabiticaNotification = async (properties) => {
   const req = properties.req;
   const sanitizedPayload = sanitizeProperties(properties, {
-    requiredKeys: [ 'message_text' ],
-    optionalKeys: [ 'short_message', 'event_name', 'event_slug', 'priority', 'acknowledged' ],
+    requiredKeys: [ 'messageText' ],
+    optionalKeys: [ 'shortMessage', 'eventName', 'eventSlug', 'priority', 'acknowledged' ],
     trimPayload: true,
     removeDisallowedKeys: true,
     parseInts: true,
@@ -38,16 +38,16 @@ export const sendGlobalHabiticaNotification = async (properties) => {
 
   const linkedUsers = userList.filter(user => user?.id && user?.habitica_user?.habitica_user_id);
 
-  const event_slug = sanitizedProperties.event_slug || `global_habitica_notification_${ Date.now() }`;
+  const eventSlug = sanitizedProperties.eventSlug || `global_habitica_notification_${ Date.now() }`;
   Promise.allSettled(linkedUsers.map((user) => {
     return createEventMessage({
-      user_id: user.id,
-      event_slug,
-      event_name: sanitizedProperties.event_name || 'Important Message from HabiTools',
-      message_text: sanitizedProperties.message_text,
-      short_message: sanitizedProperties.short_message || 'Important Message from HabiTools',
-      should_notify_habitica_via_admin: true,
-      should_notify: true,
+      userId: user.id,
+      eventSlug,
+      eventName: sanitizedProperties.eventName || 'Important Message from HabiTools',
+      messageText: sanitizedProperties.messageText,
+      shortMessage: sanitizedProperties.shortMessage || 'Important Message from HabiTools',
+      shouldNotifyHabiticaViaAdmin: true,
+      shouldNotify: true,
       priority: sanitizedProperties.priority ?? 2,
       acknowledged: sanitizedProperties.acknowledged ?? false,
     });
@@ -61,7 +61,7 @@ export const sendGlobalHabiticaNotification = async (properties) => {
       const successCount = sendResults.length - failedCount;
 
       handleApiAnalytic(req, 'global_habitica_notification', JSON.stringify({
-        event_slug,
+        event_slug: eventSlug,
         total_users_searched: userList.length,
         linked_habitica_users: linkedUsers.length,
         success_count: successCount,
@@ -71,7 +71,7 @@ export const sendGlobalHabiticaNotification = async (properties) => {
     .catch(() => {});
 
   return {
-    event_slug,
+    event_slug: eventSlug,
     sent_count: linkedUsers.length,
   };
 };

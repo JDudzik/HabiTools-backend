@@ -6,6 +6,7 @@ import {
   selectEventMessages,
 } from 'internal/eventMessages';
 import { getLoggedInUser } from 'internal/userController/userHelpers';
+import { allowByPermissions } from 'internal/userController';
 
 
 // Create
@@ -13,22 +14,24 @@ import { getLoggedInUser } from 'internal/userController/userHelpers';
 // -- POST --
 // {API_URL}/v1/event_messages/create
 // -- PARAMS --
-// user_id: ID of the user creating the message (automatically set from the logged-in user).
-// message_text: The text of the message.
+// userId: ID of the user creating the message (automatically set from the logged-in user).
+// messageText: The text of the message.
 // priority: Priority level of the message (e.g., low, medium, high).
-// resource_id: ID of the resource associated with the message (optional).
-// event_slug: Slug of the event associated with the message (optional).
-// event_name: Name of the event associated with the message (optional).
-// short_message: Short version of the message (optional).
-// should_notify: Whether to notify the user about this message (default is false).
+// resourceId: ID of the resource associated with the message (optional).
+// eventSlug: Slug of the event associated with the message (optional).
+// eventName: Name of the event associated with the message (optional).
+// shortMessage: Short version of the message (optional).
+// shouldNotify: Whether to notify the user about this message (default is false).
 // acknowledged: Whether the message has been acknowledged by the user (default is false).
 // -- ERROR CODES --
 // INCORRECT_INSERT_DATA, UNPERMITTED_PROPERTY, MISSING_REQUIRED_PROPERTY, REQUIRES_ONE_OPTIONAL_PROPERTY, INVALID_PROPERTY_VALUE
 export const create = async (req, res) => {
+  const allowed = await allowByPermissions(req, res, 'data_manipulation');
+  if (!allowed) { return; }
   // Validations happen inside the main function.
   const createdMessage = await createEventMessage({
     ...req.body,
-    user_id: await getLoggedInUser(req, [ 'id' ]),
+    userId: await getLoggedInUser(req, [ 'id' ]),
   });
   if (createdMessage.code) {
     return res.status(createdMessage.code).send(createdMessage.responseContent);
