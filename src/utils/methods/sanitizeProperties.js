@@ -17,7 +17,7 @@ import { validate as propertyValidator } from './propertyValidator';
  * @param {boolean} config.atLeastOneOptionalProp - Whether at least one optional property is required.
  * @param {boolean} config.parseInts - Whether to parse string properties that look like integers into actual integers.
  * @param {boolean} config.parseBools - Whether to parse string properties that look like booleans into actual booleans.
- * @param {Array} config.propertyValidations - An array of validation rules to apply to the properties (using property-validator).
+ * @param {Array} config.propertyValidations - An array of validation rules to apply to the properties (using property-validator). https://www.npmjs.com/package/property-validator#validation-helpers
  * @param {Object} [req] - The Express request object (optional, only needed if you want to send a response).
  * @param {Object} [res] - The Express response object (optional, only needed if you want to send a response).
  * @returns {Object} An object containing the validity of the payload, the sanitized properties, and any error information.
