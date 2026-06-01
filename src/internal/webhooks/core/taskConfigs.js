@@ -2,9 +2,7 @@
 // Anytime a new function is created that should be available as a webhook,
 // it needs to be added here along with sensible default configuration.
 // Each function MUST have methods for 'execute', 'create', 'modify', and 'remove'.
-
-import { autoAcceptQuestsWebhookTaskConfigs } from 'internal/habitica/tools/autoAcceptQuests/core/autoAcceptQuestsWebhookTaskConfigs';
-import { autoStartQuestsWebhookTaskConfigs } from 'internal/habitica/tools/autoStartQuest/core/autoStartQuestsWebhookTaskConfigs';
+import { habiticaWebhookTaskConfigs } from 'internal/habitica/core/habiticaWebhookTaskConfigs';
 
 
 export const taskConfigs = {
@@ -36,6 +34,6 @@ export const taskConfigs = {
       return { parameters, cleanupData };
     },
   },
-  ...autoAcceptQuestsWebhookTaskConfigs,
-  ...autoStartQuestsWebhookTaskConfigs,
+
+  ...habiticaWebhookTaskConfigs,
 };

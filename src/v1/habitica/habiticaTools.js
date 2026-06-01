@@ -5,9 +5,12 @@ import {
   startQuestStartTimer,
   getLinkedHabiticaUser,
 } from 'internal/habitica';
-import { sanitizeProperties, isUUID, isInt, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isUUID, isInt, isIn, returnOrSendResponse } from 'utils';
 
 
+// ----------------------------------------------- //
+// ------------- Auto Accept Quests -------------- //
+// ----------------------------------------------- //
 // -- POST --
 // {API_URL}/v1/auth/habitica/tools/auto-accept-quests
 // Creates a new Auto Accept Quests Tool Instance.
@@ -40,6 +43,9 @@ export const activateAutoAcceptQuests = async (req, res) => {
 };
 
 
+// ----------------------------------------------- //
+// -------------- Auto Start Quests -------------- //
+// ----------------------------------------------- //
 // -- POST --
 // {API_URL}/v1/auth/habitica/tools/auto-start-quests
 // Creates a new Auto Start Quests Tool Instance.
@@ -108,6 +114,7 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
   });
   if (!sanitizedPayload.valid) { return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res); }
   const sanitizedProperties = sanitizedPayload.properties;
+  
 
   const userId = await getLoggedInUser(req, [ 'id' ]);
   const result = await modifyToolInstanceData({
@@ -132,3 +139,48 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
 
   res.json({ success: true, result });
 };
+
+
+// ----------------------------------------------- //
+// ----------------- Party Pulse ----------------- //
+// ----------------------------------------------- //
+// -- POST --
+// {API_URL}/v1/auth/habitica/tools/party-pulse
+// Creates a new Party Pulse Tool Instance.
+// -- BODY --
+// scoreDisplayDirection: A string defining the direction to display party member scores. Can be 'ascending' or 'descending'. Defaults to 'ascending'.
+// export const activatePartyPulse = async (req, res) => {
+//   const sanitizedPayload = sanitizeProperties(req.body, {
+//     requiredKeys: [ 'scoreDisplayDirection' ],
+//     trimPayload: true,
+//     removeDisallowedKeys: true,
+//     propertyValidations: [
+//       isIn('scoreDisplayDirection', [ 'ascending', 'descending' ], 'scoreDisplayDirection must be either "ascending" or "descending"'),
+//     ],
+//   });
+//   if (!sanitizedPayload.valid) { return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res); }
+//   const sanitizedProperties = sanitizedPayload.properties;
+//   const userId = await getLoggedInUser(req, [ 'id' ]);
+
+//   const activatedResult = await activateToolInstance({
+//     req,
+//     userId,
+//     toolSlug: 'party-pulse',
+//     toolName: 'Party Pulse',
+//     toolData: {
+//       lastPulseAt: null,
+//       scoreDisplayDirection: sanitizedProperties.scoreDisplayDirection ?? 'ascending',
+//       members: {},
+//     },
+//     crons: [{
+//       taskName: 'party-pulse-cron',
+//       immediateOnce: true,
+//     }],
+//   });
+//   if (activatedResult?.code) {
+//     res.status(activatedResult.code).json(activatedResult.responseContent);
+//     return;
+//   }
+
+//   res.status(201).json(activatedResult);
+// };

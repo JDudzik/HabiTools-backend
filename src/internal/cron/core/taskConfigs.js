@@ -1,8 +1,7 @@
 // This is a mapping of cron tasks with their configurations.
 // Anytime a new function is created that should be available as a cron,
 // it needs to be added here along with sensible default configuration.
-import { autoAcceptQuestsCronTaskConfigs } from 'internal/habitica/tools/autoAcceptQuests/core/autoAcceptQuestsCronTaskConfigs';
-import { autoStartQuestsCronTaskConfigs } from 'internal/habitica/tools/autoStartQuest/core/autoStartQuestsCronTaskConfigs';
+import { habiticaCronTaskConfigs } from 'internal/habitica/core/habiticaCronTaskConfigs';
 
 // Note: When using the special fuctions like `SEC(10)`, `MIN(10)`, `RAND()`, etc,
 // there's a good chance the cron will be set only a few seconds/minutes into the future.
@@ -64,6 +63,5 @@ export const taskConfigs = {
     },
   },
 
-  ...autoAcceptQuestsCronTaskConfigs,
-  ...autoStartQuestsCronTaskConfigs,
+  ...habiticaCronTaskConfigs,
 };
