@@ -5,12 +5,14 @@ import {
   link,
   unlink,
   sendGlobalNotification,
-  activateAutoAcceptQuests,
-  activateAutoStartQuests,
-  modifyAutoStartQuestsTool,
   refreshTool,
   teardownTool,
 } from './habitica';
+import {
+  activateAutoAcceptQuests,
+  activateAutoStartQuests,
+  modifyAutoStartQuestsTool,
+} from './habiticaTools';
 
 
 module.exports = (router) => {
