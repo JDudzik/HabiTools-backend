@@ -76,7 +76,7 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
   habiticaMemberInfo.data.forEach((habiticaMember) => {
     const matchingStoredMember = members?.[habiticaMember.id];
 
-    const hasRecentActivity = new Date(habiticaMember.lastLoggedIn).getTime() > Date.now() - 86400000; // 24 hours
+    const hasRecentActivity = new Date(habiticaMember?.auth?.timestamps.loggedin).getTime() > Date.now() - 86400000; // 24 hours
     const currentScore = matchingStoredMember?.currentScore || 0;
     const newScore = hasRecentActivity ? (currentScore + 1) : (currentScore - 1);
     const newScoreLimited = Math.max(Math.min(newScore, 14), -14);

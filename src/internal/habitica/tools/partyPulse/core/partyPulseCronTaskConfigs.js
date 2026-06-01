@@ -5,7 +5,7 @@ import { teardownToolResources } from 'internal/habitica/methods/teardownToolRes
 /**
  * The cron task configurations for the Party Pulse tool
  */
-export const autoAcceptQuestsCronTaskConfigs = {
+export const partyPulseCronTaskConfigs = {
   'party-pulse-cron': {
     schedule: 'RAND() RAND()/30 HOUR(0) * * *',
 
