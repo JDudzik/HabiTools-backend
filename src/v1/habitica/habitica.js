@@ -91,43 +91,6 @@ export const unlink = async (req, res) => {
   res.json({ success: true });
 };
 
-
-// -- POST --
-// {API_URL}/v1/auth/habitica/tools/party-pulse
-// Creates a new Party Pulse Tool Instance.
-// -- BODY --
-// scoreDisplayDirection: A string defining the direction to display party member scores. Can be 'ascending' or 'descending'. Defaults to 'ascending'.
-// export const activatePartyPulse = async (req, res) => {
-//   const userId = await getLoggedInUser(req, [ 'id' ]);
-
-//   return activateToolInstance({
-//     req,
-//     userId,
-//     toolSlug: 'party-pulse',
-//     toolName: 'Party Pulse',
-//     toolData: {
-//       lastPulseAt: null,
-//       scoreDisplayDirection: 'ascending',
-//       members: {},
-//     },
-//     crons: [{
-//       taskName: 'party-pulse-cron',
-//       immediateOnce: true,
-//     }],
-//     onSuccess: ({ toolInstance, crons }) => ({
-//       success: true,
-//       toolInstance,
-//       cron: crons?.[0],
-//     }),
-//   });
-//   // if (activatedResult?.code) {
-//   //   res.status(activatedResult.code).json(activatedResult.responseContent);
-//   //   return;
-//   // }
-
-//   // res.status(201).json(activatedResult);
-// };
-
   
 // -- PUT --
 // {API_URL}/v1/auth/habitica/tools/refresh

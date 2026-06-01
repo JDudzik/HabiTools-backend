@@ -30,7 +30,6 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
     retryOnNetworkError: true,
     retryOnRateLimit: true,
   });
-  
   if (!habiticaPartyInfo?.success) {
     if (habiticaPartyInfo?.code === 401 || habiticaPartyInfo?.code === 403) {
       await createEventMessage({

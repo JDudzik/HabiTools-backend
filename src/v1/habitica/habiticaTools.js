@@ -149,38 +149,72 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
 // Creates a new Party Pulse Tool Instance.
 // -- BODY --
 // scoreDisplayDirection: A string defining the direction to display party member scores. Can be 'ascending' or 'descending'. Defaults to 'ascending'.
-// export const activatePartyPulse = async (req, res) => {
-//   const sanitizedPayload = sanitizeProperties(req.body, {
-//     requiredKeys: [ 'scoreDisplayDirection' ],
-//     trimPayload: true,
-//     removeDisallowedKeys: true,
-//     propertyValidations: [
-//       isIn('scoreDisplayDirection', [ 'ascending', 'descending' ], 'scoreDisplayDirection must be either "ascending" or "descending"'),
-//     ],
-//   });
-//   if (!sanitizedPayload.valid) { return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res); }
-//   const sanitizedProperties = sanitizedPayload.properties;
-//   const userId = await getLoggedInUser(req, [ 'id' ]);
+export const activatePartyPulse = async (req, res) => {
+  const sanitizedPayload = sanitizeProperties(req.body, {
+    requiredKeys: [ 'scoreDisplayDirection' ],
+    trimPayload: true,
+    removeDisallowedKeys: true,
+    propertyValidations: [
+      isIn('scoreDisplayDirection', [ 'ascending', 'descending' ], 'scoreDisplayDirection must be either "ascending" or "descending"'),
+    ],
+  });
+  if (!sanitizedPayload.valid) { return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res); }
+  const sanitizedProperties = sanitizedPayload.properties;
+  const userId = await getLoggedInUser(req, [ 'id' ]);
 
-//   const activatedResult = await activateToolInstance({
-//     req,
-//     userId,
-//     toolSlug: 'party-pulse',
-//     toolName: 'Party Pulse',
-//     toolData: {
-//       lastPulseAt: null,
-//       scoreDisplayDirection: sanitizedProperties.scoreDisplayDirection ?? 'ascending',
-//       members: {},
-//     },
-//     crons: [{
-//       taskName: 'party-pulse-cron',
-//       immediateOnce: true,
-//     }],
-//   });
-//   if (activatedResult?.code) {
-//     res.status(activatedResult.code).json(activatedResult.responseContent);
-//     return;
-//   }
+  const activatedResult = await activateToolInstance({
+    req,
+    userId,
+    toolSlug: 'party-pulse',
+    toolName: 'Party Pulse',
+    toolData: {
+      lastPulseAt: null,
+      scoreDisplayDirection: sanitizedProperties.scoreDisplayDirection ?? 'ascending',
+      members: {},
+    },
+    crons: [{
+      taskName: 'party-pulse-cron',
+      immediateOnce: true,
+    }],
+  });
+  if (activatedResult?.code) {
+    res.status(activatedResult.code).json(activatedResult.responseContent);
+    return;
+  }
 
-//   res.status(201).json(activatedResult);
-// };
+  res.status(201).json(activatedResult);
+};
+
+
+// -- PUT --
+// {API_URL}/v1/auth/habitica/tools/party-pulse/edit
+// Modifies an existing Party Pulse Tool Instance.
+// -- BODY --
+// : Required resource ID for the target tool instance.
+export const modifyPartyPulseTool = async (req, res) => {
+  const sanitizedPayload = sanitizeProperties(req.body, {
+    requiredKeys: [ 'scoreDisplayDirection' ],
+    trimPayload: true,
+    removeDisallowedKeys: true,
+    propertyValidations: [
+      isIn('scoreDisplayDirection', [ 'ascending', 'descending' ], 'scoreDisplayDirection must be either "ascending" or "descending"'),
+    ],
+  });
+  if (!sanitizedPayload.valid) { return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res); }
+  const sanitizedProperties = sanitizedPayload.properties;
+  
+
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+  const result = await modifyToolInstanceData({
+    userId,
+    resourceId: sanitizedProperties.resource_id,
+    toolData: { scoreDisplayDirection: sanitizedProperties.scoreDisplayDirection },
+    eventMessage: {
+      messageText: `The Party Pulse tool has been updated with a new score display direction of ${ sanitizedProperties.scoreDisplayDirection }.`,
+      shortMessage: 'Party Pulse tool was updated.',
+    },
+  });
+  if (result?.code) { return returnOrSendResponse(result.code, result.responseContent, req, res); }
+
+  res.json({ success: true, result });
+};
