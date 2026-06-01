@@ -18,13 +18,6 @@ import toolInvalidCredentials from '../../content/toolInvalidCredentials';
 export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, source }) => {
   const userData = await getLinkedHabiticaUser({ userId, forceRefresh: true });
   const questData = userData?.habitica_user_data?.party?.quest;
-  handleApiAnalytic(undefined, 'checked_pending_quest', JSON.stringify({
-    userId,
-    habitica_username: userData?.habitica_user_data?.username,
-    habitica_email: userData?.habitica_user_data?.email,
-    source,
-    questKey: questData?.key,
-  }));
 
   if (!questData?.RSVPNeeded) {
     return { success: null };
