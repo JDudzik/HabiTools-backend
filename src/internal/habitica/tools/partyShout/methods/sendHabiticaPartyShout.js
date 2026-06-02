@@ -1,6 +1,6 @@
 import { sanitizeProperties, returnOrSendResponse } from 'utils';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
-import { getHabiticaPartyInfo } from './getHabiticaPartyInfo';
+import { getHabiticaPartyInfo } from 'internal/habitica/methods/getHabiticaPartyInfo';
 
 
 const normalizePartyMembers = ({ habiticaMembers, habiticaUserId, partyLeaderId }) => {
@@ -36,14 +36,14 @@ const getPartyMembersFromHabitica = async ({ habiticaUserId, userId }) => {
 
 
 /**
- * Sends a party announcement in Habitica chat and appends @mentions for all party members except the sender.
- * Only the current party leader can send announcements.
+ * Sends a party shout in Habitica chat and appends @mentions for all party members except the sender.
+ * Only the current party leader can send party shouts.
  * @param {Object} properties
  * @param {string} properties.userId
  * @param {string} properties.messageText
  * @returns {Promise<Object>}
  */
-export const sendHabiticaAnnounceToParty = async (properties) => {
+export const sendHabiticaPartyShout = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'userId', 'messageText' ],
     trimPayload: true,
@@ -65,7 +65,7 @@ export const sendHabiticaAnnounceToParty = async (properties) => {
   if (!partyInfoResult.isLeader) {
     return returnOrSendResponse(403, {
       status: 'NOT_PARTY_LEADER',
-      message: 'Only the current party leader can send party announcements.',
+      message: 'Only the current party leader can send party shouts.',
     });
   }
 
@@ -80,10 +80,9 @@ export const sendHabiticaAnnounceToParty = async (properties) => {
     habiticaUserId: partyInfoResult.habiticaUserId,
     partyLeaderId: partyInfoResult.leaderHabiticaUserId,
   });
-  
-  
+
   const mentionHandles = normalizedMembers.map(member => `@${ member?.username }`);
-  const finalMessage = `${ sanitizedProperties.messageText }\n\n[]()\n\n---\n\n[Party Announcement via HabiTools](https://habitools.online/)\n\n${ mentionHandles.join(' ') }`;
+  const finalMessage = `${ sanitizedProperties.messageText }\n\n[]()\n\n---\n\n[Party Shout via HabiTools](https://habitools.online/)\n\n${ mentionHandles.join(' ') }`;
   const postResult = await callHabiticaApi({
     method: 'POST',
     path: '/groups/party/chat',
@@ -95,8 +94,8 @@ export const sendHabiticaAnnounceToParty = async (properties) => {
   });
   if (!postResult?.success) {
     return returnOrSendResponse(postResult?.code || 500, postResult?.responseContent || {
-      status: 'HABITICA_PARTY_ANNOUNCEMENT_FAILED',
-      message: 'Failed to send the party announcement to Habitica.',
+      status: 'HABITICA_PARTY_SHOUT_FAILED',
+      message: 'Failed to send the party shout to Habitica.',
     });
   }
 

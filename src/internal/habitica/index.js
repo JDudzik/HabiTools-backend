@@ -10,12 +10,13 @@ export * from './helpers/getHabiticaCredentials';
 export * from './helpers/habiticaEncryption';
 export * from './helpers/refreshAndStoreHabiticaContent';
 
+export * from './methods/activateToolInstance';
+export * from './methods/getHabiticaPartyInfo';
+export * from './methods/modifyToolInstanceData';
 export * from './methods/refreshToolInstance';
 export * from './methods/sendGlobalHabiticaNotification';
 export * from './methods/teardownToolResources';
-export * from './methods/modifyToolInstanceData';
-export * from './methods/activateToolInstance';
 
 export * from './tools/autoAcceptQuests';
 export * from './tools/autoStartQuest';
-export * from './tools/announceToParty';
+export * from './tools/partyShout';

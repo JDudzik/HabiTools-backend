@@ -4,6 +4,7 @@ import {
   modifyToolInstanceData,
   startQuestStartTimer,
   getLinkedHabiticaUser,
+  sendHabiticaPartyShout,
 } from 'internal/habitica';
 import { sanitizeProperties, isUUID, isInt, isIn, returnOrSendResponse } from 'utils';
 
@@ -41,6 +42,7 @@ export const activateAutoAcceptQuests = async (req, res) => {
 
   res.status(201).json(activatedResult);
 };
+
 
 
 // ----------------------------------------------- //
@@ -141,6 +143,7 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
 };
 
 
+
 // ----------------------------------------------- //
 // ----------------- Party Pulse ----------------- //
 // ----------------------------------------------- //
@@ -204,4 +207,36 @@ export const modifyPartyPulseTool = async (req, res) => {
   if (result?.code) { return returnOrSendResponse(result.code, result.responseContent, req, res); }
 
   res.json({ success: true, result });
+};
+
+
+
+// ----------------------------------------------- //
+// ----------------- Party Shout ----------------- //
+// ----------------------------------------------- //
+// -- POST --
+// {API_URL}/v1/auth/habitica/party-announcement
+// -- BODY --
+// message_text: required shout body to send.
+export const partyShout = async (req, res) => {
+  const sanitizedPayload = sanitizeProperties(req.body, {
+    requiredKeys: [ 'message_text' ],
+    trimPayload: true,
+    removeDisallowedKeys: true,
+  });
+  if (!sanitizedPayload.valid) { return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res); }
+  const sanitizedProperties = sanitizedPayload.properties;
+
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+
+  const result = await sendHabiticaPartyShout({
+    userId,
+    messageText: sanitizedProperties.message_text,
+  });
+  if (result?.code) {
+    res.status(result.code).json(result.responseContent);
+    return;
+  }
+
+  res.status(201).json(result);
 };
