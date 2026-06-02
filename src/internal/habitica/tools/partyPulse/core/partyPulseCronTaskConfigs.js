@@ -7,7 +7,7 @@ import { teardownToolResources } from 'internal/habitica/methods/teardownToolRes
  */
 export const partyPulseCronTaskConfigs = {
   'party-pulse-cron': {
-    schedule: 'RAND() RAND()/30 HOUR(0) * * *',
+    schedule: 'RAND() RAND(0,9)-59/25 HOUR(0) * * *',
 
     job: async (parameters, _cronData) => {
       await checkPartyActivity({
