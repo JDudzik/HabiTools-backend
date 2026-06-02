@@ -148,7 +148,12 @@ export const sendGlobalNotification = async (req, res) => {
   if (!allowed) { return; }
 
   const result = await sendGlobalHabiticaNotification({
-    ...req.body,
+    messageText: req.body?.message_text,
+    shortMessage: req.body?.short_message,
+    eventName: req.body?.event_name,
+    eventSlug: req.body?.event_slug,
+    priority: req.body?.priority,
+    acknowledged: req.body?.acknowledged,
     req,
   });
 
