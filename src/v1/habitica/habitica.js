@@ -5,10 +5,13 @@ import {
   getLinkedHabiticaUser,
   getHabiticaContent,
   sendGlobalHabiticaNotification,
+  getHabiticaPartyInfo,
+  sendHabiticaAnnounceToParty,
   refreshToolInstance,
   teardownToolResources,
 } from 'internal/habitica';
 import { allowByPermissions } from 'internal/userController';
+import { sanitizeProperties, returnOrSendResponse } from 'utils';
 
 
 // -- GET --
@@ -157,6 +160,50 @@ export const sendGlobalNotification = async (req, res) => {
     req,
   });
 
+  if (result?.code) {
+    res.status(result.code).json(result.responseContent);
+    return;
+  }
+
+  res.status(201).json(result);
+};
+
+
+// -- GET --
+// {API_URL}/v1/auth/habitica/party
+// Returns live party info, including whether the linked user is the current party leader.
+export const getPartyInfo = async (req, res) => {
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+
+  const result = await getHabiticaPartyInfo({ userId });
+  if (result?.code) {
+    res.status(result.code).json(result.responseContent);
+    return;
+  }
+
+  res.json(result);
+};
+
+
+// -- POST --
+// {API_URL}/v1/auth/habitica/party-announcement
+// -- BODY --
+// message_text: required announcement body to send.
+export const announceToParty = async (req, res) => {
+  const sanitizedPayload = sanitizeProperties(req.body, {
+    requiredKeys: [ 'message_text' ],
+    trimPayload: true,
+    removeDisallowedKeys: true,
+  });
+  if (!sanitizedPayload.valid) { return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res); }
+  const sanitizedProperties = sanitizedPayload.properties;
+
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+
+  const result = await sendHabiticaAnnounceToParty({
+    userId,
+    messageText: sanitizedProperties.message_text,
+  });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;

@@ -18,3 +18,4 @@ export * from './methods/activateToolInstance';
 
 export * from './tools/autoAcceptQuests';
 export * from './tools/autoStartQuest';
+export * from './tools/accounceToParty';
