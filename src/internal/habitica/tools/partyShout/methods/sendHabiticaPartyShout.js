@@ -1,6 +1,9 @@
-import { sanitizeProperties, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isLength, returnOrSendResponse } from 'utils';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { getHabiticaPartyInfo } from 'internal/habitica/methods/getHabiticaPartyInfo';
+
+
+const PARTY_SHOUT_MESSAGE_MAX_LENGTH = 2200;
 
 
 const normalizePartyMembers = ({ habiticaMembers, habiticaUserId, partyLeaderId }) => {
@@ -48,16 +51,12 @@ export const sendHabiticaPartyShout = async (properties) => {
     requiredKeys: [ 'userId', 'messageText' ],
     trimPayload: true,
     removeDisallowedKeys: true,
+    propertyValidations: [
+      isLength('messageText', { min: 1, max: PARTY_SHOUT_MESSAGE_MAX_LENGTH }, `messageText must be between 1 and ${ PARTY_SHOUT_MESSAGE_MAX_LENGTH } characters`),
+    ],
   });
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
   const sanitizedProperties = sanitizedPayload.properties;
-
-  if (!sanitizedProperties.messageText || typeof sanitizedProperties.messageText !== 'string') {
-    return returnOrSendResponse(400, {
-      status: 'INVALID_PROPERTY_VALUE',
-      message: 'messageText must be a non-empty string.',
-    });
-  }
 
   const partyInfoResult = await getHabiticaPartyInfo({ userId: sanitizedProperties.userId, forceRefresh: true });
   if (partyInfoResult?.code) { return partyInfoResult; }

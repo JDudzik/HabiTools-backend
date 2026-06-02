@@ -6,7 +6,10 @@ import {
   getLinkedHabiticaUser,
   sendHabiticaPartyShout,
 } from 'internal/habitica';
-import { sanitizeProperties, isUUID, isInt, isIn, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isUUID, isInt, isIn, isLength, returnOrSendResponse } from 'utils';
+
+
+const PARTY_SHOUT_MESSAGE_MAX_LENGTH = 2200;
 
 
 // ----------------------------------------------- //
@@ -223,6 +226,9 @@ export const partyShout = async (req, res) => {
     requiredKeys: [ 'message_text' ],
     trimPayload: true,
     removeDisallowedKeys: true,
+    propertyValidations: [
+      isLength('message_text', { min: 1, max: PARTY_SHOUT_MESSAGE_MAX_LENGTH }, `message_text must be between 1 and ${ PARTY_SHOUT_MESSAGE_MAX_LENGTH } characters`),
+    ],
   });
   if (!sanitizedPayload.valid) { return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res); }
   const sanitizedProperties = sanitizedPayload.properties;
