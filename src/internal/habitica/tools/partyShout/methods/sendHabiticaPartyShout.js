@@ -82,7 +82,7 @@ export const sendHabiticaPartyShout = async (properties) => {
   });
 
   const mentionHandles = normalizedMembers.map(member => `@${ member?.username }`);
-  const finalMessage = `${ sanitizedProperties.messageText }\n\n[]()\n\n---\n\n[Party Shout via HabiTools](https://habitools.online/)\n\n${ mentionHandles.join(' ') }`;
+  const finalMessage = `${ sanitizedProperties.messageText }\n\n[]()\n\n---\n\n*[Party Shout via HabiTools](https://habitools.online/)*\n\n*${ mentionHandles.join(' ') }*`;
   const postResult = await callHabiticaApi({
     method: 'POST',
     path: '/groups/party/chat',
