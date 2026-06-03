@@ -41,8 +41,10 @@ const setupToolWebhook = async ({
       enabled: true,
       ...(webhookConfig?.externalWebhookBody || {}),
     },
-    retryOnNetworkError: webhookConfig?.retryOnNetworkError ?? true,
-    retryOnRateLimit: webhookConfig?.retryOnRateLimit ?? true,
+    retryConfig: {
+      retryOnNetworkError: true,
+      retryOnRateLimit: true,
+    },
   });
 
   if (habiticaResult?.code) {

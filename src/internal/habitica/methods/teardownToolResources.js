@@ -24,8 +24,10 @@ const deleteExternalWebhooks = async (resourceId) => {
         method: 'DELETE',
         path: `/user/webhook/${ habiticaWebhookId }`,
         habiticaUserId,
-        retryOnNetworkError: true,
-        retryOnRateLimit: true,
+        retryConfig: {
+          retryOnNetworkError: true,
+          retryOnRateLimit: true,
+        },
       });
       return true;
     } catch { return false; }

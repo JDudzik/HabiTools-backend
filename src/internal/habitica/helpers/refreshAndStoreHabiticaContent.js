@@ -160,8 +160,10 @@ export const refreshAndStoreHabiticaContent = async (language = 'en') => {
     method: 'GET',
     path: `/content?language=${ language }`,
     habiticaUserId: sourceHabiticaUser.habitica_user_id,
-    retryOnNetworkError: true,
-    retryOnRateLimit: true,
+    retryConfig: {
+      retryOnNetworkError: true,
+      retryOnRateLimit: true,
+    },
   });
   if (remoteHabiticaContent?.code) { return returnOrSendResponse(remoteHabiticaContent.code, remoteHabiticaContent.responseContent); }
 

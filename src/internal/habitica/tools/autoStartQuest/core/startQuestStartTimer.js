@@ -27,8 +27,10 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
     path: '/groups/party',
     habiticaUserId: habiticaUserId,
     userId,
-    retryOnNetworkError: true,
-    retryOnRateLimit: true,
+    retryConfig: {
+      retryOnNetworkError: true,
+      retryOnRateLimit: true,
+    },
   });
   if (!habiticaPartyInfo?.success) {
     if (habiticaPartyInfo?.code === 401 || habiticaPartyInfo?.code === 403) {

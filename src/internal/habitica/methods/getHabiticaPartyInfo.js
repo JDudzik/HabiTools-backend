@@ -9,8 +9,10 @@ const getPartyDataFromHabitica = async ({ habiticaUserId, userId }) => {
     path: '/groups/party',
     habiticaUserId,
     userId,
-    retryOnNetworkError: true,
-    retryOnRateLimit: true,
+    retryConfig: {
+      retryOnNetworkError: true,
+      retryOnRateLimit: true,
+    },
   });
   if (!habiticaPartyInfo?.success) {
     return returnOrSendResponse(habiticaPartyInfo?.code || 500, habiticaPartyInfo?.responseContent || {

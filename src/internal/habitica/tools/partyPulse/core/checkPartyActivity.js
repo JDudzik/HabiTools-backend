@@ -48,8 +48,10 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
     path: '/groups/party/members?includeAllPublicFields=true',
     habiticaUserId: habiticaUserId,
     userId,
-    retryOnNetworkError: true,
-    retryOnRateLimit: true,
+    retryConfig: {
+      retryOnNetworkError: true,
+      retryOnRateLimit: true,
+    },
   });
   if (!habiticaMemberInfo?.success) {
     if (habiticaMemberInfo?.code === 401 || habiticaMemberInfo?.code === 403) {

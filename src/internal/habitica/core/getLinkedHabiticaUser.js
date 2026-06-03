@@ -102,6 +102,11 @@ export const getLinkedHabiticaUser = async (properties) => {
         path: '/user',
         habiticaUserId: habiticaUser.habitica_user_id,
         userId: habiticaUser.user_id,
+        retryConfig: {
+          maxRetries: 2,
+          retryOnNetworkError: true,
+          retryOnRateLimit: true,
+        },
       });
       if (remoteHabiticaUserData?.code) { throw remoteHabiticaUserData.responseContent; }
   
