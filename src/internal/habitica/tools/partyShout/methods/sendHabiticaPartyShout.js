@@ -39,7 +39,7 @@ const getPartyMembersFromHabitica = async ({ habiticaUserId, userId }) => {
 
 
 /**
- * Sends a party shout in Habitica chat and appends @mentions for all party members except the sender.
+ * Sends a party shout as a private message to each party member except the sender.
  * Only the current party leader can send party shouts.
  * @param {Object} properties
  * @param {string} properties.userId
@@ -80,34 +80,39 @@ export const sendHabiticaPartyShout = async (properties) => {
     partyLeaderId: partyInfoResult.leaderHabiticaUserId,
   });
 
-  const mentionHandles = normalizedMembers.map(member => `@${ member?.username }`);
-  const finalMessage = `${ sanitizedProperties.messageText }\n\n[]()\n\n---\n\n*[Party Shout via HabiTools](https://habitools.online/)*\n\n*${ mentionHandles.join(' ') }*`;
-  const postResult = await callHabiticaApi({
-    method: 'POST',
-    path: '/groups/party/chat',
-    body: { message: finalMessage },
-    habiticaUserId: partyInfoResult.habiticaUserId,
-    userId: sanitizedProperties.userId,
-    retryOnNetworkError: true,
-    retryOnRateLimit: true,
-  });
-  if (!postResult?.success) {
-    return returnOrSendResponse(postResult?.code || 500, postResult?.responseContent || {
-      status: 'HABITICA_PARTY_SHOUT_FAILED',
-      message: 'Failed to send the party shout to Habitica.',
+  const membersToMessage = normalizedMembers.filter(member => !member?.is_self);
+
+  for (const member of membersToMessage) {
+    const privateMessageResult = await callHabiticaApi({
+      method: 'POST',
+      path: '/members/send-private-message',
+      body: {
+        toUserId: member.id,
+        message: `### **Party Shout:**\n\n${ sanitizedProperties.messageText }`,
+      },
+      habiticaUserId: partyInfoResult.habiticaUserId,
+      userId: sanitizedProperties.userId,
+      retryOnNetworkError: true,
+      retryOnRateLimit: true,
     });
+    if (!privateMessageResult?.success) {
+      return returnOrSendResponse(privateMessageResult?.code || 500, privateMessageResult?.responseContent || {
+        status: 'HABITICA_PARTY_SHOUT_FAILED',
+        message: 'Failed to send the party shout private messages to Habitica.',
+      });
+    }
   }
 
   handleApiAnalytic(undefined, 'sent_party_shout', JSON.stringify({
     userId: sanitizedProperties.userId,
     habitica_email: partyInfoResult.linkedHabiticaUser?.habitica_user_data?.email,
-    taggedUserCount: normalizedMembers.length,
+    taggedUserCount: membersToMessage.length,
   }));
 
   return {
     success: true,
     partyId: partyInfoResult.partyId,
-    mentionedCount: mentionHandles.length,
-    postedMessage: postResult.data || null,
+    mentionedCount: membersToMessage.length,
+    postedMessage: null,
   };
 };
