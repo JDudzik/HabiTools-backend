@@ -19,4 +19,4 @@ export * from './methods/teardownToolResources';
 
 export * from './tools/autoAcceptQuests';
 export * from './tools/autoStartQuest';
-export * from './tools/partyShout';
+export * from './tools/partyBroadcast';

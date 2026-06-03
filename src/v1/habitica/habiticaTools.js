@@ -4,12 +4,12 @@ import {
   modifyToolInstanceData,
   startQuestStartTimer,
   getLinkedHabiticaUser,
-  sendHabiticaPartyShout,
+  sendHabiticaPartyBroadcast,
 } from 'internal/habitica';
 import { sanitizeProperties, isUUID, isInt, isIn, isLength, returnOrSendResponse } from 'utils';
 
 
-const PARTY_SHOUT_MESSAGE_MAX_LENGTH = 2200;
+const PARTY_BROADCAST_MESSAGE_MAX_LENGTH = 2200;
 
 
 // ----------------------------------------------- //
@@ -215,19 +215,19 @@ export const modifyPartyPulseTool = async (req, res) => {
 
 
 // ----------------------------------------------- //
-// ----------------- Party Shout ----------------- //
+// --------------- Party Broadcast --------------- //
 // ----------------------------------------------- //
 // -- POST --
-// {API_URL}/v1/auth/habitica/party-announcement
+// {API_URL}/v1/auth/habitica/party-broadcast
 // -- BODY --
-// message_text: required shout body to send.
-export const partyShout = async (req, res) => {
+// message_text: required broadcast body to send.
+export const partyBroadcast = async (req, res) => {
   const sanitizedPayload = sanitizeProperties(req.body, {
     requiredKeys: [ 'message_text' ],
     trimPayload: true,
     removeDisallowedKeys: true,
     propertyValidations: [
-      isLength('message_text', { min: 1, max: PARTY_SHOUT_MESSAGE_MAX_LENGTH }, `message_text must be between 1 and ${ PARTY_SHOUT_MESSAGE_MAX_LENGTH } characters`),
+      isLength('message_text', { min: 1, max: PARTY_BROADCAST_MESSAGE_MAX_LENGTH }, `message_text must be between 1 and ${ PARTY_BROADCAST_MESSAGE_MAX_LENGTH } characters`),
     ],
   });
   if (!sanitizedPayload.valid) { return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res); }
@@ -235,7 +235,7 @@ export const partyShout = async (req, res) => {
 
   const userId = await getLoggedInUser(req, [ 'id' ]);
 
-  const result = await sendHabiticaPartyShout({
+  const result = await sendHabiticaPartyBroadcast({
     userId,
     messageText: sanitizedProperties.message_text,
   });

@@ -3,7 +3,7 @@ import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { getHabiticaPartyInfo } from 'internal/habitica/methods/getHabiticaPartyInfo';
 
 
-const PARTY_SHOUT_MESSAGE_MAX_LENGTH = 2200;
+const PARTY_BROADCAST_MESSAGE_MAX_LENGTH = 2200;
 
 
 const normalizePartyMembers = ({ habiticaMembers, habiticaUserId, partyLeaderId }) => {
@@ -39,20 +39,20 @@ const getPartyMembersFromHabitica = async ({ habiticaUserId, userId }) => {
 
 
 /**
- * Sends a party shout as a private message to each party member except the sender.
- * Only the current party leader can send party shouts.
+ * Sends a party broadcast as a private message to each party member except the sender.
+ * Only the current party leader can send party broadcasts.
  * @param {Object} properties
  * @param {string} properties.userId
  * @param {string} properties.messageText
  * @returns {Promise<Object>}
  */
-export const sendHabiticaPartyShout = async (properties) => {
+export const sendHabiticaPartyBroadcast = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'userId', 'messageText' ],
     trimPayload: true,
     removeDisallowedKeys: true,
     propertyValidations: [
-      isLength('messageText', { min: 1, max: PARTY_SHOUT_MESSAGE_MAX_LENGTH }, `messageText must be between 1 and ${ PARTY_SHOUT_MESSAGE_MAX_LENGTH } characters`),
+      isLength('messageText', { min: 1, max: PARTY_BROADCAST_MESSAGE_MAX_LENGTH }, `messageText must be between 1 and ${ PARTY_BROADCAST_MESSAGE_MAX_LENGTH } characters`),
     ],
   });
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
@@ -64,7 +64,7 @@ export const sendHabiticaPartyShout = async (properties) => {
   if (!partyInfoResult.isLeader) {
     return returnOrSendResponse(403, {
       status: 'NOT_PARTY_LEADER',
-      message: 'Only the current party leader can send party shouts.',
+      message: 'Only the current party leader can send party broadcasts.',
     });
   }
 
@@ -88,7 +88,7 @@ export const sendHabiticaPartyShout = async (properties) => {
       path: '/members/send-private-message',
       body: {
         toUserId: member.id,
-        message: `### **Party Shout:**\n\n${ sanitizedProperties.messageText }`,
+        message: `### **Party Broadcast:**\n\n${ sanitizedProperties.messageText }`,
       },
       habiticaUserId: partyInfoResult.habiticaUserId,
       userId: sanitizedProperties.userId,
@@ -97,13 +97,13 @@ export const sendHabiticaPartyShout = async (properties) => {
     });
     if (!privateMessageResult?.success) {
       return returnOrSendResponse(privateMessageResult?.code || 500, privateMessageResult?.responseContent || {
-        status: 'HABITICA_PARTY_SHOUT_FAILED',
-        message: 'Failed to send the party shout private messages to Habitica.',
+        status: 'HABITICA_PARTY_BROADCAST_FAILED',
+        message: 'Failed to send the party broadcast private messages to Habitica.',
       });
     }
   }
 
-  handleApiAnalytic(undefined, 'sent_party_shout', JSON.stringify({
+  handleApiAnalytic(undefined, 'sent_party_broadcast', JSON.stringify({
     userId: sanitizedProperties.userId,
     habitica_email: partyInfoResult.linkedHabiticaUser?.habitica_user_data?.email,
     taggedUserCount: membersToMessage.length,
