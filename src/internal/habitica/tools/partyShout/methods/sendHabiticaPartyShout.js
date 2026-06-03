@@ -1,4 +1,4 @@
-import { sanitizeProperties, isLength, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isLength, returnOrSendResponse, handleApiAnalytic } from 'utils';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { getHabiticaPartyInfo } from 'internal/habitica/methods/getHabiticaPartyInfo';
 
@@ -97,6 +97,12 @@ export const sendHabiticaPartyShout = async (properties) => {
       message: 'Failed to send the party shout to Habitica.',
     });
   }
+
+  handleApiAnalytic(undefined, 'sent_party_shout', JSON.stringify({
+    userId: sanitizedProperties.userId,
+    habitica_email: partyInfoResult.linkedHabiticaUser?.habitica_user_data?.email,
+    taggedUserCount: normalizedMembers.length,
+  }));
 
   return {
     success: true,

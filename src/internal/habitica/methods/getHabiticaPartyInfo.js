@@ -64,5 +64,6 @@ export const getHabiticaPartyInfo = async (properties) => {
     isLeader: partyLeaderId === habiticaUserId,
     isQuestLeader: partyData?.quest?.leader === habiticaUserId || false,
     partyData: partyData || null,
+    linkedHabiticaUser: linkedHabiticaUser,
   };
 };
