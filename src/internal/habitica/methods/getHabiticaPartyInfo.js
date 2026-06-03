@@ -37,6 +37,8 @@ export const getHabiticaPartyInfo = async (properties) => {
     optionalKeys: [ 'forceRefresh' ],
     trimPayload: true,
     removeDisallowedKeys: true,
+    retryOnNetworkError: true,
+    retryOnRateLimit: true,
   });
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
   const sanitizedProperties = sanitizedPayload.properties;
