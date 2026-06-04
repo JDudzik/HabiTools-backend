@@ -1,10 +1,8 @@
 import HabiticaTool from 'knex/models/HabiticaTool';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
-import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 import { returnOrSendResponse, handleApiAnalytic, handleApiError } from 'utils';
-import toolInvalidCredentials from '../../content/toolInvalidCredentials';
 
 
 const calculateScoreTier = (score) => {
@@ -55,21 +53,6 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
   });
   if (!habiticaMemberInfo?.success) {
     if (habiticaMemberInfo?.code === 401 || habiticaMemberInfo?.code === 403) {
-      await createEventMessage({
-        userId,
-        resourceId,
-        eventSlug: 'party-pulse-failed',
-        eventName: 'Party Pulse Failed',
-        messageText: toolInvalidCredentials('Party Pulse'),
-        shortMessage: 'Party Pulse Failed',
-        shouldNotify: true,
-        shouldNotifyHabiticaViaAdmin: true,
-        priority: 3,
-      }).catch(() => {});
-      await teardownToolResources({
-        resourceId,
-        userId,
-      });
       handleApiError(new Error(`party-pulse-failed. ${ habiticaMemberInfo?.code }`), 'checkPartyActivity.party-pulse-failed');
       handleApiAnalytic(undefined, 'party-pulse-failed', JSON.stringify({
         code: habiticaMemberInfo?.code,

@@ -1,10 +1,8 @@
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
-import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 import { getHabiticaContent } from 'internal/habitica/core/getHabiticaContent';
 import { handleApiAnalytic, handleApiError } from 'utils';
-import toolInvalidCredentials from '../../content/toolInvalidCredentials';
 
 
 /**
@@ -35,23 +33,8 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
   });
   if (!habiticaResponse?.success) {
     if (habiticaResponse?.code === 401 || habiticaResponse?.code === 403) {
-      await createEventMessage({
-        userId,
-        resourceId,
-        eventSlug: 'quest-auto-accept-failed',
-        eventName: 'Quest Auto-Accept Failed',
-        messageText: toolInvalidCredentials('Auto Accept Quests'),
-        shortMessage: 'Quest auto-accept failed',
-        shouldNotify: true,
-        shouldNotifyHabiticaViaAdmin: true,
-        priority: 3,
-      }).catch(() => {});
-      await teardownToolResources({
-        resourceId,
-        userId,
-      });
-      handleApiError(new Error(`quest-auto-accept-failed. ${ habiticaResponse?.code }`), 'acceptPendingQuest.quest-auto-accept-failed');
-      handleApiAnalytic(undefined, 'quest-auto-accept-failed', JSON.stringify({
+      handleApiError(new Error(`auto-accept-quests-failed. ${ habiticaResponse?.code }`), 'acceptPendingQuest.auto-accept-quests-failed');
+      handleApiAnalytic(undefined, 'auto-accept-quests-failed', JSON.stringify({
         code: habiticaResponse?.code,
         habiticaResponse,
         username: userData?.habitica_user_data?.username,
