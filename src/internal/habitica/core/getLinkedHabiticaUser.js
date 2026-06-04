@@ -37,11 +37,12 @@ const mapHabiticaUserDataForStorage = (rawUser) => {
  * @param {string} [properties.userId] - The user ID to fetch the linked Habitica user for (if habiticaUserId is not provided).
  * @param {string} [properties.habiticaUserId] - The Habitica user ID to fetch the linked Habitica user for (if userId is not provided).
  * @param {boolean} [properties.forceRefresh=false] - Whether to force a refresh of the local data from Habitica, even if it's not stale.
+ * @param {boolean} [properties.skipRefresh=false] - Whether to skip the refresh of local data from Habitica, even if it's stale.
  * @returns {Promise<Object>} - The linked Habitica user data, or an error response if not found or if credentials are invalid.
  */
 export const getLinkedHabiticaUser = async (properties) => {
   const sanitizedPayload = sanitizeProperties(properties, {
-    optionalKeys: [ 'userId', 'habiticaUserId', 'forceRefresh' ],
+    optionalKeys: [ 'userId', 'habiticaUserId', 'forceRefresh', 'skipRefresh' ],
     trimPayload: true,
     atLeastOneOptionalProp: true,
     parseBools: true,
@@ -50,6 +51,7 @@ export const getLinkedHabiticaUser = async (properties) => {
       optional(isUUID('userId', 'userId must be a valid UUID')),
       optional(isUUID('habiticaUserId', 'habiticaUserId must be a valid UUID')),
       optional(isBoolean('forceRefresh', 'forceRefresh must be a boolean')),
+      optional(isBoolean('skipRefresh', 'skipRefresh must be a boolean')),
     ],
   });
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
@@ -76,7 +78,7 @@ export const getLinkedHabiticaUser = async (properties) => {
       builder.whereNull('deleted_at').orderBy('created_at', 'desc');
     })
     .first();
-    
+
   if (!habiticaUser) {
     return returnOrSendResponse(404, {
       status: 'HABITICA_USER_NOT_FOUND',
@@ -93,7 +95,7 @@ export const getLinkedHabiticaUser = async (properties) => {
     || !habiticaUser.habitica_user_data
     || !lastUpdated
     || (now - lastUpdated) > THIRTY_MINUTES_MS
-  );
+  ) && sanitizedProperties.skipRefresh !== true;
 
   if (shouldRefreshFromHabitica) {
     try {
@@ -109,16 +111,16 @@ export const getLinkedHabiticaUser = async (properties) => {
         },
       });
       if (remoteHabiticaUserData?.code) { throw remoteHabiticaUserData.responseContent; }
-  
+
       if (!remoteHabiticaUserData?.success || (remoteHabiticaUserData?.data?._id !== habiticaUser.habitica_user_id)) {
         return returnOrSendResponse(401, {
           status: 'INVALID_CREDENTIALS',
           message: 'Habitica user ID does not match the provided credentials.',
         });
       }
-  
+
       const habiticaUserDataPayload = mapHabiticaUserDataForStorage(remoteHabiticaUserData.data);
-  
+
       let persistedHabiticaUserData;
       if (habiticaUser.habitica_user_data) {
         persistedHabiticaUserData = await HabiticaUserData.query().patchAndFetchById(
@@ -131,7 +133,7 @@ export const getLinkedHabiticaUser = async (properties) => {
           ...habiticaUserDataPayload,
         });
       }
-  
+
       habiticaUser.habitica_user_data = persistedHabiticaUserData;
     } catch (err) {
       handleApiAnalytic(undefined, 'failed_refresh_habitica_user_data', JSON.stringify({
@@ -151,6 +153,19 @@ export const getLinkedHabiticaUser = async (properties) => {
           shouldNotifyHabiticaViaAdmin: true,
           priority: 3,
         }).catch(() => {}); 
+      }
+      if (err.status === 'HABITICA_INVALID_CREDENTIALS') {
+        await createEventMessage({
+          userId: sanitizedProperties?.userId || habiticaUser?.user_id,
+          eventSlug: 'habitica_invalid_credentials',
+          eventName: 'Invalid Habitica Credentials',
+          messageText: 'We were unable to access your Habitica account with the credentials we have on file. This typically happens when your Habitica password has changed.\n\nPlease unlink and relink your Habitica account from the [HabiTools My Account page](https://habitools.online/my-account/) to fix this issue.',
+          shortMessage: 'Invalid Habitica Credentials',
+          shouldNotify: true,
+          shouldNotifyHabiticaViaAdmin: true,
+          priority: 3,
+        }).catch(() => {});
+        return returnOrSendResponse(401, err);
       }
       if (sanitizedProperties.forceRefresh) {
         return returnOrSendResponse(503, {

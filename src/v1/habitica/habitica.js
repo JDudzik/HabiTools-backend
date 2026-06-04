@@ -17,7 +17,7 @@ import { allowByPermissions } from 'internal/userController';
 // Returns the linked Habitica account for the logged-in user.
 export const getHabitica = async (req, res) => {
   const userId = await getLoggedInUser(req, [ 'id' ]);
-  const result = await getLinkedHabiticaUser({ userId });
+  const result = await getLinkedHabiticaUser({ userId, ...req.query });
   if (result?.code) {
     res.status(result.code).json(result.responseContent);
     return;
