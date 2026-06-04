@@ -22,8 +22,10 @@ const getPartyMembersFromHabitica = async ({ habiticaUserId, userId }) => {
     path: '/groups/party/members?includeAllPublicFields=true',
     habiticaUserId,
     userId,
-    retryOnNetworkError: true,
-    retryOnRateLimit: true,
+    retryConfig: {
+      retryOnNetworkError: true,
+      retryOnRateLimit: true,
+    },
   });
   if (!habiticaMembers?.success) {
     return returnOrSendResponse(habiticaMembers?.code || 500, habiticaMembers?.responseContent || {
@@ -92,8 +94,10 @@ export const sendHabiticaPartyBroadcast = async (properties) => {
       },
       habiticaUserId: partyInfoResult.habiticaUserId,
       userId: sanitizedProperties.userId,
-      retryOnNetworkError: true,
-      retryOnRateLimit: true,
+      retryConfig: {
+        retryOnNetworkError: true,
+        retryOnRateLimit: true,
+      },
     });
     if (!privateMessageResult?.success) {
       return returnOrSendResponse(privateMessageResult?.code || 500, privateMessageResult?.responseContent || {
