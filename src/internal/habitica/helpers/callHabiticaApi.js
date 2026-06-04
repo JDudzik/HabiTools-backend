@@ -124,7 +124,10 @@ export const callHabiticaApi = async (properties) => {
   let attempt = 0;
   while (true) {
     const fetchResult = await fetch(url, payload)
-      .then(response => ({ response }))
+      .then(async (response) => {
+        // console.log('response:', await response.json());
+        return { response, data: await response.json().catch(() => null) };
+      })
       .catch(fetchError => ({ fetchError }));
 
     const delay = calculateRetryDelay({
@@ -151,8 +154,7 @@ export const callHabiticaApi = async (properties) => {
       });
     }
 
-    const response = fetchResult.response;
-    const data = await response.json().catch(() => null);
+    const { response, data } = fetchResult;
     if (response.ok) {
       return data;
     }
@@ -164,8 +166,8 @@ export const callHabiticaApi = async (properties) => {
     error.fetchFailedPath = sanitizedProperties.path;
 
     return returnOrSendResponse(response.status, {
-      status: data?.status || 'HABITICA_API_ERROR',
-      message: data?.message || 'An error occurred while communicating with the Habitica API.',
+      status: `HABITICA_${ data?.error?.toUpperCase?.() || 'API_ERROR' }`,
+      message: `An error occurred while communicating with the Habitica API: ${ data?.message || '' }`,
     });
   }
 };
