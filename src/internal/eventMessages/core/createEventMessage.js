@@ -4,7 +4,7 @@ import { sanitizeProperties, presence, optional, isUUID, handleApiAnalytic, hand
 import { getHabiticaCredentials } from 'internal/habitica/helpers/getHabiticaCredentials';
 
 const recentlySentHabiticaMessages = new Map(); // Map to track recently sent error messages for each user
-const ERROR_MESSAGE_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes cooldown for sending the same message to the same user for the same event slug
+const ERROR_MESSAGE_COOLDOWN_MS = 3 * 60 * 60 * 1000; // 3 hour cooldown for sending the same message to the same user for the same event slug
 
 
 // Note: This helper method exists to prevent a difficult circular dependency that would occur by utilizing the habitica methods.
