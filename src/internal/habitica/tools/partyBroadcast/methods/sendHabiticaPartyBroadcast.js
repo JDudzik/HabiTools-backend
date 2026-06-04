@@ -85,12 +85,12 @@ export const sendHabiticaPartyBroadcast = async (properties) => {
   const membersToMessage = normalizedMembers.filter(member => !member?.is_self);
 
   for (const member of membersToMessage) {
-    const privateMessageResult = await callHabiticaApi({
+    callHabiticaApi({
       method: 'POST',
       path: '/members/send-private-message',
       body: {
         toUserId: member.id,
-        message: `### **Party Broadcast:**\n\n${ sanitizedProperties.messageText }`,
+        message: `### [**Party Broadcast**](https://habitools.online/):\n\n---\n${ sanitizedProperties.messageText }`,
       },
       habiticaUserId: partyInfoResult.habiticaUserId,
       userId: sanitizedProperties.userId,
@@ -98,13 +98,15 @@ export const sendHabiticaPartyBroadcast = async (properties) => {
         retryOnNetworkError: true,
         retryOnRateLimit: true,
       },
+    }).catch((err) => {
+      handleApiAnalytic(undefined, 'party_broadcast_pm_failed', JSON.stringify({
+        userId: sanitizedProperties.userId,
+        toUserId: member.id,
+        habitica_email: partyInfoResult.linkedHabiticaUser?.habitica_user_data?.email,
+        taggedUserCount: membersToMessage.length,
+        error: err,
+      }));
     });
-    if (!privateMessageResult?.success) {
-      return returnOrSendResponse(privateMessageResult?.code || 500, privateMessageResult?.responseContent || {
-        status: 'HABITICA_PARTY_BROADCAST_FAILED',
-        message: 'Failed to send the party broadcast private messages to Habitica.',
-      });
-    }
   }
 
   handleApiAnalytic(undefined, 'sent_party_broadcast', JSON.stringify({
