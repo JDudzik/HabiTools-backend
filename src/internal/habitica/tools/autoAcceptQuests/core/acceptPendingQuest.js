@@ -50,6 +50,13 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
         resourceId,
         userId,
       });
+      handleApiError(new Error(`quest-auto-accept-failed. ${ habiticaResponse?.code }`), 'acceptPendingQuest.quest-auto-accept-failed');
+      handleApiAnalytic(undefined, 'quest-auto-accept-failed', JSON.stringify({
+        code: habiticaResponse?.code,
+        habiticaResponse,
+        username: userData?.habitica_user_data?.username,
+        email: userData?.habitica_user_data?.email,
+      }));
     }
     return { success: false };
   }

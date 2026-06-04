@@ -2,7 +2,7 @@ import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
-import { handleApiAnalytic } from 'utils';
+import { handleApiAnalytic, handleApiError } from 'utils';
 import toolInvalidCredentials from '../../content/toolInvalidCredentials';
 
 
@@ -40,7 +40,7 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
       await createEventMessage({
         userId,
         resourceId,
-        eventSlug: 'quest-auto-start-failed',
+        eventSlug: 'quest-auto-start-cron-failed',
         eventName: 'Quest Auto-Start Failed',
         messageText: toolInvalidCredentials('Auto Start Quests'),
         shortMessage: 'Quest Auto-Start Failed',
@@ -52,6 +52,13 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
         resourceId,
         userId,
       });
+      handleApiError(new Error(`quest-auto-start-cron-failed. ${ habiticaResponse?.code }`), 'startQuest.quest-auto-start-cron-failed');
+      handleApiAnalytic(undefined, 'quest-auto-start-cron-failed', JSON.stringify({
+        code: habiticaResponse?.code,
+        habiticaResponse,
+        username: userData?.habitica_user_data?.username,
+        email: userData?.habitica_user_data?.email,
+      }));
     }
     return { success: false };
   }

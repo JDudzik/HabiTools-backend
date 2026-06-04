@@ -3,7 +3,7 @@ import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
-import { returnOrSendResponse } from 'utils';
+import { returnOrSendResponse, handleApiAnalytic, handleApiError } from 'utils';
 import toolInvalidCredentials from '../../content/toolInvalidCredentials';
 
 
@@ -70,6 +70,13 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
         resourceId,
         userId,
       });
+      handleApiError(new Error(`party-pulse-failed. ${ habiticaMemberInfo?.code }`), 'checkPartyActivity.party-pulse-failed');
+      handleApiAnalytic(undefined, 'party-pulse-failed', JSON.stringify({
+        code: habiticaMemberInfo?.code,
+        habiticaResponse: habiticaMemberInfo,
+        username: userData?.habitica_user_data?.username,
+        email: userData?.habitica_user_data?.email,
+      }));
     }
     return { success: false };
   }
