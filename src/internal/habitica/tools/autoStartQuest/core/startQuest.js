@@ -1,9 +1,7 @@
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
-import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
-import { handleApiAnalytic, handleApiError } from 'utils';
-import toolInvalidCredentials from '../../content/toolInvalidCredentials';
+import { handleApiAnalytic } from 'utils';
 
 
 /**

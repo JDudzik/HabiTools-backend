@@ -119,7 +119,6 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
     shortMessage: 'Quest Timer Started',
     priority: 1,
   }).catch(() => {});
-
   handleApiAnalytic(undefined, 'auto_start_quest_timer', JSON.stringify({
     userId,
     habitica_username: userData?.habitica_user_data?.username,
