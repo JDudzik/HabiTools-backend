@@ -36,29 +36,17 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
     },
   });
   if (!habiticaResponse?.success) {
-    if (habiticaResponse?.code === 401 || habiticaResponse?.code === 403) {
-      await createEventMessage({
-        userId,
-        resourceId,
-        eventSlug: 'quest-auto-start-cron-failed',
-        eventName: 'Quest Auto-Start Failed',
-        messageText: toolInvalidCredentials('Auto Start Quests'),
-        shortMessage: 'Quest Auto-Start Failed',
-        shouldNotify: true,
-        shouldNotifyHabiticaViaAdmin: true,
-        priority: 3,
-      }).catch(() => {});
-      await teardownToolResources({
-        resourceId,
-        userId,
-      });
-      handleApiError(new Error(`quest-auto-start-cron-failed. ${ habiticaResponse?.code }`), 'startQuest.quest-auto-start-cron-failed');
-      handleApiAnalytic(undefined, 'quest-auto-start-cron-failed', JSON.stringify({
-        code: habiticaResponse?.code,
-        habiticaResponse,
-        username: userData?.habitica_user_data?.username,
-        email: userData?.habitica_user_data?.email,
-      }));
+    await createEventMessage({
+      userId,
+      resourceId,
+      eventSlug: 'could-not-start-quest',
+      eventName: 'Couldn\'t Start the Quest',
+      messageText: 'Attempted to start the quest, but Auto-Start Quests was unable to do so this time.',
+      shortMessage: 'Couldn\'t Start the Quest',
+      priority: 1,
+    }).catch(() => {});
+    if (removeThisCron) {
+      await removeThisCron();
     }
     return { success: false };
   }
