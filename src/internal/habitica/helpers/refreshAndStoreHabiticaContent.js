@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { callHabiticaApi } from './callHabiticaApi';
 
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 const toChunks = (items, size = 250) => {
   const chunks = [];
   for (let index = 0; index < items.length; index += size) {
@@ -135,93 +137,107 @@ const mapContentRow = ({ contentData, appVersion, habiticaContentId, lastUpdated
  * @param {string} [language='en'] - The language code for the content being stored (e.g., 'en', 'es', 'fr').
  * @returns {Promise<Object>} Result with metadata about the refresh, or a standardized error response object.
  */
-export const refreshAndStoreHabiticaContent = async (language = 'en') => {
-  // Query for existing content ID for this language, or generate new one
-  const existingContent = await HabiticaContent.query()
-    .select([ 'id' ])
-    .where({ language })
-    .first();
-
-  const habiticaContentId = existingContent?.id || uuidv4();
-
-  const sourceHabiticaUser = await HabiticaUser.query()
-    .select([ 'habitica_user_id' ])
-    .orderBy('created_at', 'desc')
-    .first();
-
-  if (!sourceHabiticaUser?.habitica_user_id) {
-    return returnOrSendResponse(404, {
-      status: 'HABITICA_USER_NOT_FOUND',
-      message: 'Cannot refresh Habitica content because no linked Habitica user was found.',
-    });
-  }
-
-  const remoteHabiticaContent = await callHabiticaApi({
-    method: 'GET',
-    path: `/content?language=${ language }`,
-    habiticaUserId: sourceHabiticaUser.habitica_user_id,
-    retryConfig: {
-      retryOnNetworkError: true,
-      retryOnRateLimit: true,
-    },
-  });
-  if (remoteHabiticaContent?.code) { return returnOrSendResponse(remoteHabiticaContent.code, remoteHabiticaContent.responseContent); }
-
-  if (!remoteHabiticaContent?.success || !remoteHabiticaContent?.data) {
-    return returnOrSendResponse(503, {
-      status: 'HABITICA_UNREACHABLE',
-      message: 'Habitica content payload was invalid or empty.',
-    });
-  }
-
-  const contentData = remoteHabiticaContent.data || {};
-  const appVersion = remoteHabiticaContent.appVersion || null;
-  const lastUpdated = Date.now();
-
-  const contentRow = mapContentRow({
-    contentData,
-    appVersion,
-    habiticaContentId,
-    lastUpdated,
-    language,
-  });
-
-  const gearRows = buildGearRows({
-    contentData,
-    habiticaContentId,
-    lastUpdated,
-    language,
-  });
-
-  const petRows = buildAnimalRows({
-    keySources: [
-      contentData.pets,
-      contentData.premiumPets,
-      contentData.questPets,
-      contentData.specialPets,
-      contentData.wackyPets,
-    ],
-    infoMap: contentData.petInfo,
-    habiticaContentId,
-    lastUpdated,
-    language,
-  });
-
-  const mountRows = buildAnimalRows({
-    keySources: [
-      contentData.mounts,
-      contentData.premiumMounts,
-      contentData.questMounts,
-      contentData.specialMounts,
-    ],
-    infoMap: contentData.mountInfo,
-    habiticaContentId,
-    lastUpdated,
-    language,
-  });
-
+export const refreshAndStoreHabiticaContent = (language = 'en') => {
   const knex = HabiticaContent.knex();
-  await knex.transaction(async (trx) => {
+  return knex.transaction(async (trx) => {
+    await trx.raw('SELECT pg_advisory_xact_lock(hashtext(?))', [ `habitica_content_refresh:${ language }` ]);
+
+    const existingContent = await trx('habitica_content')
+      .select([ 'id', 'last_updated', 'appVersion' ])
+      .where({ language })
+      .orderBy('last_updated', 'desc')
+      .first();
+
+    const isFresh = Boolean(existingContent?.last_updated)
+      && (Date.now() - Number(existingContent.last_updated)) <= ONE_DAY_MS;
+
+    if (isFresh) {
+      return {
+        success: true,
+        id: existingContent.id,
+        language,
+        last_updated: Number(existingContent.last_updated),
+        appVersion: existingContent.appVersion || null,
+      };
+    }
+
+    const sourceHabiticaUser = await HabiticaUser.query(trx)
+      .select([ 'habitica_user_id' ])
+      .orderBy('created_at', 'desc')
+      .first();
+
+    if (!sourceHabiticaUser?.habitica_user_id) {
+      return returnOrSendResponse(404, {
+        status: 'HABITICA_USER_NOT_FOUND',
+        message: 'Cannot refresh Habitica content because no linked Habitica user was found.',
+      });
+    }
+
+    const remoteHabiticaContent = await callHabiticaApi({
+      method: 'GET',
+      path: `/content?language=${ language }`,
+      habiticaUserId: sourceHabiticaUser.habitica_user_id,
+      retryConfig: {
+        retryOnNetworkError: true,
+        retryOnRateLimit: true,
+      },
+    });
+    if (remoteHabiticaContent?.code) { return returnOrSendResponse(remoteHabiticaContent.code, remoteHabiticaContent.responseContent); }
+
+    if (!remoteHabiticaContent?.success || !remoteHabiticaContent?.data) {
+      return returnOrSendResponse(503, {
+        status: 'HABITICA_UNREACHABLE',
+        message: 'Habitica content payload was invalid or empty.',
+      });
+    }
+
+    const habiticaContentId = existingContent?.id || uuidv4();
+    const contentData = remoteHabiticaContent.data || {};
+    const appVersion = remoteHabiticaContent.appVersion || null;
+    const lastUpdated = Date.now();
+
+    const contentRow = mapContentRow({
+      contentData,
+      appVersion,
+      habiticaContentId,
+      lastUpdated,
+      language,
+    });
+
+    const gearRows = buildGearRows({
+      contentData,
+      habiticaContentId,
+      lastUpdated,
+      language,
+    });
+
+    const petRows = buildAnimalRows({
+      keySources: [
+        contentData.pets,
+        contentData.premiumPets,
+        contentData.questPets,
+        contentData.specialPets,
+        contentData.wackyPets,
+      ],
+      infoMap: contentData.petInfo,
+      habiticaContentId,
+      lastUpdated,
+      language,
+    });
+
+    const mountRows = buildAnimalRows({
+      keySources: [
+        contentData.mounts,
+        contentData.premiumMounts,
+        contentData.questMounts,
+        contentData.specialMounts,
+      ],
+      infoMap: contentData.mountInfo,
+      habiticaContentId,
+      lastUpdated,
+      language,
+    });
+
     await trx('habitica_content_mounts').where({ language }).del();
     await trx('habitica_content_pets').where({ language }).del();
     await trx('habitica_content_gear').where({ language }).del();
@@ -231,13 +247,12 @@ export const refreshAndStoreHabiticaContent = async (language = 'en') => {
     await insertInChunks(trx, 'habitica_content_gear', gearRows);
     await insertInChunks(trx, 'habitica_content_pets', petRows);
     await insertInChunks(trx, 'habitica_content_mounts', mountRows);
+    return {
+      success: true,
+      id: habiticaContentId,
+      language,
+      last_updated: lastUpdated,
+      appVersion,
+    };
   });
-
-  return {
-    success: true,
-    id: habiticaContentId,
-    language,
-    last_updated: lastUpdated,
-    appVersion,
-  };
 };
