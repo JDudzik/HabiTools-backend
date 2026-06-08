@@ -73,7 +73,7 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
     resourceId,
     eventSlug: 'quest-auto-started',
     eventName: 'Quest Auto-Started',
-    messageText: `Started the quest for [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl })`,
+    messageText: `Started the quest for [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }).`,
     shortMessage: 'Quest Auto-Started',
     priority: 1,
   }).catch(() => {});

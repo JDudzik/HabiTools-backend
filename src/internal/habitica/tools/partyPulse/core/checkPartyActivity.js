@@ -101,7 +101,7 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
     resourceId,
     eventSlug: 'party-pulse-update',
     eventName: 'Party Pulse Update',
-    messageText: `Party Pulse has updated activitie scores for ${ Object.keys(updatedStoredMembersData).length } members.`,
+    messageText: `Party Pulse has updated activity scores for ${ Object.keys(updatedStoredMembersData).length } members.`,
     shortMessage: 'Party Pulse Update',
     priority: 0,
   }).catch(() => {});
