@@ -17,6 +17,15 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
   const questData = userData?.habitica_user_data?.party?.quest;
 
   if (!questData?.key || questData?.key !== questKey) {
+    await createEventMessage({
+      userId,
+      resourceId,
+      eventSlug: 'no-pending-quests',
+      eventName: 'Quests Not Pending',
+      messageText: `Attempted to start "_${ questName }_", but it was not pending. It likely already started or was cancelled.`,
+      shortMessage: 'Quests Not Pending',
+      priority: 1,
+    }).catch(() => {});
     if (removeThisCron) {
       await removeThisCron();
     }
@@ -37,10 +46,10 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
     await createEventMessage({
       userId,
       resourceId,
-      eventSlug: 'could-not-start-quest',
-      eventName: 'Couldn\'t Start the Quest',
-      messageText: 'Attempted to start the quest, but Auto-Start Quests was unable to do so this time.',
-      shortMessage: 'Couldn\'t Start the Quest',
+      eventSlug: 'no-pending-quests',
+      eventName: 'Quests Not Pending',
+      messageText: `Attempted to start "_${ questName }_", but it was not pending. It likely already started or was cancelled.`,
+      shortMessage: 'Quests Not Pending',
       priority: 1,
     }).catch(() => {});
     if (removeThisCron) {
@@ -68,10 +77,8 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
     shortMessage: 'Quest Auto-Started',
     priority: 1,
   }).catch(() => {});
-
   if (removeThisCron) {
     await removeThisCron();
   }
-
   return { success: true };
 };

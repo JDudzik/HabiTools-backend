@@ -81,7 +81,6 @@ export const activateAutoStartQuests = async (req, res) => {
         type: 'questActivity',
         options: {
           questInvited: true,
-          questStarted: true,
         },
       },
     }],
