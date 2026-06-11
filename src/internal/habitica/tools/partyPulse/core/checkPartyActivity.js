@@ -5,6 +5,7 @@ import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaU
 import { returnOrSendResponse, handleApiAnalytic, handleApiError } from 'utils';
 
 
+const MIN_CHECKS_FOR_CALIBRATION = 7;
 const calculateScoreTier = (score) => {
   if (score >= 11) { return 3; }
   if (score >= 7) { return 2; }
@@ -67,17 +68,21 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
   const updatedStoredMembersData = {};
   habiticaMemberInfo.data.forEach((habiticaMember) => {
     const matchingStoredMember = members?.[habiticaMember.id];
-
+    
+    const currentTotalChecks = (matchingStoredMember?.totalChecks || 0);
+    const isCalibrating = currentTotalChecks < MIN_CHECKS_FOR_CALIBRATION;
+    
     const hasRecentActivity = new Date(habiticaMember?.auth?.timestamps.loggedin).getTime() > Date.now() - 86400000; // 24 hours
+    const scoreChange = (hasRecentActivity ? 1 : -1) * (isCalibrating ? 2 : 1); // During calibration phase, we weight activity more heavily to quickly adjust scores to accurate tiers.
     const currentScore = matchingStoredMember?.currentScore || 0;
-    const newScore = hasRecentActivity ? (currentScore + 1) : (currentScore - 1);
+    const newScore = currentScore + scoreChange;
     const newScoreLimited = Math.max(Math.min(newScore, 14), -14);
 
     updatedStoredMembersData[habiticaMember.id] = {
       id: habiticaMember.id,
-      totalChecks: (matchingStoredMember?.totalChecks || 0) + 1,
+      totalChecks: currentTotalChecks + 1,
       currentScore: newScoreLimited,
-      scoreTier: calculateScoreTier(newScoreLimited),
+      scoreTier: isCalibrating ? 'calibrating' : calculateScoreTier(newScoreLimited),
       username: habiticaMember.auth?.local?.username || '',
       displayName: habiticaMember.profile?.name || '(unknown)',
       userUrl: `https://habitica.com/profile/${ habiticaMember.id }`,
