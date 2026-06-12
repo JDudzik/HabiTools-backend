@@ -5,6 +5,7 @@ import {
   startQuestStartTimer,
   getLinkedHabiticaUser,
   sendHabiticaPartyBroadcast,
+  acceptPendingQuest,
 } from 'internal/habitica';
 import { sanitizeProperties, isUUID, isInt, isIn, isLength, returnOrSendResponse } from 'utils';
 
@@ -35,13 +36,19 @@ export const activateAutoAcceptQuests = async (req, res) => {
     }],
     crons: [{
       taskName: 'auto-accept-quests-cron',
-      immediateOnce: true,
     }],
   });
   if (activatedResult?.code) {
     res.status(activatedResult.code).json(activatedResult.responseContent);
     return;
   }
+
+  await acceptPendingQuest({
+    userId,
+    resourceId: activatedResult.resourceId,
+    habiticaUserId: activatedResult.habiticaUser?.habitica_user_id,
+    source: 'activation',
+  });
 
   res.status(201).json(activatedResult);
 };

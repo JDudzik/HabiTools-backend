@@ -11,6 +11,7 @@ import { handleApiAnalytic, handleApiError } from 'utils';
  * @param {string} properties.userId - The user ID of the Habitools user.
  * @param {string} properties.resourceId - The ID of the associated tool resource.
  * @param {string} properties.habiticaUserId - The Habitica user ID to check for pending quests.
+ * @param {string} properties.source - The source of the quest acceptance (e.g., 'cron', 'webhook', 'activation').
  * @returns {Promise<Object>} - A success message if a quest was accepted, or a failure message if no pending quest was found or if there was an error.
  */
 export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, source }) => {
