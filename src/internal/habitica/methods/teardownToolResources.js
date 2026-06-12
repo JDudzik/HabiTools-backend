@@ -3,7 +3,7 @@ import Webhook from 'knex/models/Webhook';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { deleteWebhooks } from 'internal/webhooks/core/deleteWebhooks';
 import { deleteCrons } from 'internal/cron/core/deleteCrons';
-import { sanitizeProperties, isUUID, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } from 'utils';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 
 
@@ -96,6 +96,13 @@ export const teardownToolResources = async (properties) => {
   }
 
   // If userId and notification details are provided, send a notification about the teardown.
+  if (notification?.fromExpiration) {
+    handleApiAnalytic(undefined, 'tool_expired', JSON.stringify({
+      userId: sanitizedProperties.userId || null,
+      tool_name: notification?.name,
+    }));
+  }
+
   if (sanitizedProperties?.userId && notification?.slugPrefix && notification?.name) {
     await createEventMessage({
       userId: sanitizedProperties.userId,
