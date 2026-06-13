@@ -209,8 +209,9 @@ export const modifyPartyPulseTool = async (req, res) => {
     resourceId: sanitizedProperties.resource_id,
     toolData: { scoreDisplayDirection: sanitizedProperties.score_display_direction },
     eventMessage: {
-      messageText: `The Party Pulse tool has been updated with a new score display direction of ${ sanitizedProperties.score_display_direction }.`,
-      shortMessage: 'Party Pulse tool was updated.',
+      messageText: `Display order set to ${ sanitizedProperties.score_display_direction }.`,
+      eventName: 'Display Order Set',
+      shortMessage: 'Display Order Set',
     },
   });
   if (result?.code) { return returnOrSendResponse(result.code, result.responseContent, req, res); }
