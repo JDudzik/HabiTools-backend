@@ -12,7 +12,6 @@ module.exports = (router) => {
   bruteStopper(router, `${ securedPath }/list/:webhook_id`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/set`, { freeRetries: 15, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/remove/:webhook_id`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
-  bruteStopper(router, `${ openPath }/trigger/:url_id`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   
   // Open routes:
   router.post(`${ openPath }/trigger/:url_id`, webhooks.trigger);
