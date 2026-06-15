@@ -10,7 +10,7 @@ import Cron from 'knex/models/Cron';
 
 
 const DEFAULT_OPTIONS = {
-  timezone: 'America/New_York',
+  timezone: 'Etc/UTC',
   maxRandomDelay: 1000,
 };
 
