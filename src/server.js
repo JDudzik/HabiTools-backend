@@ -85,7 +85,11 @@ async function startServer() {
     app.use((req, res) => {
       // If a user has hit the root, then give a basic "greating" message as well as the server's time.
       if (req.originalUrl === '/') {
-        return res.json({ message: `Welcome to the API! - Server time: ${ new Date() }` });
+        return res.json({
+          message: 'Welcome to the API!',
+          serverTime: new Date(),
+          ISOTime: new Date().toISOString(),
+        });
       }
   
       // If the route is anything but the root, it must not exist and is a 404.
