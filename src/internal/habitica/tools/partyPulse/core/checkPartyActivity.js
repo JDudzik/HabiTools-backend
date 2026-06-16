@@ -7,13 +7,13 @@ import { returnOrSendResponse, handleApiAnalytic, handleApiError } from 'utils';
 
 const MIN_CHECKS_FOR_CALIBRATION = 7;
 const calculateScoreTier = (score) => {
-  if (score >= 11) { return 3; }
-  if (score >= 7) { return 2; }
-  if (score >= 3) { return 1; }
-  if (score >= -2) { return 0; }
-  if (score >= -6) { return -1; }
-  if (score >= -10) { return -2; }
-  return -3;
+  if (score >= 21) { return 3; }  // 21 to 28
+  if (score >= 13) { return 2; }  // 13 to 20
+  if (score >= 5) { return 1; }  // 5 to 12
+  if (score >= -4) { return 0; }  // -4 to 4
+  if (score >= -12) { return -1; } // -12 to -5
+  if (score >= -20) { return -2; } // -20 to -13
+  return -3; // -28 to -21
 };
 
 /**
@@ -37,8 +37,8 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
     .first();
   const { lastPulseAt, members } = selectedTool.data;
 
-  // If last pulse was less than 23.5 hours ago, we skip this check.
-  if (lastPulseAt && Date.now() - new Date(lastPulseAt).getTime() < 84600000) {
+  // If last pulse was less than 23 hours ago, we skip this check.
+  if (lastPulseAt && Date.now() - new Date(lastPulseAt).getTime() < 82800000) {
     return { success: null };
   }
 
@@ -68,23 +68,43 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
   const updatedStoredMembersData = {};
   habiticaMemberInfo.data.forEach((habiticaMember) => {
     const matchingStoredMember = members?.[habiticaMember.id];
-    
-    const currentTotalChecks = (matchingStoredMember?.totalChecks || 0);
-    const isCalibrating = currentTotalChecks < MIN_CHECKS_FOR_CALIBRATION;
-    
-    const hasRecentActivity = new Date(habiticaMember?.auth?.timestamps.loggedin).getTime() > Date.now() - 86400000; // 24 hours
-    const scoreChange = (hasRecentActivity ? 1 : -1) * (isCalibrating ? 2 : 1); // During calibration phase, we weight activity more heavily to quickly adjust scores to accurate tiers.
-    const currentScore = matchingStoredMember?.currentScore || 0;
-    const newScore = currentScore + scoreChange;
-    const newScoreLimited = Math.max(Math.min(newScore, 14), -14);
+    const prevTotalChecks = (matchingStoredMember?.totalChecks || 0);
+    const totalChecks = prevTotalChecks + 1;
+    const isCalibrating = prevTotalChecks <= MIN_CHECKS_FOR_CALIBRATION;
+    const isCalibrationTier = totalChecks <= MIN_CHECKS_FOR_CALIBRATION;
+    const habiticaStats = `${ habiticaMember?.stats?.exp }:${ habiticaMember?.stats?.lvl }:${ habiticaMember?.stats?.toNextLevel }`;
 
+    let newScore = matchingStoredMember?.currentScore || 0;
+    const storedLoginCount = matchingStoredMember?.loginCount;
+    const storedStats = matchingStoredMember?.currentStats;
+    if (matchingStoredMember && storedLoginCount && storedStats) {
+      // Login count check:
+      const habiticaLoginCount = habiticaMember?.loginIncentives;
+      const loginCountDifference = habiticaLoginCount === storedLoginCount
+        ? -1
+        : storedLoginCount
+          ? (habiticaLoginCount - storedLoginCount)
+          : 1;
+
+      // Stats check:
+      const statsDifference = habiticaStats === storedStats ? -1 : 1;
+
+      // During calibration phase, we weight activity more heavily to quickly adjust scores to accurate tiers.
+      const calibrationMultiplier = isCalibrating ? 2 : 1;
+      const newScoreChange = (loginCountDifference + statsDifference) * calibrationMultiplier;
+      newScore = newScore + newScoreChange;
+    }
+
+    const newScoreClamped = Math.max(Math.min(newScore, 35), -35);
     updatedStoredMembersData[habiticaMember.id] = {
       id: habiticaMember.id,
-      totalChecks: currentTotalChecks + 1,
-      currentScore: newScoreLimited,
-      scoreTier: isCalibrating ? 'calibrating' : calculateScoreTier(newScoreLimited),
-      username: habiticaMember.auth?.local?.username || '',
-      displayName: habiticaMember.profile?.name || '(unknown)',
+      loginCount: habiticaMember?.loginIncentives,
+      totalChecks: totalChecks,
+      currentScore: newScoreClamped,
+      currentStats: habiticaStats,
+      scoreTier: isCalibrationTier ? 'calibrating' : calculateScoreTier(newScoreClamped),
+      username: habiticaMember.auth?.local?.username,
+      displayName: habiticaMember.profile?.name,
       userUrl: `https://habitica.com/profile/${ habiticaMember.id }`,
     };
   });
