@@ -7,14 +7,15 @@ import { returnOrSendResponse, handleApiAnalytic, handleApiError } from 'utils';
 
 const MIN_CHECKS_FOR_CALIBRATION = 7;
 const calculateScoreTier = (score) => {
-  if (score >= 21) { return 3; }  // 21 to 28
-  if (score >= 13) { return 2; }  // 13 to 20
-  if (score >= 5) { return 1; }  // 5 to 12
-  if (score >= -4) { return 0; }  // -4 to 4
-  if (score >= -12) { return -1; } // -12 to -5
-  if (score >= -20) { return -2; } // -20 to -13
-  return -3; // -28 to -21
+  if (score >= 31) { return 3; }   // 31 to 42
+  if (score >= 19) { return 2; }   // 19 to 30
+  if (score >= 7) { return 1; }    // 7 to 18
+  if (score >= -6) { return 0; }   // -6 to 6
+  if (score >= -18) { return -1; } // -18 to -7
+  if (score >= -30) { return -2; } // -30 to -19
+  return -3;                       // -42 to -31
 };
+
 
 /**
  * Checks for a pending quest invitation for the linked Habitica account and accepts it if found. If the Habitica credentials are invalid or if there was an error during the process, sends a notification to the user and tears down the associated tool resources.
@@ -95,7 +96,7 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
       newScore = newScore + newScoreChange;
     }
 
-    const newScoreClamped = Math.max(Math.min(newScore, 35), -35);
+    const newScoreClamped = Math.max(Math.min(newScore, 42), -42);
     updatedStoredMembersData[habiticaMember.id] = {
       id: habiticaMember.id,
       loginCount: habiticaMember?.loginIncentives,
