@@ -73,12 +73,10 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
     const totalChecks = prevTotalChecks + 1;
     const isCalibrating = prevTotalChecks <= MIN_CHECKS_FOR_CALIBRATION;
     const isCalibrationTier = totalChecks <= MIN_CHECKS_FOR_CALIBRATION;
-    const habiticaStats = `${ habiticaMember?.stats?.exp }:${ habiticaMember?.stats?.lvl }:${ habiticaMember?.stats?.toNextLevel }`;
 
     let newScore = matchingStoredMember?.currentScore || 0;
     const storedLoginCount = matchingStoredMember?.loginCount;
-    const storedStats = matchingStoredMember?.currentStats;
-    if (matchingStoredMember && storedLoginCount && storedStats) {
+    if (matchingStoredMember && storedLoginCount) {
       // Login count check:
       const habiticaLoginCount = habiticaMember?.loginIncentives;
       const loginCountDifference = habiticaLoginCount === storedLoginCount
@@ -87,12 +85,16 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
           ? (habiticaLoginCount - storedLoginCount)
           : 1;
 
-      // Stats check:
-      const statsDifference = habiticaStats === storedStats ? -1 : 1;
+      // Loot drop check:
+      const habiticaLootDropDate = habiticaMember?.items?.lastDrop?.date;
+      const lootDropDifference = habiticaLootDropDate && (new Date() - new Date(habiticaLootDropDate)) < 172800000
+        ? 1
+        : -1;
+      
 
       // During calibration phase, we weight activity more heavily to quickly adjust scores to accurate tiers.
       const calibrationMultiplier = isCalibrating ? 2 : 1;
-      const newScoreChange = (loginCountDifference + statsDifference) * calibrationMultiplier;
+      const newScoreChange = (loginCountDifference + lootDropDifference) * calibrationMultiplier;
       newScore = newScore + newScoreChange;
     }
 
@@ -102,7 +104,6 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
       loginCount: habiticaMember?.loginIncentives,
       totalChecks: totalChecks,
       currentScore: newScoreClamped,
-      currentStats: habiticaStats,
       scoreTier: isCalibrationTier ? 'calibrating' : calculateScoreTier(newScoreClamped),
       username: habiticaMember.auth?.local?.username,
       displayName: habiticaMember.profile?.name,
