@@ -5,7 +5,12 @@ import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaU
 import { returnOrSendResponse, handleApiAnalytic, handleApiError } from 'utils';
 
 
-const MIN_CHECKS_FOR_CALIBRATION = 7;
+const scoreConfig = {
+  calibrationDays: 7,
+  calibrationWeight: 3,
+  maxScore: 42,
+  minScore: -42,
+};
 const calculateScoreTier = (score) => {
   if (score >= 31) { return 3; }   // 31 to 42
   if (score >= 19) { return 2; }   // 19 to 30
@@ -71,8 +76,8 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
     const matchingStoredMember = members?.[habiticaMember.id];
     const prevTotalChecks = (matchingStoredMember?.totalChecks || 0);
     const totalChecks = prevTotalChecks + 1;
-    const isCalibrating = prevTotalChecks <= MIN_CHECKS_FOR_CALIBRATION;
-    const isCalibrationTier = totalChecks <= MIN_CHECKS_FOR_CALIBRATION;
+    const isCalibrating = prevTotalChecks <= scoreConfig.calibrationDays;
+    const isCalibrationTier = totalChecks <= scoreConfig.calibrationDays;
 
     let newScore = matchingStoredMember?.currentScore || 0;
     const storedLoginCount = matchingStoredMember?.loginCount;
@@ -93,12 +98,12 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
       
 
       // During calibration phase, we weight activity more heavily to quickly adjust scores to accurate tiers.
-      const calibrationMultiplier = isCalibrating ? 2 : 1;
+      const calibrationMultiplier = isCalibrating ? scoreConfig.calibrationWeight : 1;
       const newScoreChange = (loginCountDifference + lootDropDifference) * calibrationMultiplier;
       newScore = newScore + newScoreChange;
     }
 
-    const newScoreClamped = Math.max(Math.min(newScore, 42), -42);
+    const newScoreClamped = Math.max(Math.min(newScore, scoreConfig.maxScore), scoreConfig.minScore);
     updatedStoredMembersData[habiticaMember.id] = {
       id: habiticaMember.id,
       loginCount: habiticaMember?.loginIncentives,
