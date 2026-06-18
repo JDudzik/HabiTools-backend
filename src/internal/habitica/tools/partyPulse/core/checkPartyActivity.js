@@ -7,9 +7,17 @@ import { returnOrSendResponse, handleApiAnalytic, handleApiError } from 'utils';
 
 const scoreConfig = {
   calibrationDays: 7,
-  calibrationWeight: 3,
+  calibrationWeight: 2,
   maxScore: 42,
   minScore: -42,
+  login: { inc: 1, dec: -1 },
+  lootDrop: { inc: 2, dec: -2 },
+  sleep: {
+    inc: 1,
+    dec: -1,
+    max: 14,
+    min: 0,
+  },
 };
 const calculateScoreTier = (score) => {
   if (score >= 31) { return 3; }   // 31 to 42
@@ -85,31 +93,35 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
       // Login count check:
       const habiticaLoginCount = habiticaMember?.loginIncentives;
       const loginCountDifference = habiticaLoginCount === storedLoginCount
-        ? -1
-        : storedLoginCount
-          ? (habiticaLoginCount - storedLoginCount)
-          : 1;
+        ? scoreConfig.login.dec
+        : (habiticaLoginCount - storedLoginCount) * scoreConfig.login.inc;
 
       // Loot drop check:
       const habiticaLootDropDate = habiticaMember?.items?.lastDrop?.date;
       const lootDropDifference = habiticaLootDropDate && (new Date() - new Date(habiticaLootDropDate)) < 172800000
-        ? 1
-        : -1;
-      
+        ? (scoreConfig.lootDrop.inc)
+        : (scoreConfig.lootDrop.dec);
 
       // During calibration phase, we weight activity more heavily to quickly adjust scores to accurate tiers.
       const calibrationMultiplier = isCalibrating ? scoreConfig.calibrationWeight : 1;
       const newScoreChange = (loginCountDifference + lootDropDifference) * calibrationMultiplier;
       newScore = newScore + newScoreChange;
     }
-
     const newScoreClamped = Math.max(Math.min(newScore, scoreConfig.maxScore), scoreConfig.minScore);
+
+    // Track days spent asleep:
+    const storedSleepScore = matchingStoredMember?.sleepScore || 0;
+    const isAsleep = habiticaMember?.preferences?.sleep;
+    const sleepDifference = isAsleep ? scoreConfig.sleep.inc : scoreConfig.sleep.dec;
+    const newSleepScore = Math.max(Math.min((storedSleepScore + sleepDifference), scoreConfig.sleep.max), scoreConfig.sleep.min);
+
     updatedStoredMembersData[habiticaMember.id] = {
       id: habiticaMember.id,
       loginCount: habiticaMember?.loginIncentives,
       totalChecks: totalChecks,
       currentScore: newScoreClamped,
       scoreTier: isCalibrationTier ? 'calibrating' : calculateScoreTier(newScoreClamped),
+      sleepScore: newSleepScore,
       username: habiticaMember.auth?.local?.username,
       displayName: habiticaMember.profile?.name,
       userUrl: `https://habitica.com/profile/${ habiticaMember.id }`,
