@@ -21,6 +21,19 @@ const posthogProxy = {
       },
     });
   },
+  array: (req, res) => {
+    proxy.web(req, res, {
+      target: 'https://us-assets.i.posthog.com/array',
+      changeOrigin: true,
+      secure: true,
+      xfwd: true,
+      headers: {
+        'X-Real-IP': req.ip,
+        'X-Forwarded-For': req.ip,
+        'X-Forwarded-Host': req.hostname,
+      },
+    });
+  },
   ingest: (req, res) => {
     proxy.web(req, res, {
       target: 'https://us.i.posthog.com',

@@ -126,18 +126,22 @@ async function startServer() {
 }
 
 
-// This will catch unhandled promise rejections and uncaught exceptions
-process.on('unhandledRejection', async (error) => {
+// Handle unhandled errors and rejections:
+const handleUnhandledError = async (error, source) => {
   console.error('error:', error);
-  await handleApiError(error, 'unhandledRejection', { isFatal: true });
-  process.exit(1);
-});
+  if (error[0] && error[0] instanceof Error && error[1]) {
+    await handleApiError(error[0], error[1], error[2]);
+  } else {
+    await handleApiError(error, source, { isFatal: true });
+    process.exit(1);
+  }
+};
 
-// This will catch uncaught exceptions
+process.on('unhandledRejection', async (error) => {
+  await handleUnhandledError(error, 'unhandledRejection');
+});
 process.on('uncaughtException', async (error) => {
-  console.error('error:', error);
-  await handleApiError(error, 'uncaughtException', { isFatal: true });
-  process.exit(1);
+  await handleUnhandledError(error, 'uncaughtException');
 });
 
 startServer();
