@@ -32,12 +32,37 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
     return { success: false };
   }
 
+  const habiticaMemberInfo = await callHabiticaApi({
+    method: 'GET',
+    path: '/groups/party/members?includeAllPublicFields=true',
+    habiticaUserId: habiticaUserId,
+    userId,
+    retryConfig: {
+      retryOnNetworkError: true,
+      retryOnRateLimit: true,
+    },
+  });
+  let rsvpMessage = undefined;
+  if (habiticaMemberInfo?.success) {
+    const nonResponders = habiticaMemberInfo?.data
+      ?.filter(member => member.party.quest.RSVPNeeded === true)
+      ?.map(member => `_[[${ member.profile.name }](https://habitica.com/profile/${ member.id })]_`)
+      ?.join(', ');
+    if (nonResponders?.length > 0) {
+      rsvpMessage = `\n<small>Unresponsive members: ${ nonResponders }</small>`;
+    } else {
+      rsvpMessage = 'All members responded';
+    }
+  } else {
+    rsvpMessage = '(Unable to retrieve RSVP\'d statuses)';
+  }
+
   const habiticaResponse = await callHabiticaApi({
     method: 'POST',
     path: '/groups/party/quests/force-start',
     habiticaUserId: habiticaUserId,
     userId,
-    retryConfig: {
+    retryConfig: {  
       retryOnNetworkError: true,
       retryOnRateLimit: true,
     },
@@ -73,7 +98,7 @@ export const startQuest = async ({ userId, resourceId, habiticaUserId, questKey,
     resourceId,
     eventSlug: 'quest-auto-started',
     eventName: 'Quest Auto-Started',
-    messageText: `Started the quest for [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }).`,
+    messageText: `Started the quest [(Wiki)](https://habitica.fandom.com/wiki/${ questUrl }). ${ rsvpMessage }`,
     shortMessage: 'Quest Auto-Started',
     priority: 1,
   }).catch(() => {});

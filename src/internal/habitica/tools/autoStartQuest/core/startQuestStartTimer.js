@@ -97,9 +97,9 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
     userId,
     resourceId,
     eventSlug: 'quest_timer_started',
-    eventName: 'Quest Timer Started',
-    messageText: `The automatic-start timer for your quest, [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }), has been started. The quest will launch in ${ waitHours } hours.`,
-    shortMessage: 'Quest Timer Started',
+    eventName: 'Timer Started',
+    messageText: `<small>The automatic-start timer for your quest, [${ questName } (Wiki)](https://habitica.fandom.com/wiki/${ questUrl }), has been started. The quest will launch in ${ waitHours } hours.</small>`,
+    shortMessage: 'Timer Started',
     priority: 1,
   }).catch(() => {});
   handleApiAnalytic(undefined, 'auto_start_quest_timer', JSON.stringify({
