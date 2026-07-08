@@ -2,8 +2,10 @@ import HabiticaTool from 'knex/models/HabiticaTool';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 
 
-const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000; // 5 days in milliseconds
 const ONE_DAY = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+const FIVE_DAYS = 5 * ONE_DAY; // 5 days in milliseconds
+const TEN_DAYS = 10 * ONE_DAY; // 10 days in milliseconds
+
 
 const generateMessage = alertType => `
 **Greetings Adventurer!**
@@ -48,16 +50,24 @@ export const checkAndAlert = async (parameters) => {
   });
 
   Object.keys(usersToAlert).forEach((userId) => {
+    const alertType = usersToAlert[userId];
     createEventMessage({
       userId: userId,
-      eventSlug: 'tool-expiration-alert',
+      eventSlug: `tool-expiration-alert-${ alertType }`,
       eventName: 'Tool Expiration Alert',
-      messageText: generateMessage(usersToAlert[userId]),
+      messageText: generateMessage(alertType),
       shortMessage: 'Tool Expiration Alert',
       priority: 2,
       shouldNotify: true,
       shouldNotifyHabiticaViaAdmin: true,
     }).catch(() => {});
+  });
+
+  // Remove any tool IDs from the notification history that are older than 10 days:
+  Object.keys(toolNotificationHistory).forEach((toolId) => {
+    if (toolNotificationHistory[toolId] <= Date.now() - TEN_DAYS) {
+      delete toolNotificationHistory[toolId];
+    }
   });
 
   await parameters?.setThisCron({
