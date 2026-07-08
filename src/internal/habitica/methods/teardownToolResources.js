@@ -45,6 +45,12 @@ const deleteToolRecords = async (resourceId) => {
   return toolDeletes;
 };
 
+const generateExpirationMessage = toolName => `
+The tool **${ toolName }** has expired because it wasn't refreshed in time.
+
+You can enable it again from the tool page on [HabiTools.online](https://habitools.online/).
+`;
+
 
 /**
  * Tears down all resources associated with a Habitica tool, such as external webhooks, internal webhooks, and crons. Optionally sends a notification to the user about the teardown if a userId and notification details are provided.
@@ -110,8 +116,8 @@ export const teardownToolResources = async (properties) => {
       eventSlug: notification?.fromExpiration ? `${ notification?.slugPrefix }-expired` : `${ notification?.slugPrefix }-disabled`,
       eventName: notification?.fromExpiration ? `${ notification?.name } Expired` : `${ notification?.name } Disabled`,
       messageText: notification?.fromExpiration
-        ? `The ${ notification?.name } tool has expired because it wasn't refreshed. You can enable it again from the tool page.`
-        : `${ notification?.name } has been disabled.`,
+        ? generateExpirationMessage(notification?.name)
+        : `The tool **${ notification?.name }** has been disabled.`,
       shortMessage: notification?.fromExpiration
         ? `${ notification?.name } has expired.`
         : `${ notification?.name } has been disabled.`,
