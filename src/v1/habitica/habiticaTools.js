@@ -133,7 +133,7 @@ export const modifyAutoStartQuestsTool = async (req, res) => {
     resourceId: sanitizedProperties.resource_id,
     toolData: { waitHours: sanitizedProperties.wait_hours },
     eventMessage: {
-      messageText: `The Auto Start Quests tool has been updated with a new wait time of ${ sanitizedProperties.wait_hours } hours.`,
+      messageText: `<small>The Auto Start Quests tool has been updated with a new wait time of **${ sanitizedProperties.wait_hours } hours**.</small>`,
       shortMessage: 'Auto Start Quests tool was updated.',
     },
   });
@@ -209,7 +209,7 @@ export const modifyPartyPulseTool = async (req, res) => {
     resourceId: sanitizedProperties.resource_id,
     toolData: { scoreDisplayDirection: sanitizedProperties.score_display_direction },
     eventMessage: {
-      messageText: `Display order set to ${ sanitizedProperties.score_display_direction }.`,
+      messageText: `<small>Display order set to ${ sanitizedProperties.score_display_direction }.</small>`,
       eventName: 'Display Order Set',
       shortMessage: 'Display Order Set',
     },
