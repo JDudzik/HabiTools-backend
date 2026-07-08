@@ -14,6 +14,15 @@ const DEFAULT_OPTIONS = {
   maxRandomDelay: 1000,
 };
 
+const DEFAULT_PARAMETERS = {
+  isActive: true,
+  immediateAlways: false,
+};
+
+
+const stripUndefined = obj => Object.fromEntries(Object.entries(obj).filter(([ , v ]) => v !== undefined));
+
+
 /**
  * Create or update a cron job with the given parameters.
  * @param {object} topParameters - The parameters for the cron job.
@@ -35,57 +44,60 @@ export const setCron = async (topParameters) => {
   const {
     fromDatabase = false,
     cronId,
+    immediateOnce,
+    schedule,
+    options,
+    data,
     userId,
     resourceId,
     expiresAt,
     taskName,
-    immediateAlways = false,
-    immediateOnce = false,
-    isActive = true,
-    schedule,
-    options,
-    data = {},
+    immediateAlways,
+    isActive,
   } = topParameters;
 
-  const taskConfig = taskConfigs[taskName];
+  const isModifyingTask = !!(cronId && activeCrons[cronId]);
+  const existingParameters = isModifyingTask ? activeCrons[cronId].parameters : undefined;
+  if (isModifyingTask) {
+    activeCrons[cronId]?.task.destroy();
+  }
+
+  const taskConfig = taskConfigs[taskName || existingParameters?.taskName];
   if (!taskConfig) {
     throw [ new Error(`Incorrect taskName provided: ${ taskName }`), 'setCron.invalidTask' ];
   }
 
-  const derivedSchedule = schedule || taskConfig?.schedule;
+  const derivedSchedule = schedule || existingParameters?.schedule || taskConfig?.schedule;
   if (!derivedSchedule) {
     throw [ new Error(`No schedule provided for taskName: ${ taskName }`), 'setCron.noSchedule' ];
   }
-
-  const isModifyingTask = !!(cronId && activeCrons[cronId]);
-  if (isModifyingTask) {
-    activeCrons[cronId].task.destroy();
-  }
   
   const uuid = cronId || crypto.randomUUID();
-  const combinedOptions = { ...DEFAULT_OPTIONS, ...taskConfig?.options, ...options };
+  const combinedOptions = { ...DEFAULT_OPTIONS, ...taskConfig?.options, ...existingParameters?.options, ...options };
   const parameters = {
+    ...DEFAULT_PARAMETERS,
+    ...existingParameters,
+    ...stripUndefined({
+      userId,
+      resourceId,
+      expiresAt,
+      taskName,
+      immediateAlways,
+      isActive,
+      data: data && JSON.parse(JSON.stringify(data)),
+    }),
     uuid,
-    userId,
-    resourceId,
-    expiresAt,
     updatedAt: Date.now(),
-    taskName,
-    immediateAlways,
-    isActive: !!isActive,
-    schedule: (
-      replaceDelay(
-        replaceTimeAdjustments(
-          replaceRandom(derivedSchedule),
-          combinedOptions?.timezone,
-        ),
+    schedule: replaceDelay(
+      replaceTimeAdjustments(
+        replaceRandom(derivedSchedule),
         combinedOptions?.timezone,
-      )
+      ),
+      combinedOptions?.timezone,
     ),
     options: combinedOptions,
-    data: JSON.parse(JSON.stringify(data)),
-    removeThisCron: cleanupData => removeCron(uuid, parameters, cleanupData),
-    setThisCron: newParameters => setCron({ ...newParameters, cronId: uuid }),
+    removeThisCron: async cleanupData => await removeCron(uuid, parameters, cleanupData),
+    setThisCron: async newParameters => await setCron({ ...newParameters, cronId: uuid }),
   };
 
   try {
@@ -96,18 +108,17 @@ export const setCron = async (topParameters) => {
         cronData => withCronManager({
           parameters,
           cronData,
-          job: taskConfigs[taskName]?.job,
+          job: taskConfigs[parameters?.taskName]?.job,
         }),
         parameters?.options,
       ),
-      cleanup: (_, cleanupData) => taskConfigs[taskName]?.cleanup?.(parameters, cleanupData),
+      cleanup: (_, cleanupData) => taskConfigs[parameters?.taskName]?.cleanup?.(parameters, cleanupData),
     };
     
     activeCrons[parameters?.uuid].task.on('execution:failed', ctx => cronFailedManager('execution:failed', activeCrons[parameters?.uuid], ctx));
     activeCrons[parameters?.uuid].task.on('execution:missed', ctx => cronFailedManager('execution:missed', activeCrons[parameters?.uuid], ctx));
     activeCrons[parameters?.uuid].task.on('execution:overlap', ctx => cronFailedManager('execution:overlap', activeCrons[parameters?.uuid], ctx));
     activeCrons[parameters?.uuid].task.on('execution:maxReached', ctx => cronFailedManager('execution:maxReached', activeCrons[parameters?.uuid], ctx));
-
   } catch (error) {
     throw [ error, 'setCron.failedCreation' ];
   }
@@ -131,11 +142,12 @@ export const setCron = async (topParameters) => {
 
     await Cron.query()
       .upsertGraph(cronEntry, { insertMissing: true })
-      .catch((err) => { throw [ err, 'setCron.failedDatabase' ]; });
+      .catch((err) => { throw [ err, 'setCron.failedToInsertToDatabase' ]; });
   }
 
-  if (immediateOnce || immediateAlways || (!isModifyingTask && !fromDatabase && taskConfig?.immediateOnce)) {
+  if (immediateOnce || parameters?.immediateAlways || (!isModifyingTask && !fromDatabase && taskConfig?.immediateOnce)) {
     activeCrons[parameters?.uuid].task.execute();
   }
+
   return activeCrons[parameters?.uuid];
 };
