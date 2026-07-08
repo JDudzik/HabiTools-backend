@@ -14,7 +14,7 @@ import knexConfig from './knex/knexfile';
 
 import { migrateDataLatest } from './internal/data';
 import { handleApiAnalytic, handleApiError } from './utils';
-import { startCronsFromDatabase } from './internal/cron';
+import { startCronsFromDatabase, setCron } from './internal/cron';
 import { stripeWebhookValidator } from './internal/commerce';
 
 
@@ -111,6 +111,9 @@ async function startServer() {
 
     // Start the cron service
     await startCronsFromDatabase();
+
+    // Start the cron task to alert users of expiring tools.
+    await setCron({ taskName: 'alert-of-tool-expirations-cron', cronId: '7630b2d8-289a-455c-8972-d533529d71d7' });
 
     // Start the server
     const port = process.env.PORT || 3001;
