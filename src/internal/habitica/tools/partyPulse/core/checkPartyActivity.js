@@ -18,6 +18,9 @@ const scoreConfig = {
     max: 14,
     min: 0,
   },
+  activityHistory: {
+    length: 30,
+  },
 };
 const calculateScoreTier = (score) => {
   if (score >= 31) { return 3; }   // 31 to 42
@@ -108,6 +111,12 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
       newScore = newScore + newScoreChange;
     }
     const newScoreClamped = Math.max(Math.min(newScore, scoreConfig.maxScore), scoreConfig.minScore);
+    
+    const newScoreHistory = matchingStoredMember?.scoreHistory || [];
+    newScoreHistory.push(newScoreClamped);
+    if (newScoreHistory.length > scoreConfig.activityHistory.length) {
+      newScoreHistory.shift();
+    }
 
     // Track days spent asleep:
     const storedSleepScore = matchingStoredMember?.sleepScore || 0;
@@ -120,6 +129,7 @@ export const checkPartyActivity = async ({ userId, resourceId, habiticaUserId })
       loginCount: habiticaMember?.loginIncentives,
       totalChecks: totalChecks,
       currentScore: newScoreClamped,
+      scoreHistory: newScoreHistory,
       scoreTier: isCalibrationTier ? 'calibrating' : calculateScoreTier(newScoreClamped),
       sleepScore: newSleepScore,
       username: habiticaMember.auth?.local?.username,
