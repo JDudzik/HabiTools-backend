@@ -22,6 +22,9 @@ export const acceptPendingQuest = async ({ userId, resourceId, habiticaUserId, s
     return { success: null };
   }
 
+  const randomDelayMs = 1000 + Math.floor(Math.random() * 4000); // Between 1 and 5 seconds
+  await new Promise((resolve) => { setTimeout(resolve, randomDelayMs); }); // Random delay to avoid stampeding effect in large parties.
+
   const habiticaResponse = await callHabiticaApi({
     method: 'POST',
     path: '/groups/party/quests/accept',
