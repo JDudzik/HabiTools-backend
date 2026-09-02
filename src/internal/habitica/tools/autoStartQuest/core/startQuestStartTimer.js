@@ -6,6 +6,57 @@ import { getHabiticaContent } from 'internal/habitica/core/getHabiticaContent';
 import { handleApiAnalytic, handleApiError, returnOrSendResponse } from 'utils';
 import { setCron } from 'internal/cron/core/setCron';
 import { deleteCrons } from 'internal/cron/core/deleteCrons';
+import { startQuest } from './startQuest';
+
+
+
+const sleep = ms => new Promise((resolve) => { setTimeout(resolve, ms); });
+
+const checkIfAllPartyMembersAcceptedQuest = async ({ userId, habiticaUserId, expectedQuestKey }) => {
+  const habiticaPartyInfo = await callHabiticaApi({
+    method: 'GET',
+    path: '/groups/party',
+    habiticaUserId,
+    userId,
+    retryConfig: {
+      retryOnNetworkError: true,
+      retryOnRateLimit: true,
+    },
+  });
+
+  if (!habiticaPartyInfo?.success) {
+    return { shouldStartImmediately: false, skipTimer: false };
+  }
+
+  const currentQuestKey = habiticaPartyInfo?.data?.quest?.key;
+  const isQuestActive = habiticaPartyInfo?.data?.quest?.active;
+
+  if (!currentQuestKey || currentQuestKey !== expectedQuestKey || isQuestActive) {
+    return { shouldStartImmediately: false, skipTimer: true };
+  }
+
+  const habiticaMemberInfo = await callHabiticaApi({
+    method: 'GET',
+    path: '/groups/party/members?includeAllPublicFields=true',
+    habiticaUserId,
+    userId,
+    retryConfig: {
+      retryOnNetworkError: true,
+      retryOnRateLimit: true,
+    },
+  });
+
+  if (!habiticaMemberInfo?.success) {
+    return { shouldStartImmediately: false, skipTimer: false };
+  }
+
+  const hasNonResponders = habiticaMemberInfo?.data?.some(member => member?.party?.quest?.RSVPNeeded === true);
+  return {
+    shouldStartImmediately: !hasNonResponders,
+    skipTimer: false,
+  };
+};
+
 
 
 /**
@@ -64,7 +115,8 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
 
   const partyLeader = habiticaPartyInfo?.data?.leader?.id;
   const questLeader = habiticaPartyInfo?.data?.quest?.leader;
-  if (questKey && habiticaUserId !== partyLeader && habiticaUserId !== questLeader) {
+  const canStartQuest = questKey && (habiticaUserId === partyLeader || habiticaUserId === questLeader);
+  if (!canStartQuest) {
     await createEventMessage({
       userId,
       resourceId,
@@ -80,6 +132,30 @@ export const startQuestStartTimer = async ({ userId, resourceId, habiticaUserId 
   const contentResult = await getHabiticaContent({ dataItems: { quests: true }, language: userData?.habitica_user_data?.preferences?.language || 'en' });
   const questName = contentResult?.quests?.[questKey]?.text;
   const questUrl = questName?.replace(/\s+/g, '_');
+
+  // Give auto-accept tools a short window to respond, then start immediately if everyone has accepted.
+  await sleep(10000);
+  const immediateStartCheck = await checkIfAllPartyMembersAcceptedQuest({
+    userId,
+    habiticaUserId,
+    expectedQuestKey: questKey,
+  });
+  if (immediateStartCheck.shouldStartImmediately) {
+    await startQuest({
+      userId,
+      resourceId,
+      habiticaUserId,
+      questKey,
+      questName,
+      questUrl,
+    });
+    return { success: true, startedImmediately: true };
+  }
+
+  if (immediateStartCheck.skipTimer) {
+    return { success: null };
+  }
+
   const waitHours = Number(toolData?.waitHours ?? 24);
   const finalWaitHours = Math.min(waitHours, 23); // This number is not the final cron number, it's the input for the delay function.
   await setCron({
