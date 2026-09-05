@@ -32,6 +32,10 @@ export const checkAndAlert = async (parameters) => {
   const usersToAlert = {};
   activeTools.forEach((tool) => {
     const lastNotified = toolNotificationHistory[tool.id];
+    if (tool.expires_at <= Date.now()) {
+      return;
+    }
+
     if (
       tool.expires_at <= Date.now() + FIVE_DAYS &&
       (!lastNotified || lastNotified <= Date.now() - FIVE_DAYS)

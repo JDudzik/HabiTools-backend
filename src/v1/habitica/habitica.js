@@ -6,6 +6,7 @@ import {
   getHabiticaContent,
   sendGlobalHabiticaNotification,
   getHabiticaPartyInfo,
+  getToolIntegrityReport,
   refreshToolInstance,
   teardownToolResources,
 } from 'internal/habitica';
@@ -164,6 +165,23 @@ export const sendGlobalNotification = async (req, res) => {
   }
 
   res.status(201).json(result);
+};
+
+
+// -- GET --
+// {API_URL}/v1/auth/habitica/admin/tool-integrity-report
+// Returns orphaned Habitica tool webhooks and expired tool records that are not deleted.
+export const getAdminToolIntegrityReport = async (req, res) => {
+  const allowed = await allowByPermissions(req, res, 'data_manipulation');
+  if (!allowed) { return; }
+
+  const result = await getToolIntegrityReport();
+  if (result?.code) {
+    res.status(result.code).json(result.responseContent);
+    return;
+  }
+
+  res.json(result);
 };
 
 
