@@ -1,4 +1,5 @@
 import { startQuest } from './startQuest';
+import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 
 
 /**
@@ -18,6 +19,16 @@ export const autoStartQuestsCronTaskConfigs = {
       });
     },
 
-    cleanup: (_parameters, _cleanupData) => {},
+    cleanup: (parameters, cleanupData) => {
+      teardownToolResources({
+        userId: parameters.user_id,
+        resourceId: parameters.resource_id,
+        notification: {
+          slugPrefix: 'auto-start-quests',
+          name: 'Auto Start Quests',
+          fromExpiration: cleanupData?.fromExpiration,
+        },
+      }).catch(() => {});
+    },
   },
 };
