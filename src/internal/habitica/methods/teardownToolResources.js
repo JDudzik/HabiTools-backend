@@ -1,6 +1,7 @@
 import HabiticaTool from 'knex/models/HabiticaTool';
 import Webhook from 'knex/models/Webhook';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
+import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 import { deleteWebhooks } from 'internal/webhooks/core/deleteWebhooks';
 import { deleteCrons } from 'internal/cron/core/deleteCrons';
 import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } from 'utils';
@@ -108,6 +109,12 @@ export const teardownToolResources = async (properties) => {
       tool_name: notification?.name,
     }));
   }
+
+  // Force a refresh of the user's data to clear the cached habitica-webhook information.
+  await getLinkedHabiticaUser({
+    userId: sanitizedProperties.userId,
+    forceRefresh: true,
+  });
 
   if (sanitizedProperties?.userId && notification?.slugPrefix && notification?.name) {
     await createEventMessage({
