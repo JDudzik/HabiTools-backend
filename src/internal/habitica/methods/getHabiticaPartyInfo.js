@@ -15,6 +15,12 @@ const getPartyDataFromHabitica = async ({ habiticaUserId, userId }) => {
     },
   });
   if (!habiticaPartyInfo?.success) {
+    if (habiticaPartyInfo?.code === 404) {
+      return returnOrSendResponse(habiticaPartyInfo?.code, {
+        status: 'HABITICA_PARTY_NOT_FOUND',
+        message: 'Unable to find the Habitica party',
+      });
+    }
     return returnOrSendResponse(habiticaPartyInfo?.code || 500, habiticaPartyInfo?.responseContent || {
       status: 'HABITICA_PARTY_INFO_FAILED',
       message: 'Unable to load Habitica party information.',
