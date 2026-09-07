@@ -12,7 +12,6 @@ export * from './helpers/refreshAndStoreHabiticaContent';
 
 export * from './methods/activateToolInstance';
 export * from './methods/getHabiticaPartyInfo';
-export * from './methods/getToolIntegrityReport';
 export * from './methods/modifyToolInstanceData';
 export * from './methods/refreshToolInstance';
 export * from './methods/sendGlobalHabiticaNotification';

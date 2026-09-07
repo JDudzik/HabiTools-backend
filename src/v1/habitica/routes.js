@@ -5,7 +5,6 @@ import {
   link,
   unlink,
   sendGlobalNotification,
-  getAdminToolIntegrityReport,
   getPartyInfo,
   refreshTool,
   teardownTool,
@@ -36,7 +35,6 @@ module.exports = (router) => {
   bruteStopper(router, `${ securedPath }/party`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/party-broadcast`, { freeRetries: 20, minWait: 500, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/global-notification`, { freeRetries: 20, minWait: 1000, maxWait: 300000 });
-  bruteStopper(router, `${ securedPath }/admin/tool-integrity-report`, { freeRetries: 20, minWait: 1000, maxWait: 300000 });
 
   router.get(`${ securedPath }`, getHabitica);
   router.post(`${ securedPath }/content`, getHabiticaContentData);
@@ -52,7 +50,6 @@ module.exports = (router) => {
   router.get(`${ securedPath }/party`, getPartyInfo);
   router.post(`${ securedPath }/party-broadcast`, partyBroadcast);
   router.post(`${ securedPath }/global-notification`, sendGlobalNotification);
-  router.get(`${ securedPath }/admin/tool-integrity-report`, getAdminToolIntegrityReport);
 
   return router;
 };
