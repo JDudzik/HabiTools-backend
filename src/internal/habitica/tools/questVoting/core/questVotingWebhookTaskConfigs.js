@@ -1,4 +1,5 @@
-import { runQuestVotingLifecycleCheck, disableQuestVotingTool } from './questVotingCore';
+import { runQuestVotingLifecycleCheck } from './questVotingCore';
+import { handleQuestVotingExpirationCleanup } from './questVotingExpirationCleanup';
 
 export const questVotingWebhookTaskConfigs = {
   'quest-voting-party-webhook': {
@@ -16,11 +17,11 @@ export const questVotingWebhookTaskConfigs = {
     modify: (_parameters) => {},
 
     remove: async (parameters, cleanupData) => {
-      if (!parameters?.user_id) { return; }
-
-      if (cleanupData?.fromExpiration) {
-        await disableQuestVotingTool({ userId: parameters.user_id });
-      }
+      await handleQuestVotingExpirationCleanup({
+        userId: parameters?.user_id || parameters?.userId,
+        resourceId: parameters?.resource_id || parameters?.resourceId,
+        fromExpiration: cleanupData?.fromExpiration,
+      });
     },
   },
 };

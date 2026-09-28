@@ -1,5 +1,5 @@
-import { runQuestVotingLifecycleCheck, disableQuestVotingTool } from './questVotingCore';
-
+import { runQuestVotingLifecycleCheck } from './questVotingCore';
+import { handleQuestVotingExpirationCleanup } from './questVotingExpirationCleanup';
 
 export const questVotingCronTaskConfigs = {
   'quest-voting-hourly-check': {
@@ -13,11 +13,11 @@ export const questVotingCronTaskConfigs = {
     },
 
     cleanup: async (parameters, cleanupData) => {
-      if (!parameters?.user_id) { return; }
-
-      if (cleanupData?.fromExpiration) {
-        await disableQuestVotingTool({ userId: parameters.user_id });
-      }
+      await handleQuestVotingExpirationCleanup({
+        userId: parameters?.userId || parameters?.user_id,
+        resourceId: parameters?.resourceId || parameters?.resource_id,
+        fromExpiration: cleanupData?.fromExpiration,
+      });
     },
   },
 };
