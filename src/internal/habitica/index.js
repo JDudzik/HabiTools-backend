@@ -20,3 +20,4 @@ export * from './methods/teardownToolResources';
 export * from './tools/autoAcceptQuests';
 export * from './tools/autoStartQuest';
 export * from './tools/partyBroadcast';
+export * from './tools/questVoting';

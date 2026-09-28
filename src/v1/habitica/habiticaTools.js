@@ -6,6 +6,12 @@ import {
   getLinkedHabiticaUser,
   sendHabiticaPartyBroadcast,
   acceptPendingQuest,
+  activateQuestVotingTool,
+  editQuestVotingTool,
+  getQuestVotingStateForUser,
+  disableQuestVotingTool,
+  setQuestVotingPauseState,
+  castQuestVotingVote,
 } from 'internal/habitica';
 import { sanitizeProperties, isUUID, isInt, isIn, isLength, returnOrSendResponse } from 'utils';
 
@@ -217,6 +223,142 @@ export const modifyPartyPulseTool = async (req, res) => {
   if (result?.code) { return returnOrSendResponse(result.code, result.responseContent, req, res); }
 
   res.json({ success: true, result });
+};
+
+
+
+// ----------------------------------------------- //
+// ---------------- Quest Voting ----------------- //
+// ----------------------------------------------- //
+// -- POST --
+// {API_URL}/v1/auth/habitica/tools/quest-voting
+export const activateQuestVoting = async (req, res) => {
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+
+  const result = await activateQuestVotingTool({
+    req,
+    userId,
+    payload: req.body,
+  });
+
+  if (result?.code) {
+    return returnOrSendResponse(result.code, result.responseContent, req, res);
+  }
+
+  res.status(201).json(result);
+};
+
+
+// -- PUT --
+// {API_URL}/v1/auth/habitica/tools/quest-voting/edit
+export const modifyQuestVoting = async (req, res) => {
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+
+  const result = await editQuestVotingTool({
+    userId,
+    payload: req.body,
+  });
+
+  if (result?.code) {
+    return returnOrSendResponse(result.code, result.responseContent, req, res);
+  }
+
+  res.status(200).json(result);
+};
+
+
+// -- GET --
+// {API_URL}/v1/auth/habitica/tools/quest-voting/state
+export const getQuestVotingState = async (req, res) => {
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+
+  const result = await getQuestVotingStateForUser({ userId });
+  if (result?.code) {
+    return returnOrSendResponse(result.code, result.responseContent, req, res);
+  }
+
+  res.status(200).json(result);
+};
+
+
+// -- DELETE --
+// {API_URL}/v1/auth/habitica/tools/quest-voting/disable
+export const disableQuestVoting = async (req, res) => {
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+
+  const result = await disableQuestVotingTool({ userId });
+  if (result?.code) {
+    return returnOrSendResponse(result.code, result.responseContent, req, res);
+  }
+
+  res.status(200).json(result);
+};
+
+
+// -- PUT --
+// {API_URL}/v1/auth/habitica/tools/quest-voting/pause
+export const pauseQuestVoting = async (req, res) => {
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+  const result = await setQuestVotingPauseState({
+    userId,
+    paused: true,
+  });
+
+  if (result?.code) {
+    return returnOrSendResponse(result.code, result.responseContent, req, res);
+  }
+
+  res.status(200).json(result);
+};
+
+
+// -- PUT --
+// {API_URL}/v1/auth/habitica/tools/quest-voting/unpause
+export const unpauseQuestVoting = async (req, res) => {
+  const sanitizedPayload = sanitizeProperties(req.body, {
+    requiredKeys: [ 'mode' ],
+    trimPayload: true,
+    removeDisallowedKeys: true,
+    propertyValidations: [
+      isIn('mode', [ 'resume-last', 'new-vote' ], 'mode must be either "resume-last" or "new-vote"'),
+    ],
+  });
+  if (!sanitizedPayload.valid) {
+    return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res);
+  }
+
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+  const result = await setQuestVotingPauseState({
+    userId,
+    paused: false,
+    unpauseMode: sanitizedPayload.properties.mode,
+  });
+
+  if (result?.code) {
+    return returnOrSendResponse(result.code, result.responseContent, req, res);
+  }
+
+  res.status(200).json(result);
+};
+
+
+// -- GET --
+// {API_URL}/v1/habitica/tools/quest-voting/vote?party_id=:uuid&selection_id=:uuid
+export const voteQuestVoting = async (req, res) => {
+  const { party_id, selection_id } = req.query;
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+
+  const result = await castQuestVotingVote({
+    partyInternalId: party_id,
+    selectionId: selection_id,
+    userId,
+  });
+
+  if (result?.code) {
+    return returnOrSendResponse(result.code, result.responseContent, req, res);
+  }
+
+  res.status(200).json(result);
 };
 
 
