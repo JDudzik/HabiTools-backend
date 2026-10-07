@@ -11,6 +11,7 @@ import { setWebhook } from 'internal/webhooks/core/setWebhook';
 import { setCron } from 'internal/cron/core/setCron';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { sanitizeProperties, optional, isBoolean, returnOrSendResponse } from 'utils';
+import questVotingActivatedContent from 'internal/habitica/core/content/questVotingActivated';
 import {
   getToolDataFromInput,
   getUserQuestVotingTool,
@@ -238,7 +239,7 @@ export const activateQuestVotingTool = async ({ _req, userId, payload }) => {
     await sendPartyMessage({
       userId,
       habiticaUserId: linkedHabiticaUser.habitica_user_id,
-      message: 'Quest Voting has been activated for this party. Vote links will be posted for the next quest whenever a ballot is opened.',
+      message: questVotingActivatedContent,
     });
   }
 

@@ -6,6 +6,7 @@ import { getHabiticaPartyInfo } from 'internal/habitica/methods/getHabiticaParty
 import { getHabiticaContent } from 'internal/habitica/core/getHabiticaContent';
 import { modifyToolInstanceData } from 'internal/habitica/methods/modifyToolInstanceData';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
+import questVotingBallotMessageContent from 'internal/habitica/core/content/questVotingBallotMessage';
 import { sanitizeProperties, isUUID, optional, returnOrSendResponse } from 'utils';
 
 const TOOL_SLUG = 'quest-voting';
@@ -274,19 +275,24 @@ const getQuestPool = async ({ questVoting, forceRefresh = true }) => {
 
 const buildVoteMessage = ({ questVoting, options, hiddenOption }) => {
   const lines = [
-    '## Quest Voting',
-    'Vote now for the next quest. Voting stays open until the current quest ends.',
+    questVotingBallotMessageContent.trim(),
     '',
   ];
 
+  const hasLimitedRoster = options.length < 3 || !hiddenOption;
+  if (hasLimitedRoster) {
+    lines.push('**Note:** There aren\'t enough quests in the party roster to provide a full ballot, so options are limited.');
+    lines.push('');
+  }
+
   options.forEach((option, index) => {
     const voteUrl = getVoteUrl({ partyInternalId: questVoting.id, selectionId: option.id });
-    lines.push(`${ index + 1 }. ${ generateWikiLink(option.questName) } - [Vote](${ voteUrl })`);
+    lines.push(`${ index + 1 }. [[**Vote**]](${ voteUrl }) **•**  _${ generateWikiLink(option.questName) }_`);
   });
 
   if (hiddenOption) {
     const hiddenVoteUrl = getVoteUrl({ partyInternalId: questVoting.id, selectionId: hiddenOption.id });
-    lines.push(`4. Other Random Option - [Vote](${ hiddenVoteUrl })`);
+    lines.push(`4. [[**Vote**]](${ hiddenVoteUrl }) **•** _Other Random Option_`);
   }
 
   return lines.join('\n');
