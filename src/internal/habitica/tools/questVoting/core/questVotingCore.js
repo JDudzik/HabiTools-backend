@@ -7,6 +7,7 @@ import { getHabiticaContent } from 'internal/habitica/core/getHabiticaContent';
 import { modifyToolInstanceData } from 'internal/habitica/methods/modifyToolInstanceData';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import questVotingBallotMessageContent from 'internal/habitica/core/content/questVotingBallotMessage';
+import questVotingFailedBallotNoQuestsMessage from 'internal/habitica/core/content/questVotingFailedBallotNoQuestsMessage';
 import { sanitizeProperties, isUUID, optional, returnOrSendResponse } from 'utils';
 
 const TOOL_SLUG = 'quest-voting';
@@ -63,7 +64,7 @@ const getQuestBucket = questCategory => QUEST_CATEGORY_TO_BUCKET[questCategory] 
 
 const canQuestPassPartyFilter = ({ questBucket, partyFilter }) => {
   if (partyFilter === 'pets-only') {
-    return questBucket === 'pets';
+    return questBucket === 'pets' || questBucket === 'time-traveler';
   }
 
   return true;
@@ -336,14 +337,21 @@ const createBallotAndBroadcast = async ({ questVoting, source }) => {
   const { questOptions } = await getQuestPool({ questVoting, forceRefresh: true });
 
   if (questOptions.length === 0) {
+    const pausedQuestVoting = await QuestVoting.query().patchAndFetchById(questVoting.id, {
+      updated_at: Date.now(),
+      paused: true,
+      active_ballot: null,
+      vote_links: [],
+    });
+
     await sendPartyMessage({
-      userId: questVoting.leader_user_id,
-      habiticaUserId: questVoting.leader_habitica_user_id,
-      message: 'Quest Voting could not open a ballot because there are currently 0 eligible quests from participating members.',
+      userId: pausedQuestVoting.leader_user_id,
+      habiticaUserId: pausedQuestVoting.leader_habitica_user_id,
+      message: questVotingFailedBallotNoQuestsMessage,
     });
 
     await emitSharedEventMessage({
-      questVoting,
+      questVoting: pausedQuestVoting,
       eventSlug: 'quest-voting-no-options',
       eventName: 'No Eligible Quests',
       messageText: 'No eligible quests were available when trying to open a ballot.',
@@ -351,7 +359,7 @@ const createBallotAndBroadcast = async ({ questVoting, source }) => {
       priority: 1,
     });
 
-    return { success: true, skipped: 'no-eligible-quests' };
+    return { success: true, questVoting: pausedQuestVoting, skipped: 'no-eligible-quests' };
   }
 
   const selection = selectCandidatesForBallot({ questVoting, questOptions });
@@ -589,7 +597,10 @@ const finalizeBallotAndStartQuest = async ({ questVoting }) => {
   return { success: true, questVoting: updated, startedQuest };
 };
 
-const refreshLeaderAssignmentIfNeeded = async ({ questVoting }) => {
+const refreshLeaderAssignmentIfNeeded = async ({
+  questVoting,
+  suppressPauseOnMissingPartyInfo = false,
+}) => {
   if (!questVoting?.leader_user_id) { return { questVoting }; }
 
   let partyInfo = await getHabiticaPartyInfo({ userId: questVoting.leader_user_id, forceRefresh: true });
@@ -608,6 +619,10 @@ const refreshLeaderAssignmentIfNeeded = async ({ questVoting }) => {
   }
 
   if (!partyInfo || partyInfo?.code) {
+    if (suppressPauseOnMissingPartyInfo) {
+      return { questVoting, partyInfo: null };
+    }
+
     const updated = await QuestVoting.query().patchAndFetchById(questVoting.id, {
       updated_at: Date.now(),
       paused: true,
@@ -633,10 +648,23 @@ const refreshLeaderAssignmentIfNeeded = async ({ questVoting }) => {
   };
 };
 
-export const processPartyQuestState = async ({ questVoting, source }) => {
-  const refreshedLeader = await refreshLeaderAssignmentIfNeeded({ questVoting });
+export const processPartyQuestState = async ({
+  questVoting,
+  source,
+  suppressPauseOnMissingPartyInfo = false,
+  fallbackPartyInfo = null,
+  forceInitialBallotOpen = false,
+}) => {
+  const refreshedLeader = await refreshLeaderAssignmentIfNeeded({
+    questVoting,
+    suppressPauseOnMissingPartyInfo,
+  });
   const currentQuestVoting = refreshedLeader.questVoting;
-  const partyInfo = refreshedLeader.partyInfo;
+  let partyInfo = refreshedLeader.partyInfo;
+
+  if (!partyInfo?.partyData && suppressPauseOnMissingPartyInfo && fallbackPartyInfo?.partyData) {
+    partyInfo = fallbackPartyInfo;
+  }
 
   if (!partyInfo?.partyData) {
     return { success: true, skipped: 'no-party-info' };
@@ -657,7 +685,12 @@ export const processPartyQuestState = async ({ questVoting, source }) => {
     }
   }
 
-  const shouldOpenNewBallot = (!previousQuestState?.active && currentQuestState.active)
+  const shouldForceInitialBallotOpen = forceInitialBallotOpen
+    && !previousQuestState
+    && !activeQuestVoting?.active_ballot;
+
+  const shouldOpenNewBallot = shouldForceInitialBallotOpen
+    || (!previousQuestState?.active && currentQuestState.active)
     || (!activeQuestVoting?.active_ballot && currentQuestState.active);
 
   if (shouldOpenNewBallot && !activeQuestVoting.paused) {
@@ -960,7 +993,9 @@ export const setQuestVotingPauseState = async ({ userId, paused, unpauseMode }) 
   });
 
   if (!paused) {
-    if (unpauseMode === 'new-vote') {
+    const shouldStartFreshBallot = unpauseMode === 'new-vote' || !updated?.active_ballot;
+
+    if (shouldStartFreshBallot) {
       updated = await QuestVoting.query().patchAndFetchById(questVoting.id, {
         updated_at: Date.now(),
         active_ballot: null,
@@ -969,14 +1004,7 @@ export const setQuestVotingPauseState = async ({ userId, paused, unpauseMode }) 
 
       await createBallotAndBroadcast({
         questVoting: updated,
-        source: 'unpause-new-vote',
-      });
-    }
-
-    if (unpauseMode === 'resume-last' && !updated?.active_ballot) {
-      await createBallotAndBroadcast({
-        questVoting: updated,
-        source: 'unpause-resume-last',
+        source: unpauseMode === 'new-vote' ? 'unpause-new-vote' : 'unpause-resume-last',
       });
     }
   }

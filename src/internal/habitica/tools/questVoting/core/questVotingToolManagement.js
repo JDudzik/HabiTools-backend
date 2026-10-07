@@ -244,7 +244,13 @@ export const activateQuestVotingTool = async ({ _req, userId, payload }) => {
   }
 
   if (isLeader) {
-    const processResult = await processPartyQuestState({ questVoting, source: 'activation' });
+    const processResult = await processPartyQuestState({
+      questVoting,
+      source: 'activation',
+      suppressPauseOnMissingPartyInfo: !!updateResult.isNewQuestVoting,
+      fallbackPartyInfo: partyInfo,
+      forceInitialBallotOpen: !!updateResult.isNewQuestVoting,
+    });
     if (processResult?.questVoting) {
       questVoting = processResult.questVoting;
     }
@@ -303,11 +309,6 @@ export const disableQuestVotingTool = async ({ userId }) => {
   await teardownToolResources({
     userId,
     resourceId: toolInstance.id,
-    notification: {
-      slugPrefix: 'quest-voting',
-      name: 'Quest Voting',
-      fromExpiration: false,
-    },
   });
 
   return { success: true };
