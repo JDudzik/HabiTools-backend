@@ -315,13 +315,9 @@ export const pauseQuestVoting = async (req, res) => {
 // -- PUT --
 // {API_URL}/v1/auth/habitica/tools/quest-voting/unpause
 export const unpauseQuestVoting = async (req, res) => {
-  const sanitizedPayload = sanitizeProperties(req.body, {
-    requiredKeys: [ 'mode' ],
+  const sanitizedPayload = sanitizeProperties(req.body || {}, {
     trimPayload: true,
     removeDisallowedKeys: true,
-    propertyValidations: [
-      isIn('mode', [ 'resume-last', 'new-vote' ], 'mode must be either "resume-last" or "new-vote"'),
-    ],
   });
   if (!sanitizedPayload.valid) {
     return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res);
@@ -331,7 +327,6 @@ export const unpauseQuestVoting = async (req, res) => {
   const result = await setQuestVotingPauseState({
     userId,
     paused: false,
-    unpauseMode: sanitizedPayload.properties.mode,
   });
 
   if (result?.code) {

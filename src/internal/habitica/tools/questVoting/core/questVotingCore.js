@@ -964,7 +964,7 @@ export const removeParticipantFromQuestVoting = async ({ questVoting, userId }) 
   };
 };
 
-export const setQuestVotingPauseState = async ({ userId, paused, unpauseMode }) => {
+export const setQuestVotingPauseState = async ({ userId, paused }) => {
   const partyInfo = await getHabiticaPartyInfo({ userId, forceRefresh: false });
   if (partyInfo?.code) { return partyInfo; }
 
@@ -993,20 +993,16 @@ export const setQuestVotingPauseState = async ({ userId, paused, unpauseMode }) 
   });
 
   if (!paused) {
-    const shouldStartFreshBallot = unpauseMode === 'new-vote' || !updated?.active_ballot;
+    updated = await QuestVoting.query().patchAndFetchById(questVoting.id, {
+      updated_at: Date.now(),
+      active_ballot: null,
+      vote_links: [],
+    });
 
-    if (shouldStartFreshBallot) {
-      updated = await QuestVoting.query().patchAndFetchById(questVoting.id, {
-        updated_at: Date.now(),
-        active_ballot: null,
-        vote_links: [],
-      });
-
-      await createBallotAndBroadcast({
-        questVoting: updated,
-        source: unpauseMode === 'new-vote' ? 'unpause-new-vote' : 'unpause-resume-last',
-      });
-    }
+    await createBallotAndBroadcast({
+      questVoting: updated,
+      source: 'unpause',
+    });
   }
 
   return {
