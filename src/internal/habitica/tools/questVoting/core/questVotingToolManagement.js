@@ -223,6 +223,7 @@ export const activateQuestVotingTool = async ({ _req, userId, payload }) => {
     isLeader,
   });
   let questVoting = updateResult.questVoting;
+  const wasPausedBeforeLeaderActivation = isLeader && !!questVoting?.paused;
 
   await emitSharedEventMessage({
     questVoting,
@@ -242,12 +243,22 @@ export const activateQuestVotingTool = async ({ _req, userId, payload }) => {
   }
 
   if (isLeader) {
+    if (questVoting?.paused) {
+      questVoting = await QuestVoting.query().patchAndFetchById(questVoting.id, {
+        updated_at: Date.now(),
+        paused: false,
+        active_ballot: null,
+        vote_links: [],
+        last_known_quest: null,
+      });
+    }
+
     const processResult = await processPartyQuestState({
       questVoting,
       source: 'activation',
       suppressPauseOnMissingPartyInfo: !!updateResult.isNewQuestVoting,
       fallbackPartyInfo: partyInfo,
-      forceInitialBallotOpen: !!updateResult.isNewQuestVoting,
+      forceInitialBallotOpen: !!updateResult.isNewQuestVoting || wasPausedBeforeLeaderActivation,
     });
     if (processResult?.questVoting) {
       questVoting = processResult.questVoting;
