@@ -119,9 +119,7 @@ const ensureLeaderAutomation = async ({
       resourceId: toolInstance.id,
       taskName: HOURLY_TASK_NAME,
       expiresAt: expiresAt || toolInstance.expires_at,
-      isActive: true,
       immediateOnce: true,
-      schedule: 'RAND() RAND(0,59) * * * *',
       data: { habiticaUserId },
     });
   }

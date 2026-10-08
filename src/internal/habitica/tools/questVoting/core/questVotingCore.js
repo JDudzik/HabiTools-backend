@@ -480,6 +480,10 @@ const tryStartQuestFromCandidate = async ({ questVoting, candidateQuestKey, cand
 };
 
 const finalizeBallotAndStartQuest = async ({ questVoting }) => {
+  if (questVoting?.paused) {
+    return { success: true, questVoting, skipped: 'paused' };
+  }
+
   const activeBallot = questVoting?.active_ballot;
   if (!activeBallot) { return { success: true, skipped: 'no-active-ballot' }; }
 
@@ -676,6 +680,16 @@ export const processPartyQuestState = async ({
 
   const previousQuestState = currentQuestVoting?.last_known_quest || null;
   let activeQuestVoting = currentQuestVoting;
+
+  if (activeQuestVoting?.paused) {
+    const finalQuestVoting = await QuestVoting.query().patchAndFetchById(activeQuestVoting.id, {
+      updated_at: Date.now(),
+      party_name: partyInfo?.name || activeQuestVoting.party_name,
+      last_known_quest: currentQuestState,
+    });
+
+    return { success: true, questVoting: finalQuestVoting, skipped: 'paused' };
+  }
 
   if (previousQuestState?.active && !currentQuestState.active) {
     const finalizeResult = await finalizeBallotAndStartQuest({ questVoting: activeQuestVoting });
