@@ -5,6 +5,7 @@ import Cron from 'knex/models/Cron';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
+import questVotingFailedBallotLeaderExpiredMessage from 'internal/habitica/core/content/questVotingFailedBallotLeaderExpiredMessage';
 import { emitSharedEventMessage, removeParticipantFromQuestVoting } from './questVotingCore';
 
 
@@ -141,7 +142,7 @@ export const handleQuestVotingExpirationCleanup = async ({ userId, resourceId, f
           await sendPartyMessage({
             userId: participantUserId,
             habiticaUserId: linked?.habitica_user_id,
-            message: 'Quest Voting has been disabled by expiration of the current leader tool instance. Other participants can still re-enable to continue.',
+            message: questVotingFailedBallotLeaderExpiredMessage,
           });
         }
       }

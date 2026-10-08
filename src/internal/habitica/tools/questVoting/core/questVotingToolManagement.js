@@ -12,6 +12,7 @@ import { setCron } from 'internal/cron/core/setCron';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { sanitizeProperties, optional, isBoolean, returnOrSendResponse } from 'utils';
 import questVotingActivatedContent from 'internal/habitica/core/content/questVotingActivated';
+import questVotingFailedBallotLeaderDisabledMessage from 'internal/habitica/core/content/questVotingFailedBallotLeaderDisabledMessage';
 import {
   getToolDataFromInput,
   getUserQuestVotingTool,
@@ -298,7 +299,7 @@ export const disableQuestVotingTool = async ({ userId }) => {
         await sendPartyMessage({
           userId,
           habiticaUserId: linkedHabiticaUser.habitica_user_id,
-          message: 'Quest Voting has been disabled by the current party leader. The roster remains saved until all participants disable the tool.',
+          message: questVotingFailedBallotLeaderDisabledMessage,
         });
       }
     }

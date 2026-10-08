@@ -8,6 +8,7 @@ import { modifyToolInstanceData } from 'internal/habitica/methods/modifyToolInst
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import questVotingBallotMessageContent from 'internal/habitica/core/content/questVotingBallotMessage';
 import questVotingFailedBallotNoQuestsMessage from 'internal/habitica/core/content/questVotingFailedBallotNoQuestsMessage';
+import questVotingFailedBallotNoHostMessage from 'internal/habitica/core/content/questVotingFailedBallotNoHostMessage';
 import { sanitizeProperties, isUUID, optional, returnOrSendResponse } from 'utils';
 
 const TOOL_SLUG = 'quest-voting';
@@ -22,6 +23,8 @@ const QUEST_CATEGORY_TO_BUCKET = {
   hatchingPotion: 'pets',
   timeTravelers: 'time-traveler',
 };
+
+const habitoolsUrl = process.env.FRONTEND_HOST;
 
 const ensureArray = value => (Array.isArray(value) ? value : []);
 
@@ -354,7 +357,7 @@ const createBallotAndBroadcast = async ({ questVoting, source }) => {
       questVoting: pausedQuestVoting,
       eventSlug: 'quest-voting-no-options',
       eventName: 'No Eligible Quests',
-      messageText: 'No eligible quests were available when trying to open a ballot.',
+      messageText: 'No eligible quests were available when trying to open a ballot. The Quest Voting tool has been paused and the party leader must unpause when ready.',
       shortMessage: 'No eligible quests were available.',
       priority: 1,
     });
@@ -404,15 +407,6 @@ const createBallotAndBroadcast = async ({ questVoting, source }) => {
     userId: updated.leader_user_id,
     habiticaUserId: updated.leader_habitica_user_id,
     message: voteMessage,
-  });
-
-  await emitSharedEventMessage({
-    questVoting: updated,
-    eventSlug: 'quest-voting-ballot-opened',
-    eventName: 'Ballot Opened',
-    messageText: `A new quest ballot has opened with ${ optionLinks.length } visible options${ hiddenLink ? ' and an Other Random option' : '' }.`,
-    shortMessage: 'A new ballot is open.',
-    priority: 1,
   });
 
   return { success: true, questVoting: updated };
@@ -527,6 +521,7 @@ const finalizeBallotAndStartQuest = async ({ questVoting }) => {
   if (!startedQuest || !startedFrom) {
     const cleared = await QuestVoting.query().patchAndFetchById(questVoting.id, {
       updated_at: now,
+      paused: true,
       active_ballot: null,
       vote_links: [],
       last_vote_closed_at: now,
@@ -535,7 +530,7 @@ const finalizeBallotAndStartQuest = async ({ questVoting }) => {
     await sendPartyMessage({
       userId: cleared.leader_user_id,
       habiticaUserId: cleared.leader_habitica_user_id,
-      message: 'Quest Voting could not start a quest because no valid host could be found for the current ballot options.',
+      message: questVotingFailedBallotNoHostMessage,
     });
 
     await emitSharedEventMessage({
@@ -543,7 +538,7 @@ const finalizeBallotAndStartQuest = async ({ questVoting }) => {
       eventSlug: 'quest-voting-no-host',
       eventName: 'Unable to Start Quest',
       messageText: 'A ballot concluded, but no eligible participant could host any of the top options.',
-      shortMessage: 'Ballot ended with no valid host.',
+      shortMessage: 'Ballot ended with no valid host. Quest Voting has been paused.',
       priority: 2,
     });
 
@@ -574,9 +569,13 @@ const finalizeBallotAndStartQuest = async ({ questVoting }) => {
     last_vote_closed_at: now,
   });
 
-  let message = `Quest Voting started ${ generateWikiLink(startedQuest.questName) } from ${ startedFrom.participant.displayName || startedFrom.participant.username || 'a party member' }.`;
+
+  let message = `
+  ### [**HabiTools Quest Voting**](${ habitoolsUrl }):\n\n---\n
+  The quest${ generateWikiLink(startedQuest.questName) } was opened from ${ startedFrom.participant.displayName || startedFrom.participant.username || 'a party member' }.
+  `;
   if (usedRunnerUp) {
-    message = `${ message }\n\nNote: the highest-voted quest was unavailable at launch time, so a runner-up was used.`;
+    message = `${ message }\n\n**Note**: the highest-voted quest was unavailable at launch time, so a runner-up was selected.`;
   }
 
   await sendPartyMessage({
