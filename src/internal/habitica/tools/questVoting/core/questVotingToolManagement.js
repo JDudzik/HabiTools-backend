@@ -246,6 +246,8 @@ export const activateQuestVotingTool = async ({ _req, userId, payload }) => {
       questVoting,
       source: 'activation',
       suppressPauseOnMissingPartyInfo: !!updateResult.isNewQuestVoting,
+      fallbackPartyInfo: partyInfo,
+      forceInitialBallotOpen: !!updateResult.isNewQuestVoting,
     });
     if (processResult?.questVoting) {
       questVoting = processResult.questVoting;
