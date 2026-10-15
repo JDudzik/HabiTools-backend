@@ -574,13 +574,13 @@ const finalizeBallotAndStartQuest = async ({ questVoting }) => {
   });
 
 
-  let message = `
+  const message = `
   ### [**HabiTools Quest Voting**](${ habitoolsUrl }):\n\n---\n
-  The quest${ generateWikiLink(startedQuest.questName) } was opened from ${ startedFrom.participant.displayName || startedFrom.participant.username || 'a party member' }.
+  ${ !usedRunnerUp ? (
+    `The quest ${ generateWikiLink(startedQuest.questName) } ${ topVoted.votes > 0 ? `won with ${ topVoted.votes } votes` : 'was randomly selected' }. Opened thanks to @${ startedFrom.participant.displayName }.`
+  ) : (`The quest ${ generateWikiLink(startedQuest.questName) } was opened thanks to @${ startedFrom.participant.displayName }.\n\n**Note**: the highest-voted quest was unavailable, so a runner-up was selected.`
+  ) }
   `;
-  if (usedRunnerUp) {
-    message = `${ message }\n\n**Note**: the highest-voted quest was unavailable at launch time, so a runner-up was selected.`;
-  }
 
   await sendPartyMessage({
     userId: updated.leader_user_id,
@@ -691,7 +691,7 @@ export const processPartyQuestState = async ({
     return { success: true, questVoting: finalQuestVoting, skipped: 'paused' };
   }
 
-  if (previousQuestState?.active && !currentQuestState.active) {
+  if (!currentQuestState?.active && !currentQuestState?.key) {
     const finalizeResult = await finalizeBallotAndStartQuest({ questVoting: activeQuestVoting });
     if (finalizeResult?.questVoting) {
       activeQuestVoting = finalizeResult.questVoting;
@@ -702,9 +702,10 @@ export const processPartyQuestState = async ({
     && !previousQuestState
     && !activeQuestVoting?.active_ballot;
 
-  const shouldOpenNewBallot = shouldForceInitialBallotOpen
-    || (!previousQuestState?.active && currentQuestState.active)
-    || (!activeQuestVoting?.active_ballot && currentQuestState.active);
+  const shouldOpenNewBallot = (
+    shouldForceInitialBallotOpen
+    || (!activeQuestVoting?.active_ballot && (!currentQuestState?.active || !currentQuestState?.key))
+  );
 
   if (shouldOpenNewBallot && !activeQuestVoting.paused) {
     const openBallotResult = await createBallotAndBroadcast({
