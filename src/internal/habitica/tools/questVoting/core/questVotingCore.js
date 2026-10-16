@@ -5,11 +5,13 @@ import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaU
 import { getHabiticaPartyInfo } from 'internal/habitica/methods/getHabiticaPartyInfo';
 import { getHabiticaContent } from 'internal/habitica/core/getHabiticaContent';
 import { modifyToolInstanceData } from 'internal/habitica/methods/modifyToolInstanceData';
+import { disableQuestVotingTool } from './questVotingToolManagement';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import questVotingBallotMessageContent from 'internal/habitica/core/content/questVotingBallotMessage';
 import questVotingFailedBallotNoQuestsMessage from 'internal/habitica/core/content/questVotingFailedBallotNoQuestsMessage';
 import questVotingFailedBallotNoHostMessage from 'internal/habitica/core/content/questVotingFailedBallotNoHostMessage';
 import { sanitizeProperties, isUUID, optional, returnOrSendResponse } from 'utils';
+
 
 const TOOL_SLUG = 'quest-voting';
 
@@ -606,50 +608,45 @@ const refreshLeaderAssignmentIfNeeded = async ({
 }) => {
   if (!questVoting?.leader_user_id) { return { questVoting }; }
 
-  let partyInfo = await getHabiticaPartyInfo({ userId: questVoting.leader_user_id, forceRefresh: true });
+  const originalLeaderId = questVoting.leader_user_id;
+  const partyInfo = await getHabiticaPartyInfo({ userId: originalLeaderId, forceRefresh: true });
 
-  if (!partyInfo?.code && partyInfo?.leaderHabiticaUserId === questVoting.leader_habitica_user_id) {
+  const currentPartyId = partyInfo?.partyData?.id;
+  const isCorrectParty = currentPartyId === questVoting.party_habitica_id;
+  const isStillLeader = partyInfo?.leaderHabiticaUserId === questVoting.leader_habitica_user_id;
+
+  // Only proceed if the leader is in the correct party AND still holds the leadership role
+  if (isCorrectParty && isStillLeader) {
     return { questVoting, partyInfo };
   }
 
+  // If they left the party, joined another, or are no longer the leader
+  if (suppressPauseOnMissingPartyInfo) {
+    return { questVoting, partyInfo: null };
+  }
+
   const participants = ensureArray(questVoting.participants);
+  const uniqueAffectedUsers = Array.from(new Set([ originalLeaderId, ...participants.map(p => p.userId) ]));
 
-  for (const participant of participants) {
-    const probe = await getHabiticaPartyInfo({ userId: participant.userId, forceRefresh: true });
-    if (probe?.code) { continue; }
-    partyInfo = probe;
-    break;
+  for (const userId of uniqueAffectedUsers) {
+    await disableQuestVotingTool({ userId, partyId: questVoting.party_habitica_id });
+    await createEventMessage({
+      userId,
+      resourceId: questVoting.id,
+      eventSlug: 'quest-voting-tool-disabled',
+      eventName: 'Quest Voting Tool Disabled',
+      messageText: 'Your **Quest Voting** tool had to be disabled, because the leadership of your party changed or the leader left. However, you can re-enable this tool at any time from the Quest Voting tool page.',
+      shortMessage: 'Your quest voting tool has been disabled.',
+      shouldNotifyHabiticaViaAdmin: true,
+      shouldNotify: true,
+      priority: 2,
+    }).catch(() => {});
   }
 
-  if (!partyInfo || partyInfo?.code) {
-    if (suppressPauseOnMissingPartyInfo) {
-      return { questVoting, partyInfo: null };
-    }
-
-    const updated = await QuestVoting.query().patchAndFetchById(questVoting.id, {
-      updated_at: Date.now(),
-      paused: true,
-      leader_user_id: null,
-      leader_habitica_user_id: null,
-      leader_tool_resource_id: null,
-    });
-
-    return { questVoting: updated, partyInfo: null };
-  }
-
-  const newLeaderParticipant = participants.find(participant => participant.habiticaUserId === partyInfo.leaderHabiticaUserId);
-  const updated = await QuestVoting.query().patchAndFetchById(questVoting.id, {
-    updated_at: Date.now(),
-    leader_user_id: newLeaderParticipant?.userId || null,
-    leader_habitica_user_id: partyInfo.leaderHabiticaUserId || null,
-    leader_tool_resource_id: newLeaderParticipant?.toolResourceId || null,
-  });
-
-  return {
-    questVoting: updated,
-    partyInfo,
-  };
+  return { questVoting, partyInfo: null };
 };
+
+
 
 export const processPartyQuestState = async ({
   questVoting,
@@ -1146,7 +1143,7 @@ export const runQuestVotingLifecycleCheck = async ({ resourceId, source }) => {
     .where('leader_tool_resource_id', resourceId)
     .whereNull('deleted_at')
     .first();
-
+  
   if (!row) {
     return { success: true, skipped: 'quest-voting-row-not-found' };
   }

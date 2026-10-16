@@ -275,7 +275,7 @@ export const activateQuestVotingTool = async ({ _req, userId, payload }) => {
   };
 };
 
-export const disableQuestVotingTool = async ({ userId }) => {
+export const disableQuestVotingTool = async ({ userId, partyId }) => {
   const linkedHabiticaUser = await getLinkedHabiticaUser({ userId, forceRefresh: false });
   if (linkedHabiticaUser?.code) { return linkedHabiticaUser; }
 
@@ -288,7 +288,7 @@ export const disableQuestVotingTool = async ({ userId }) => {
   }
 
   const partyQuestVoting = await QuestVoting.query()
-    .where('party_habitica_id', linkedHabiticaUser?.habitica_user_data?.party?._id)
+    .where('party_habitica_id', partyId || linkedHabiticaUser?.habitica_user_data?.party?._id)
     .whereNull('deleted_at')
     .first();
 
