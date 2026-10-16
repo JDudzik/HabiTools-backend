@@ -123,28 +123,26 @@ export const handleQuestVotingExpirationCleanup = async ({ userId, resourceId, f
         ? 'A user'
         : (linked?.habitica_user_data?.username || 'A user');
 
-      const removed = await removeParticipantFromQuestVoting({
+      await removeParticipantFromQuestVoting({
         questVoting,
         userId: participantUserId,
       });
 
-      if (removed?.questVoting) {
-        await emitSharedEventMessage({
-          questVoting: removed.questVoting,
-          eventSlug: 'quest-voting-roster-left',
-          eventName: 'Roster Updated',
-          messageText: `${ username } was removed from the Quest Voting roster because their tool expired.`,
-          shortMessage: 'A user was removed from the roster due to expiration.',
-          priority: 1,
-        });
+      await emitSharedEventMessage({
+        questVoting: questVoting,
+        eventSlug: 'quest-voting-roster-left',
+        eventName: 'Roster Updated',
+        messageText: `${ username } was removed from the Quest Voting roster because their tool expired.`,
+        shortMessage: 'A user was removed from the roster due to expiration.',
+        priority: 1,
+      });
 
-        if (questVoting.leader_user_id === participantUserId && !linked?.code) {
-          await sendPartyMessage({
-            userId: participantUserId,
-            habiticaUserId: linked?.habitica_user_id,
-            message: questVotingFailedBallotLeaderExpiredMessage,
-          });
-        }
+      if (questVoting.leader_user_id === participantUserId && !linked?.code) {
+        await sendPartyMessage({
+          userId: participantUserId,
+          habiticaUserId: linked?.habitica_user_id,
+          message: questVotingFailedBallotLeaderExpiredMessage,
+        });
       }
 
       await createEventMessage({

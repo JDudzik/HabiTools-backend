@@ -1084,7 +1084,7 @@ export const castQuestVotingVote = async ({ partyInternalId, selectionId, userId
     if (!linkedPartyId || linkedPartyId !== questVoting.party_habitica_id) {
       return returnOrSendResponse(403, {
         status: 'QUEST_VOTE_NOT_PARTY_MEMBER',
-        message: 'Only members of this party can vote in secure mode.',
+        message: 'Only members of this party can vote in this ballot (Secure Mode is enabled).',
       });
     }
 

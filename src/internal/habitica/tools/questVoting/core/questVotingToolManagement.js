@@ -293,25 +293,23 @@ export const disableQuestVotingTool = async ({ userId }) => {
     .first();
 
   if (partyQuestVoting) {
-    const removed = await removeParticipantFromQuestVoting({ questVoting: partyQuestVoting, userId });
+    await removeParticipantFromQuestVoting({ questVoting: partyQuestVoting, userId });
 
-    if (removed.questVoting) {
-      await emitSharedEventMessage({
-        questVoting: removed.questVoting,
-        eventSlug: 'quest-voting-roster-left',
-        eventName: 'Roster Updated',
-        messageText: `${ linkedHabiticaUser?.habitica_user_data?.username || 'A user' } disabled Quest Voting and left the roster.`,
-        shortMessage: 'A user left the Quest Voting roster.',
-        priority: 1,
+    await emitSharedEventMessage({
+      questVoting: partyQuestVoting,
+      eventSlug: 'quest-voting-roster-left',
+      eventName: 'Roster Updated',
+      messageText: `${ linkedHabiticaUser?.habitica_user_data?.username || 'A user' } disabled Quest Voting and left the roster.`,
+      shortMessage: 'A user left the Quest Voting roster.',
+      priority: 1,
+    });
+
+    if (partyQuestVoting.leader_user_id === userId) {
+      await sendPartyMessage({
+        userId,
+        habiticaUserId: linkedHabiticaUser.habitica_user_id,
+        message: questVotingFailedBallotLeaderDisabledMessage,
       });
-
-      if (partyQuestVoting.leader_user_id === userId) {
-        await sendPartyMessage({
-          userId,
-          habiticaUserId: linkedHabiticaUser.habitica_user_id,
-          message: questVotingFailedBallotLeaderDisabledMessage,
-        });
-      }
     }
   }
 
