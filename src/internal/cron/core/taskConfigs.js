@@ -9,8 +9,8 @@ import { habiticaCronTaskConfigs } from 'internal/habitica/core/habiticaCronTask
 
 // SEC(30) will adjust the seconds to be within 30 seconds of the current time (backwards or forwards).
 // MIN(10) will adjust the minutes to be within 10 minutes of the current time (backwards or forwards).
-// HOUR(0) will set the hour to be this current hour (backwards or forwards).
-// RAND(0,29) will simply input a random number between 0 and 29. No inputs defaults to equivalen of RAND(0,59)
+// HOUR(0) will set the hour to be this current hour.
+// RAND(0,29) will simply input a random number between 0 and 29. No inputs defaults to equivalent of RAND(0,59)
 // DELAY(30,1) replaces the min and hour segments with a time that is 30 minutes and 1 hour in the future.
 
 // node-cron docs: https://nodecron.com/getting-started.html
