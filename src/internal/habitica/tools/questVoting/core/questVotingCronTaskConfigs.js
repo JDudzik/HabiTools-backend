@@ -3,7 +3,7 @@ import { handleQuestVotingExpirationCleanup } from './questVotingExpirationClean
 
 export const questVotingCronTaskConfigs = {
   'quest-voting-hourly-check': {
-    schedule: 'RAND() MIN() * * * *',
+    schedule: 'RAND() MIN(0) * * * *',
 
     job: async (parameters, _cronData) => {
       await runQuestVotingLifecycleCheck({
