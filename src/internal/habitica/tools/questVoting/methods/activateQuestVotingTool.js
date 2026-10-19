@@ -6,21 +6,19 @@ import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 import { getHabiticaPartyInfo } from 'internal/habitica/methods/getHabiticaPartyInfo';
 import { modifyToolInstanceData } from 'internal/habitica/methods/modifyToolInstanceData';
-import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 import { setWebhook } from 'internal/webhooks/core/setWebhook';
 import { setCron } from 'internal/cron/core/setCron';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
-import { sanitizeProperties, optional, isBoolean, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, optional, isBoolean } from 'utils';
 import questVotingActivatedContent from 'internal/habitica/core/content/questVotingActivated';
-import questVotingFailedBallotLeaderDisabledMessage from 'internal/habitica/core/content/questVotingFailedBallotLeaderDisabledMessage';
 import {
   getToolDataFromInput,
   getUserQuestVotingTool,
   updateParticipantInQuestVoting,
   processPartyQuestState,
   emitSharedEventMessage,
-  removeParticipantFromQuestVoting,
-} from './questVotingCore';
+} from '../core/questVotingCore';
+import { sendPartyMessage } from '../helpers/sendPartyMessage';
 
 
 const TOOL_SLUG = 'quest-voting';
@@ -28,28 +26,6 @@ const TOOL_NAME = 'Quest Voting';
 const HOURLY_TASK_NAME = 'quest-voting-hourly-check';
 const WEBHOOK_TASK_NAME = 'quest-voting-party-webhook';
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-
-const sendPartyMessage = async ({
-  userId,
-  habiticaUserId,
-  message,
-}) => {
-  if (!userId || !habiticaUserId || !message) { return false; }
-
-  const result = await callHabiticaApi({
-    method: 'POST',
-    path: '/groups/party/chat',
-    body: { message },
-    userId,
-    habiticaUserId,
-    retryConfig: {
-      retryOnNetworkError: true,
-      retryOnRateLimit: true,
-    },
-  });
-
-  return !!result?.success;
-};
 
 const ensureLeaderAutomation = async ({
   toolInstance,
@@ -271,50 +247,4 @@ export const activateQuestVotingTool = async ({ _req, userId, payload }) => {
     waitingForLeader: !questVoting?.leader_user_id,
     questVoting,
   };
-};
-
-export const disableQuestVotingTool = async ({ userId, partyId }) => {
-  const linkedHabiticaUser = await getLinkedHabiticaUser({ userId, forceRefresh: false });
-  if (linkedHabiticaUser?.code) { return linkedHabiticaUser; }
-
-  const toolInstance = getUserQuestVotingTool(linkedHabiticaUser);
-  if (!toolInstance?.id) {
-    return returnOrSendResponse(404, {
-      status: 'QUEST_VOTING_NOT_ACTIVE',
-      message: 'Quest Voting is not active for this account.',
-    });
-  }
-
-  const partyQuestVoting = await QuestVoting.query()
-    .where('party_habitica_id', partyId || linkedHabiticaUser?.habitica_user_data?.party?._id)
-    .whereNull('deleted_at')
-    .first();
-
-  if (partyQuestVoting) {
-    await removeParticipantFromQuestVoting({ questVoting: partyQuestVoting, userId });
-
-    await emitSharedEventMessage({
-      questVoting: partyQuestVoting,
-      eventSlug: 'quest-voting-roster-left',
-      eventName: 'Roster Updated',
-      messageText: `${ linkedHabiticaUser?.habitica_user_data?.username || 'A user' } disabled Quest Voting and left the roster.`,
-      shortMessage: 'A user left the Quest Voting roster.',
-      priority: 1,
-    });
-
-    if (partyQuestVoting.leader_user_id === userId) {
-      await sendPartyMessage({
-        userId,
-        habiticaUserId: linkedHabiticaUser.habitica_user_id,
-        message: questVotingFailedBallotLeaderDisabledMessage,
-      });
-    }
-  }
-
-  await teardownToolResources({
-    userId,
-    resourceId: toolInstance.id,
-  });
-
-  return { success: true };
 };

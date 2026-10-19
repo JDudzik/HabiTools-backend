@@ -5,12 +5,13 @@ import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaU
 import { getHabiticaPartyInfo } from 'internal/habitica/methods/getHabiticaPartyInfo';
 import { getHabiticaContent } from 'internal/habitica/core/getHabiticaContent';
 import { modifyToolInstanceData } from 'internal/habitica/methods/modifyToolInstanceData';
-import { disableQuestVotingTool } from './questVotingToolManagement';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import questVotingBallotMessageContent from 'internal/habitica/core/content/questVotingBallotMessage';
 import questVotingFailedBallotNoQuestsMessage from 'internal/habitica/core/content/questVotingFailedBallotNoQuestsMessage';
 import questVotingFailedBallotNoHostMessage from 'internal/habitica/core/content/questVotingFailedBallotNoHostMessage';
-import { sanitizeProperties, isUUID, optional, returnOrSendResponse } from 'utils';
+// eslint-disable-next-line import/no-cycle
+import { handleLeaderChange } from '../methods/handleLeaderChange';
+import { sanitizeProperties, isUUID, optional, returnOrSendResponse, handleApiAnalytic } from 'utils';
 
 
 const TOOL_SLUG = 'quest-voting';
@@ -335,6 +336,7 @@ const selectCandidatesForBallot = ({ questVoting, questOptions }) => {
 };
 
 const createBallotAndBroadcast = async ({ questVoting, source }) => {
+  handleApiAnalytic(undefined, 'QV:createBallotAndBroadcast', { questVoting, source });
   if (questVoting.paused) {
     return { success: true, skipped: 'paused' };
   }
@@ -410,6 +412,7 @@ const createBallotAndBroadcast = async ({ questVoting, source }) => {
     habiticaUserId: updated.leader_habitica_user_id,
     message: voteMessage,
   });
+  handleApiAnalytic(undefined, 'QV:createBallotAndBroadcast:sent_message', { updated, voteMessage });
 
   return { success: true, questVoting: updated };
 };
@@ -482,6 +485,7 @@ const tryStartQuestFromCandidate = async ({ questVoting, candidateQuestKey, cand
 };
 
 const finalizeBallotAndStartQuest = async ({ questVoting }) => {
+  handleApiAnalytic(undefined, 'QV:finalizeBallotAndStartQuest', { questVoting });
   if (questVoting?.paused) {
     return { success: true, questVoting, skipped: 'paused' };
   }
@@ -602,51 +606,6 @@ const finalizeBallotAndStartQuest = async ({ questVoting }) => {
   return { success: true, questVoting: updated, startedQuest };
 };
 
-const refreshLeaderAssignmentIfNeeded = async ({
-  questVoting,
-  suppressPauseOnMissingPartyInfo = false,
-}) => {
-  if (!questVoting?.leader_user_id) { return { questVoting }; }
-
-  const originalLeaderId = questVoting.leader_user_id;
-  const partyInfo = await getHabiticaPartyInfo({ userId: originalLeaderId, forceRefresh: true });
-
-  const currentPartyId = partyInfo?.partyData?.id;
-  const isCorrectParty = currentPartyId === questVoting.party_habitica_id;
-  const isStillLeader = partyInfo?.leaderHabiticaUserId === questVoting.leader_habitica_user_id;
-
-  // Only proceed if the leader is in the correct party AND still holds the leadership role
-  if (isCorrectParty && isStillLeader) {
-    return { questVoting, partyInfo };
-  }
-
-  // If they left the party, joined another, or are no longer the leader
-  if (suppressPauseOnMissingPartyInfo) {
-    return { questVoting, partyInfo: null };
-  }
-
-  const participants = ensureArray(questVoting.participants);
-  const uniqueAffectedUsers = Array.from(new Set([ originalLeaderId, ...participants.map(p => p.userId) ]));
-
-  for (const userId of uniqueAffectedUsers) {
-    await disableQuestVotingTool({ userId, partyId: questVoting.party_habitica_id });
-    await createEventMessage({
-      userId,
-      resourceId: questVoting.id,
-      eventSlug: 'quest-voting-tool-disabled',
-      eventName: 'Quest Voting Tool Disabled',
-      messageText: 'Your **Quest Voting** tool had to be disabled, because the leadership of your party changed or the leader left. However, you can re-enable this tool at any time from the Quest Voting tool page.',
-      shortMessage: 'Your quest voting tool has been disabled.',
-      shouldNotifyHabiticaViaAdmin: true,
-      shouldNotify: true,
-      priority: 2,
-    }).catch(() => {});
-  }
-
-  return { questVoting, partyInfo: null };
-};
-
-
 
 export const processPartyQuestState = async ({
   questVoting,
@@ -655,7 +614,8 @@ export const processPartyQuestState = async ({
   fallbackPartyInfo = null,
   forceInitialBallotOpen = false,
 }) => {
-  const refreshedLeader = await refreshLeaderAssignmentIfNeeded({
+  handleApiAnalytic(undefined, 'QV:processPartyQuestState', { questVoting, source, fallbackPartyInfo, forceInitialBallotOpen });
+  const refreshedLeader = await handleLeaderChange({
     questVoting,
     suppressPauseOnMissingPartyInfo,
   });
@@ -1139,12 +1099,14 @@ export const castQuestVotingVote = async ({ partyInternalId, selectionId, userId
 };
 
 export const runQuestVotingLifecycleCheck = async ({ resourceId, source }) => {
+  handleApiAnalytic(undefined, 'QV:runQuestVotingLifecycleCheck', { resourceId, source });
   const row = await QuestVoting.query()
     .where('leader_tool_resource_id', resourceId)
     .whereNull('deleted_at')
     .first();
   
   if (!row) {
+    handleApiAnalytic(undefined, 'QV:runQuestVotingLifecycleCheck:unfound_row', { resourceId, source });
     return { success: true, skipped: 'quest-voting-row-not-found' };
   }
 
