@@ -89,9 +89,7 @@ const ensureLeaderAutomation = async ({
         enabled: true,
         type: 'questActivity',
         options: {
-          questStarted: true,
           questFinished: true,
-          questInvited: true,
         },
       },
       retryConfig: {

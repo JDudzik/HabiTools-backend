@@ -579,7 +579,7 @@ const finalizeBallotAndStartQuest = async ({ questVoting }) => {
   const message = `
   ### [**HabiTools Quest Voting**](${ habitoolsUrl }):\n\n---\n
   ${ !usedRunnerUp ? (
-    `The ${ startedQuest?.isHiddenRandom ? 'Random option' : 'quest' }, ${ generateWikiLink(startedQuest.questName) }, ${ topVoted.votes > 0 ? `won with ${ topVoted.votes } votes` : 'was randomly selected' }. Opened thanks to @${ startedFrom.participant.displayName }.`
+    `The ${ startedQuest?.isHiddenRandom ? 'Random option' : 'quest' }, ${ generateWikiLink(startedQuest.questName) }, ${ topVoted.votes > 0 ? `won with ${ topVoted.votes } votes` : 'was randomly selected because there were no votes' }. Opened thanks to @${ startedFrom.participant.displayName }.`
   ) : (`The quest ${ generateWikiLink(startedQuest.questName) } was opened thanks to @${ startedFrom.participant.displayName }.\n\n**Note**: the highest-voted quest was unavailable, so a runner-up was selected.`
   ) }
   `;
