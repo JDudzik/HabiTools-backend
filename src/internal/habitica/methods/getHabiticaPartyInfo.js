@@ -1,4 +1,4 @@
-import { sanitizeProperties, returnOrSendResponse, handleApiAnalytic } from 'utils';
+import { sanitizeProperties, returnOrSendResponse } from 'utils';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 
@@ -38,7 +38,6 @@ const getPartyDataFromHabitica = async ({ habiticaUserId, userId }) => {
  * @returns {Promise<Object>}
  */
 export const getHabiticaPartyInfo = async (properties) => {
-  handleApiAnalytic(undefined, 'getHabiticaPartyInfo', { properties });
   const sanitizedPayload = sanitizeProperties(properties, {
     requiredKeys: [ 'userId' ],
     optionalKeys: [ 'forceRefresh' ],
@@ -47,19 +46,13 @@ export const getHabiticaPartyInfo = async (properties) => {
     retryOnNetworkError: true,
     retryOnRateLimit: true,
   });
-  handleApiAnalytic(undefined, 'getHabiticaPartyInfo:sanitized', { sanitizedPayload });
   if (!sanitizedPayload.valid) { return sanitizedPayload.error; }
   const sanitizedProperties = sanitizedPayload.properties;
 
-  handleApiAnalytic(undefined, 'getHabiticaPartyInfo:before get linked', {
-    userId: sanitizedProperties.userId,
-    forceRefresh: sanitizedProperties?.forceRefresh,
-  });
   const linkedHabiticaUser = await getLinkedHabiticaUser({
     userId: sanitizedProperties.userId,
     forceRefresh: sanitizedProperties?.forceRefresh,
   });
-  handleApiAnalytic(undefined, 'getHabiticaPartyInfo:linkedHabiticaUser', { linkedHabiticaUser });
   if (linkedHabiticaUser?.code) { return returnOrSendResponse(linkedHabiticaUser.code, linkedHabiticaUser.responseContent); }
 
   const habiticaUserId = linkedHabiticaUser.habitica_user_id;
@@ -67,7 +60,6 @@ export const getHabiticaPartyInfo = async (properties) => {
     habiticaUserId,
     userId: sanitizedProperties.userId,
   });
-  handleApiAnalytic(undefined, 'getHabiticaPartyInfo:partyData', { partyData });
   if (partyData?.code) { return partyData; }
 
   const partyLeaderId = partyData?.leader?.id || null;

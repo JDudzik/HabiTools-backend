@@ -11,7 +11,7 @@ import questVotingFailedBallotNoQuestsMessage from 'internal/habitica/core/conte
 import questVotingFailedBallotNoHostMessage from 'internal/habitica/core/content/questVotingFailedBallotNoHostMessage';
 // eslint-disable-next-line import/no-cycle
 import { handleLeaderChange } from '../methods/handleLeaderChange';
-import { sanitizeProperties, isUUID, optional, returnOrSendResponse, handleApiAnalytic } from 'utils';
+import { sanitizeProperties, isUUID, optional, returnOrSendResponse } from 'utils';
 
 
 const TOOL_SLUG = 'quest-voting';
@@ -336,7 +336,7 @@ const selectCandidatesForBallot = ({ questVoting, questOptions }) => {
 };
 
 const createBallotAndBroadcast = async ({ questVoting, source }) => {
-  handleApiAnalytic(undefined, 'QV:createBallotAndBroadcast', { questVoting, source });
+
   if (questVoting.paused) {
     return { success: true, skipped: 'paused' };
   }
@@ -412,7 +412,7 @@ const createBallotAndBroadcast = async ({ questVoting, source }) => {
     habiticaUserId: updated.leader_habitica_user_id,
     message: voteMessage,
   });
-  handleApiAnalytic(undefined, 'QV:createBallotAndBroadcast:sent_message', { updated, voteMessage });
+
 
   return { success: true, questVoting: updated };
 };
@@ -485,7 +485,7 @@ const tryStartQuestFromCandidate = async ({ questVoting, candidateQuestKey, cand
 };
 
 const finalizeBallotAndStartQuest = async ({ questVoting }) => {
-  handleApiAnalytic(undefined, 'QV:finalizeBallotAndStartQuest', { questVoting });
+
   if (questVoting?.paused) {
     return { success: true, questVoting, skipped: 'paused' };
   }
@@ -614,7 +614,7 @@ export const processPartyQuestState = async ({
   fallbackPartyInfo = null,
   forceInitialBallotOpen = false,
 }) => {
-  handleApiAnalytic(undefined, 'QV:processPartyQuestState', { questVoting, source, fallbackPartyInfo, forceInitialBallotOpen });
+
   const refreshedLeader = await handleLeaderChange({
     questVoting,
     suppressPauseOnMissingPartyInfo,
@@ -1099,14 +1099,14 @@ export const castQuestVotingVote = async ({ partyInternalId, selectionId, userId
 };
 
 export const runQuestVotingLifecycleCheck = async ({ resourceId, source }) => {
-  handleApiAnalytic(undefined, 'QV:runQuestVotingLifecycleCheck', { resourceId, source });
+
   const row = await QuestVoting.query()
     .where('leader_tool_resource_id', resourceId)
     .whereNull('deleted_at')
     .first();
   
   if (!row) {
-    handleApiAnalytic(undefined, 'QV:runQuestVotingLifecycleCheck:unfound_row', { resourceId, source });
+
     return { success: true, skipped: 'quest-voting-row-not-found' };
   }
 
