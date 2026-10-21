@@ -2,6 +2,7 @@ import { getHabiticaPartyInfo } from 'internal/habitica/methods/getHabiticaParty
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 // eslint-disable-next-line import/no-cycle
 import { disableQuestVotingTool } from './disableQuestVotingTool';
+import { handleApiAnalytic } from 'utils';
 
 
 const ensureArray = value => (Array.isArray(value) ? value : []);
@@ -14,6 +15,10 @@ export const handleLeaderChange = async ({
 
   const originalLeaderId = questVoting.leader_user_id;
   const partyInfo = await getHabiticaPartyInfo({ userId: originalLeaderId, forceRefresh: true });
+  if (partyInfo?.code) {
+    handleApiAnalytic(undefined, 'failed_party_leader_check', JSON.stringify({ partyInfo, questVoting }));
+    return { questVoting, partyInfo: null };
+  }
 
   const currentPartyId = partyInfo?.partyData?.id;
   const isCorrectParty = currentPartyId === questVoting.party_habitica_id;
