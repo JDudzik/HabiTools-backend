@@ -9,7 +9,7 @@ export const questVotingWebhookTaskConfigs = {
 
     execute: async (parameters, webhookData) => {
       handleApiAnalytic(undefined, 'QV:webhook_triggered', { parameters, webhookData });
-      if (webhookData.webhookType === 'questActivity' && webhookData?.type === 'questInvited') {
+      if (webhookData?.type === 'questFinished') {
         await runQuestVotingLifecycleCheck({
           resourceId: parameters.resource_id,
           source: 'webhook',
