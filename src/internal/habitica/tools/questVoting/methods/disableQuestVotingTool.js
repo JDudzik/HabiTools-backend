@@ -26,10 +26,13 @@ export const disableQuestVotingTool = async ({ userId, partyId }) => {
     });
   }
 
-  const partyQuestVoting = await QuestVoting.query()
-    .where('party_habitica_id', partyId || linkedHabiticaUser?.habitica_user_data?.party?._id)
-    .whereNull('deleted_at')
-    .first();
+  const partyIdToLookup = partyId || linkedHabiticaUser?.habitica_user_data?.party?._id;
+  const partyQuestVoting = partyIdToLookup
+    ? await QuestVoting.query()
+      .where('party_habitica_id', partyIdToLookup)
+      .whereNull('deleted_at')
+      .first()
+    : null;
 
   if (partyQuestVoting) {
     await removeParticipantFromQuestVoting({ questVoting: partyQuestVoting, userId });

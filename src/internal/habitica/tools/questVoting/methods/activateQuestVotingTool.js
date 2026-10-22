@@ -9,7 +9,7 @@ import { modifyToolInstanceData } from 'internal/habitica/methods/modifyToolInst
 import { setWebhook } from 'internal/webhooks/core/setWebhook';
 import { setCron } from 'internal/cron/core/setCron';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
-import { sanitizeProperties, optional, isBoolean } from 'utils';
+import { sanitizeProperties, optional, isBoolean, returnOrSendResponse } from 'utils';
 import questVotingActivatedContent from 'internal/habitica/core/content/questVotingActivated';
 import {
   getToolDataFromInput,
@@ -117,6 +117,12 @@ export const activateQuestVotingTool = async ({ _req, userId, payload }) => {
 
   const partyInfo = await getHabiticaPartyInfo({ userId, forceRefresh: true });
   if (partyInfo?.code) { return partyInfo; }
+  if (!partyInfo?.partyData) {
+    return returnOrSendResponse(403, {
+      status: 'QUEST_VOTING_NOT_IN_PARTY',
+      message: 'You must be in a party before enabling Quest Voting.',
+    });
+  }
 
   const isLeader = !!partyInfo?.isLeader;
   const toolData = getToolDataFromInput({

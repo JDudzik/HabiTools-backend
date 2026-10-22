@@ -299,7 +299,7 @@ const buildVoteMessage = ({ questVoting, options, hiddenOption }) => {
 
   if (hiddenOption) {
     const hiddenVoteUrl = getVoteUrl({ partyInternalId: questVoting.id, selectionId: hiddenOption.id });
-    lines.push(`4. [[**Vote**]](${ hiddenVoteUrl }) **•** _Other Random Option_`);
+    lines.push(`4. [[**Vote**]](${ hiddenVoteUrl }) **•** _Other: Random Quest_`);
   }
 
   return lines.join('\n');
@@ -484,7 +484,7 @@ const tryStartQuestFromCandidate = async ({ questVoting, candidateQuestKey, cand
   return { success: false, reason: 'all-hosts-failed' };
 };
 
-const finalizeBallotAndStartQuest = async ({ questVoting }) => {
+const finalizeBallotAndStartQuest = async ({ questVoting, totalPartyMembers }) => {
 
   if (questVoting?.paused) {
     return { success: true, questVoting, skipped: 'paused' };
@@ -603,7 +603,40 @@ const finalizeBallotAndStartQuest = async ({ questVoting }) => {
     priority: 1,
   });
 
-  handleApiAnalytic(undefined, 'quest-voting-ballot-complete', `${ questVoting }`);
+  const totalVotes = questVoting?.vote_links?.reduce((sum, option) => sum + (option.votes?.length || 0), 0) || 0;
+  handleApiAnalytic(undefined, 'quest-voting-ballot-complete', JSON.stringify({
+    curated: {
+      questsVoteCount: questVoting?.vote_links?.map(option => `${ option.questKey }: ${ option.votes.length }`),
+      totalEligibleQuests: questVoting?.active_ballot?.totalEligibleQuests || null,
+      partyMembers: {
+        totalPartyMembers,
+        totalVotes,
+        voterPercentage: totalPartyMembers ? (totalVotes / totalPartyMembers) * 100 : 0,
+      },
+    },
+    id: '1d796ec8-8fd0-4aa8-b9af-68244153dcd8',
+    created_at: '1792684065900',
+    updated_at: '1792695060791',
+    deleted_at: null,
+    party_habitica_id: 'd2decd91-066f-4074-88ac-aa3b1a2f4ab7',
+    party_name: 'jdudzik950\'s Party',
+    leader_user_id: '00000003-0001-4000-a000-000000000000',
+    leader_habitica_user_id: '24f032db-4312-4f64-80de-6990674801f8',
+    leader_tool_resource_id: '0ac9bd7e-07f2-4611-af2c-a6cc8387a999',
+    paused: false,
+    secure_voting: false,
+    party_filters: questVoting?.party_filters,
+    participants: questVoting?.participants,
+    active_ballot: {
+      id: questVoting?.active_ballot?.id || null,
+      status: questVoting?.active_ballot?.status || null,
+      totalEligibleQuests: questVoting?.active_ballot?.totalEligibleQuests || null,
+    },
+    vote_links: questVoting?.vote_links || [],
+    last_known_quest: questVoting?.last_known_quest || null,
+    last_vote_opened_at: questVoting?.last_vote_opened_at || null,
+    last_vote_closed_at: questVoting?.last_vote_closed_at || null,
+  }));
 
   return { success: true, questVoting: updated, startedQuest };
 };
@@ -651,7 +684,10 @@ export const processPartyQuestState = async ({
   }
 
   if (!currentQuestState?.active && !currentQuestState?.key) {
-    const finalizeResult = await finalizeBallotAndStartQuest({ questVoting: activeQuestVoting });
+    const finalizeResult = await finalizeBallotAndStartQuest({
+      questVoting: activeQuestVoting,
+      totalPartyMembers: partyInfo?.partyData?.memberCount,
+    });
     if (finalizeResult?.questVoting) {
       activeQuestVoting = finalizeResult.questVoting;
     }

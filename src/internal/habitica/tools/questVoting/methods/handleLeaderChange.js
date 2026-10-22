@@ -15,8 +15,27 @@ export const handleLeaderChange = async ({
 
   const originalLeaderId = questVoting.leader_user_id;
   const partyInfo = await getHabiticaPartyInfo({ userId: originalLeaderId, forceRefresh: true });
-  if (partyInfo?.code) {
+  if (partyInfo?.code || !partyInfo?.partyData) {
     handleApiAnalytic(undefined, 'failed_party_leader_check', JSON.stringify({ partyInfo, questVoting }));
+
+    const participants = ensureArray(questVoting.participants);
+    const uniqueAffectedUsers = Array.from(new Set([ originalLeaderId, ...participants.map(p => p.userId) ]));
+
+    for (const userId of uniqueAffectedUsers) {
+      await disableQuestVotingTool({ userId, partyId: questVoting.party_habitica_id });
+      await createEventMessage({
+        userId,
+        resourceId: questVoting.id,
+        eventSlug: 'quest-voting-tool-disabled',
+        eventName: 'Quest Voting Tool Disabled',
+        messageText: 'Your **Quest Voting** tool had to be disabled, because the leadership of your party changed or the leader left. However, you can re-enable this tool at any time from the Quest Voting tool page.',
+        shortMessage: 'Your quest voting tool has been disabled.',
+        shouldNotifyHabiticaViaAdmin: true,
+        shouldNotify: true,
+        priority: 2,
+      }).catch(() => {});
+    }
+
     return { questVoting, partyInfo: null };
   }
 
