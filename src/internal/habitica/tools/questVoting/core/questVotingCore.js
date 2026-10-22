@@ -11,7 +11,7 @@ import questVotingFailedBallotNoQuestsMessage from 'internal/habitica/core/conte
 import questVotingFailedBallotNoHostMessage from 'internal/habitica/core/content/questVotingFailedBallotNoHostMessage';
 // eslint-disable-next-line import/no-cycle
 import { handleLeaderChange } from '../methods/handleLeaderChange';
-import { sanitizeProperties, isUUID, optional, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, isUUID, optional, returnOrSendResponse, handleApiAnalytic } from 'utils';
 
 
 const TOOL_SLUG = 'quest-voting';
@@ -602,6 +602,8 @@ const finalizeBallotAndStartQuest = async ({ questVoting }) => {
     shortMessage: `${ startedQuest.questName } was opened.`,
     priority: 1,
   });
+
+  handleApiAnalytic(undefined, 'quest-voting-ballot-complete', `${ questVoting }`);
 
   return { success: true, questVoting: updated, startedQuest };
 };
