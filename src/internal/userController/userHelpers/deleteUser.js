@@ -32,7 +32,7 @@ export async function deleteUser(userId, req, res) {
     ],
   });
 
-  await unlinkHabiticaUser({ req, user_id: userId, shouldNotify: false });
+  await unlinkHabiticaUser({ req, userId: userId, shouldNotify: false });
 
   try {
     await transaction(User.knex(), async (trx) => {
@@ -59,7 +59,7 @@ export async function deleteUser(userId, req, res) {
     userToDelete?.crons?.forEach?.((cron) => {
       removeCron(cron?.id);
     });
-  
+
     try {
       if (userToDelete?.stripe_customer_id) {
         await stripe.customers.del(userToDelete.stripe_customer_id);
