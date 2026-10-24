@@ -3,6 +3,8 @@ import HabiticaTool from 'knex/models/HabiticaTool';
 import { teardownToolResources } from '../methods/teardownToolResources';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } from 'utils';
+import { getLinkedHabiticaUser } from './getLinkedHabiticaUser';
+import { disableQuestVotingTool } from '../tools/questVoting/methods/disableQuestVotingTool';
 
 
 /**
@@ -41,10 +43,20 @@ export const unlinkHabiticaUser = async (properties) => {
     .orderBy('created_at', 'desc');
 
   for (const tool of tools) {
+    if (tool?.tool_slug === 'quest-voting') {
+      const userData = await getLinkedHabiticaUser({ userId: sanitizedProperties.userId });
+      if (userData?.code) { continue; }
+      
+      await disableQuestVotingTool({
+        userId: sanitizedProperties.userId,
+        partyId: userData?.habitica_user_data?.party?._id,
+      });
+      continue;
+    }
+
     await teardownToolResources({ resourceId: tool.id }).catch(() => {});
   }
 
-  // Hard-delete habitica_users row (cascades to habitica_user_data)
   await HabiticaUser.query().deleteById(habiticaUser.id);
 
   handleApiAnalytic(properties?.req, 'unlinked_habitica_user', JSON.stringify({
