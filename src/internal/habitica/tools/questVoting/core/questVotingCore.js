@@ -1000,21 +1000,24 @@ export const setQuestVotingPauseState = async ({ userId, paused }) => {
     });
   }
 
-  let updated = await QuestVoting.query().patchAndFetchById(questVoting.id, {
+  const nextPausedState = !!paused;
+  const wasPaused = !!questVoting.paused;
+
+  const updated = await QuestVoting.query().patchAndFetchById(questVoting.id, {
     updated_at: Date.now(),
-    paused: !!paused,
+    paused: nextPausedState,
   });
 
-  if (!paused) {
-    updated = await QuestVoting.query().patchAndFetchById(questVoting.id, {
-      updated_at: Date.now(),
-      active_ballot: null,
-      vote_links: [],
-    });
-
-    await createBallotAndBroadcast({
+  if (nextPausedState !== wasPaused) {
+    await emitSharedEventMessage({
       questVoting: updated,
-      source: 'unpause',
+      eventSlug: nextPausedState ? 'quest-voting-paused' : 'quest-voting-unpaused',
+      eventName: nextPausedState ? 'Quest Voting Paused' : 'Quest Voting Resumed',
+      messageText: nextPausedState
+        ? 'The party leader paused Quest Voting. Current voting is on hold until Quest Voting is resumed.'
+        : 'The party leader resumed Quest Voting. The current ballot is active again.',
+      shortMessage: nextPausedState ? 'Quest Voting was paused.' : 'Quest Voting was resumed.',
+      priority: 1,
     });
   }
 
