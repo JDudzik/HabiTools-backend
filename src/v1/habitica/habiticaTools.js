@@ -11,6 +11,7 @@ import {
   getQuestVotingStateForUser,
   disableQuestVotingTool,
   setQuestVotingPauseState,
+  startQuestVotingNewBallot,
   castQuestVotingVote,
 } from 'internal/habitica';
 import { sanitizeProperties, isUUID, isInt, isIn, isLength, returnOrSendResponse } from 'utils';
@@ -328,6 +329,28 @@ export const unpauseQuestVoting = async (req, res) => {
     userId,
     paused: false,
   });
+
+  if (result?.code) {
+    return returnOrSendResponse(result.code, result.responseContent, req, res);
+  }
+
+  res.status(200).json(result);
+};
+
+
+// -- PUT --
+// {API_URL}/v1/auth/habitica/tools/quest-voting/new-ballot
+export const startNewQuestVotingBallot = async (req, res) => {
+  const sanitizedPayload = sanitizeProperties(req.body || {}, {
+    trimPayload: true,
+    removeDisallowedKeys: true,
+  });
+  if (!sanitizedPayload.valid) {
+    return returnOrSendResponse(sanitizedPayload.error.code, sanitizedPayload.error.responseContent, req, res);
+  }
+
+  const userId = await getLoggedInUser(req, [ 'id' ]);
+  const result = await startQuestVotingNewBallot({ userId });
 
   if (result?.code) {
     return returnOrSendResponse(result.code, result.responseContent, req, res);

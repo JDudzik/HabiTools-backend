@@ -1040,6 +1040,49 @@ export const setQuestVotingPauseState = async ({ userId, paused }) => {
   };
 };
 
+export const startQuestVotingNewBallot = async ({ userId }) => {
+  const partyInfo = await getHabiticaPartyInfo({ userId, forceRefresh: false });
+  if (partyInfo?.code) { return partyInfo; }
+
+  const questVoting = await QuestVoting.query()
+    .where('party_habitica_id', partyInfo.partyId)
+    .whereNull('deleted_at')
+    .first();
+
+  if (!questVoting) {
+    return returnOrSendResponse(404, {
+      status: 'QUEST_VOTING_NOT_FOUND',
+      message: 'No Quest Voting setup exists for your current party.',
+    });
+  }
+
+  if (questVoting.leader_user_id !== userId) {
+    return returnOrSendResponse(403, {
+      status: 'NOT_PARTY_LEADER',
+      message: 'Only the party leader can start a new Quest Voting ballot.',
+    });
+  }
+
+  const now = Date.now();
+  const resetQuestVoting = await QuestVoting.query().patchAndFetchById(questVoting.id, {
+    updated_at: now,
+    paused: false,
+    active_ballot: null,
+    vote_links: [],
+    last_vote_closed_at: now,
+  });
+
+  const ballotResult = await createBallotAndBroadcast({
+    questVoting: resetQuestVoting,
+    source: 'manual-new-ballot',
+  });
+
+  return {
+    success: true,
+    questVoting: ballotResult?.questVoting || resetQuestVoting,
+  };
+};
+
 export const castQuestVotingVote = async ({ partyInternalId, selectionId, userId }) => {
   const sanitizedPayload = sanitizeProperties({ partyInternalId, selectionId, userId }, {
     requiredKeys: [ 'partyInternalId', 'selectionId' ],

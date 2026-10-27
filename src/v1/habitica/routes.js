@@ -22,6 +22,7 @@ import {
   disableQuestVoting,
   pauseQuestVoting,
   unpauseQuestVoting,
+  startNewQuestVotingBallot,
   voteQuestVoting,
 } from './habiticaTools';
 
@@ -45,6 +46,7 @@ module.exports = (router) => {
   bruteStopper(router, `${ securedPath }/tools/quest-voting/disable`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/tools/quest-voting/pause`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/tools/quest-voting/unpause`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
+  bruteStopper(router, `${ securedPath }/tools/quest-voting/new-ballot`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, '/habitica/tools/quest-voting/vote', { freeRetries: 40, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/party`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/party-broadcast`, { freeRetries: 20, minWait: 500, maxWait: 300000 });
@@ -67,6 +69,7 @@ module.exports = (router) => {
   router.delete(`${ securedPath }/tools/quest-voting/disable`, disableQuestVoting);
   router.put(`${ securedPath }/tools/quest-voting/pause`, pauseQuestVoting);
   router.put(`${ securedPath }/tools/quest-voting/unpause`, unpauseQuestVoting);
+  router.put(`${ securedPath }/tools/quest-voting/new-ballot`, startNewQuestVotingBallot);
   router.get('/habitica/tools/quest-voting/vote', voteQuestVoting);
   router.get(`${ securedPath }/party`, getPartyInfo);
   router.post(`${ securedPath }/party-broadcast`, partyBroadcast);
