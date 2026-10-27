@@ -280,11 +280,16 @@ const getQuestPool = async ({ questVoting, forceRefresh = true }) => {
   };
 };
 
-const buildVoteMessage = ({ questVoting, options, hiddenOption }) => {
+const buildVoteMessage = ({ questVoting, options, hiddenOption, prefixContent }) => {
   const lines = [
     questVotingBallotMessageContent.trim(),
     '',
   ];
+
+  if (prefixContent) {
+    lines.push(prefixContent);
+    lines.push('');
+  }
 
   const hasLimitedRoster = options.length < 3 || !hiddenOption;
   if (hasLimitedRoster) {
@@ -401,10 +406,12 @@ const createBallotAndBroadcast = async ({ questVoting, source }) => {
     last_vote_opened_at: now,
   });
 
+  const prefixContent = source === 'manual-new-ballot' ? '**Note:** The party leader started a fresh ballot.' : ''; 
   const voteMessage = buildVoteMessage({
     questVoting: updated,
     options: optionLinks,
     hiddenOption: hiddenLink,
+    prefixContent: prefixContent,
   });
 
   await sendPartyMessage({
@@ -1014,7 +1021,7 @@ export const setQuestVotingPauseState = async ({ userId, paused }) => {
     await emitSharedEventMessage({
       questVoting: updated,
       eventSlug: nextPausedState ? 'quest-voting-paused' : 'quest-voting-unpaused',
-      eventName: nextPausedState ? 'Quest Voting Paused' : 'Quest Voting Resumed',
+      eventName: nextPausedState ? 'Paused' : 'Resumed',
       messageText: nextPausedState
         ? 'The party leader paused Quest Voting. Current voting is on hold until Quest Voting is resumed.'
         : 'The party leader resumed Quest Voting. The current ballot is active again.',
@@ -1077,9 +1084,23 @@ export const startQuestVotingNewBallot = async ({ userId }) => {
     source: 'manual-new-ballot',
   });
 
+  const updatedQuestVoting = ballotResult?.questVoting || resetQuestVoting;
+  const shouldNotifyManualBallotStart = !!updatedQuestVoting?.active_ballot;
+
+  if (shouldNotifyManualBallotStart) {
+    await emitSharedEventMessage({
+      questVoting: updatedQuestVoting,
+      eventSlug: 'quest-voting-ballot-manual-started',
+      eventName: 'Leader started a new ballot',
+      messageText: 'The party leader started a fresh ballot.',
+      shortMessage: 'A new ballot was started by the party leader.',
+      priority: 1,
+    });
+  }
+
   return {
     success: true,
-    questVoting: ballotResult?.questVoting || resetQuestVoting,
+    questVoting: updatedQuestVoting,
   };
 };
 
