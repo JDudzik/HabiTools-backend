@@ -600,10 +600,10 @@ const finalizeBallotAndStartQuest = async ({ questVoting, totalPartyMembers }) =
     questVoting: updated,
     eventSlug: 'quest-voting-quest-opened',
     eventName: 'Quest Opened',
-    messageText: (
-      `${ generateWikiLink(startedQuest.questName) } was opened from ${ startedFrom.participant.displayName || startedFrom.participant.username || 'a party member' }.`
-      + `\n<small>Total votes: ${ totalVotes }. Voter turnout: ${ voterPercentage }%.</small>`
-    ),
+    messageText: (`
+      ${ generateWikiLink(startedQuest.questName) } was opened from ${ startedFrom.participant.displayName || startedFrom.participant.username || 'a party member' } with ${ totalVotes } vote(s).
+      \n<small>Total votes: ${ totalVotes }. Voter turnout: ${ voterPercentage }%.</small>
+    `),
     shortMessage: `${ startedQuest.questName } was opened.`,
     priority: 1,
   });
@@ -1008,6 +1008,8 @@ export const setQuestVotingPauseState = async ({ userId, paused }) => {
     paused: nextPausedState,
   });
 
+  let finalQuestVoting = updated;
+
   if (nextPausedState !== wasPaused) {
     await emitSharedEventMessage({
       questVoting: updated,
@@ -1021,9 +1023,20 @@ export const setQuestVotingPauseState = async ({ userId, paused }) => {
     });
   }
 
+  if (!nextPausedState) {
+    const lifecycleResult = await processPartyQuestState({
+      questVoting: updated,
+      source: 'unpause',
+    });
+
+    if (lifecycleResult?.questVoting) {
+      finalQuestVoting = lifecycleResult.questVoting;
+    }
+  }
+
   return {
     success: true,
-    questVoting: updated,
+    questVoting: finalQuestVoting,
   };
 };
 
