@@ -594,16 +594,20 @@ const finalizeBallotAndStartQuest = async ({ questVoting, totalPartyMembers }) =
     message,
   });
 
+  const totalVotes = questVoting?.vote_links?.reduce((sum, option) => sum + (option.votes?.length || 0), 0) || 0;
+  const voterPercentage = totalPartyMembers ? (totalVotes / totalPartyMembers) * 100 : 0;
   await emitSharedEventMessage({
     questVoting: updated,
     eventSlug: 'quest-voting-quest-opened',
     eventName: 'Quest Opened',
-    messageText: `${ generateWikiLink(startedQuest.questName) } was opened from ${ startedFrom.participant.displayName || startedFrom.participant.username || 'a party member' }.`,
+    messageText: (
+      `${ generateWikiLink(startedQuest.questName) } was opened from ${ startedFrom.participant.displayName || startedFrom.participant.username || 'a party member' }.`
+      + `\n<small>Total votes: ${ totalVotes }. Voter turnout: ${ voterPercentage }%.</small>`
+    ),
     shortMessage: `${ startedQuest.questName } was opened.`,
     priority: 1,
   });
 
-  const totalVotes = questVoting?.vote_links?.reduce((sum, option) => sum + (option.votes?.length || 0), 0) || 0;
   handleApiAnalytic(undefined, 'quest-voting-ballot-complete', JSON.stringify({
     curated: {
       questsVoteCount: questVoting?.vote_links?.map(option => `${ option.questKey }: ${ option.votes.length }`),
@@ -611,7 +615,7 @@ const finalizeBallotAndStartQuest = async ({ questVoting, totalPartyMembers }) =
       partyMembers: {
         totalPartyMembers,
         totalVotes,
-        voterPercentage: totalPartyMembers ? (totalVotes / totalPartyMembers) * 100 : 0,
+        voterPercentage,
       },
     },
     id: '1d796ec8-8fd0-4aa8-b9af-68244153dcd8',
