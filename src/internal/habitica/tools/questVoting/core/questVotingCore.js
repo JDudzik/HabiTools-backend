@@ -602,7 +602,7 @@ const finalizeBallotAndStartQuest = async ({ questVoting, totalPartyMembers }) =
   });
 
   const totalVotes = questVoting?.vote_links?.reduce((sum, option) => sum + (option.votes?.length || 0), 0) || 0;
-  const voterPercentage = totalPartyMembers ? (totalVotes / totalPartyMembers) * 100 : 0;
+  const voterPercentage = Math.round(totalPartyMembers ? (totalVotes / totalPartyMembers) * 100 : 0);
   await emitSharedEventMessage({
     questVoting: updated,
     eventSlug: 'quest-voting-quest-opened',
