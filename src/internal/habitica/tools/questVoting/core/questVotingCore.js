@@ -608,7 +608,7 @@ const finalizeBallotAndStartQuest = async ({ questVoting, totalPartyMembers }) =
     eventSlug: 'quest-voting-quest-opened',
     eventName: 'Quest Opened',
     messageText: (`
-      ${ generateWikiLink(startedQuest.questName) } was opened from ${ startedFrom.participant.displayName || startedFrom.participant.username || 'a party member' } with ${ totalVotes } vote(s).
+      ${ generateWikiLink(startedQuest.questName) } was opened from ${ startedFrom.participant.displayName || startedFrom.participant.username || 'a party member' } with ${ topVoted.votes } vote(s).
       \n<small>Total votes: ${ totalVotes }. Voter turnout: ${ voterPercentage }%.</small>
     `),
     shortMessage: `${ startedQuest.questName } was opened.`,
