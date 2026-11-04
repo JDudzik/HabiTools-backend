@@ -190,7 +190,6 @@ export const activateToolInstance = async (config) => {
       tool_slug: toolSlug,
       enabled: true,
       source: 'manual',
-      debug: true,
     },
   });
 

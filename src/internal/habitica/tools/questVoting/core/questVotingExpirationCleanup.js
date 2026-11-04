@@ -155,7 +155,6 @@ export const handleQuestVotingExpirationCleanup = async ({ userId, resourceId, f
           tool_slug: TOOL_SLUG,
           enabled: false,
           source: 'expiration',
-          debug: true,
         },
       });
 

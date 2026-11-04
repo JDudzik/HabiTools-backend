@@ -166,7 +166,6 @@ export const activateQuestVotingTool = async ({ _req, userId, payload }) => {
         tool_slug: TOOL_SLUG,
         enabled: true,
         source: 'manual',
-        debug: true,
       },
     });
 

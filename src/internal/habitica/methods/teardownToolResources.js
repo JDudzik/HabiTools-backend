@@ -129,7 +129,6 @@ export const teardownToolResources = async (properties) => {
         tool_slug: toolTarget?.tool_slug,
         enabled: false,
         source: notification?.fromExpiration ? 'expiration' : 'manual',
-        debug: true,
       },
     });
   }

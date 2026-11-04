@@ -13,10 +13,39 @@ import { Model } from 'objection';
 import knexConfig from './knex/knexfile';
 
 import { migrateDataLatest } from './internal/data';
-import { handleApiAnalytic, handleApiError } from './utils';
+import { handleApiAnalytic, handleApiError, posthogCapture } from './utils';
 import { startCronsFromDatabase, setCron } from './internal/cron';
 import { stripeWebhookValidator } from './internal/commerce';
+import { searchUsers } from './internal/userController/userHelpers/searchUsers';
 
+const initializeAllUsers = async () => {
+  if (!process.env.INIT_ALL_USERS) {
+    return;
+  }
+
+
+  try {
+    const userList = await searchUsers({});
+
+    for (const user of userList) {
+      for (const tool of user?.habitica_user?.habitica_tools || []) {
+        await posthogCapture({
+          userId: user.id,
+          event: 'tool toggled',
+          properties: {
+            habitica_username: user.habitica_user.habitica_user_data.username,
+            habitica_email: user.habitica_user.habitica_user_data.email,
+            tool_slug: tool.tool_slug,
+            enabled: true,
+            source: 'initialization',
+          },
+        });
+      }
+    }
+  } catch (error) {
+    console.error('INIT_ALL_USERS failed:', error);
+  }
+};
 
 async function startServer() {
   try {
@@ -114,6 +143,8 @@ async function startServer() {
 
     // Start the cron task to alert users of expiring tools.
     await setCron({ taskName: 'alert-of-tool-expirations-cron', cronId: '7630b2d8-289a-455c-8972-d533529d71d7' });
+
+    await initializeAllUsers();
 
     // Start the server
     const port = process.env.PORT || 3001;
