@@ -56,6 +56,12 @@ export const posthogCapture = async (config) => {
 
   if (!posthogClient) {
     console.debug('PostHog is not configured. Skipping capture:', {
+      identifiers: {
+        req: !!req,
+        userId,
+        userEmail,
+        passedDistinctId,
+      },
       event,
       properties,
     });
