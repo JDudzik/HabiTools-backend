@@ -6,6 +6,7 @@ export * from './methods/eagerConstructor';
 export * from './methods/emailer';
 export * from './methods/handleApiAnalytic';
 export * from './methods/handleApiError';
+export * from './methods/posthogCapture';
 export * from './methods/hashing';
 export * from './methods/propertyValidator';
 export * from './methods/restrictProperties';
