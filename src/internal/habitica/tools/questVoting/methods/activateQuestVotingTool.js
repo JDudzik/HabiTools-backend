@@ -9,7 +9,7 @@ import { modifyToolInstanceData } from 'internal/habitica/methods/modifyToolInst
 import { setWebhook } from 'internal/webhooks/core/setWebhook';
 import { setCron } from 'internal/cron/core/setCron';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
-import { sanitizeProperties, optional, isBoolean, returnOrSendResponse } from 'utils';
+import { sanitizeProperties, optional, isBoolean, returnOrSendResponse, posthogCapture } from 'utils';
 import questVotingActivatedContent from 'internal/habitica/core/content/questVotingActivated';
 import {
   getToolDataFromInput,
@@ -156,6 +156,19 @@ export const activateQuestVotingTool = async ({ _req, userId, payload }) => {
         expiresAt,
       });
     }
+
+    await posthogCapture({
+      userId,
+      event: 'tool toggled',
+      properties: {
+        habitica_username: linkedHabiticaUser?.habitica_user_data?.username || null,
+        habitica_email: linkedHabiticaUser?.habitica_user_data?.email || null,
+        tool_slug: TOOL_SLUG,
+        enabled: true,
+        source: 'manual',
+        debug: true,
+      },
+    });
 
     await createEventMessage({
       userId,

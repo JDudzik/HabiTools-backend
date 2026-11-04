@@ -7,6 +7,7 @@ import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaU
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import questVotingFailedBallotLeaderExpiredMessage from 'internal/habitica/core/content/questVotingFailedBallotLeaderExpiredMessage';
 import { emitSharedEventMessage, removeParticipantFromQuestVoting } from './questVotingCore';
+import { posthogCapture } from 'utils';
 
 
 const TOOL_SLUG = 'quest-voting';
@@ -144,6 +145,19 @@ export const handleQuestVotingExpirationCleanup = async ({ userId, resourceId, f
           message: questVotingFailedBallotLeaderExpiredMessage,
         });
       }
+
+      await posthogCapture({
+        userId: participantUserId,
+        event: 'tool toggled',
+        properties: {
+          habitica_username: linked?.habitica_user_data?.username || null,
+          habitica_email: linked?.habitica_user_data?.email || null,
+          tool_slug: TOOL_SLUG,
+          enabled: false,
+          source: 'expiration',
+          debug: true,
+        },
+      });
 
       await createEventMessage({
         userId: participantUserId,

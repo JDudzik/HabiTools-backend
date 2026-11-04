@@ -6,7 +6,7 @@ import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { teardownToolResources } from 'internal/habitica/methods/teardownToolResources';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 import { setWebhook } from 'internal/webhooks/core/setWebhook';
-import { sanitizeProperties, returnOrSendResponse, handleApiAnalytic } from 'utils';
+import { sanitizeProperties, returnOrSendResponse, handleApiAnalytic, posthogCapture } from 'utils';
 
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -179,6 +179,20 @@ export const activateToolInstance = async (config) => {
       message: 'Failed to activate this tool instance. Please try again.',
     });
   }
+
+  await posthogCapture({
+    req,
+    userId,
+    event: 'tool toggled',
+    properties: {
+      habitica_username: habiticaUser?.habitica_user_data?.username || null,
+      habitica_email: habiticaUser?.habitica_user_data?.email || null,
+      tool_slug: toolSlug,
+      enabled: true,
+      source: 'manual',
+      debug: true,
+    },
+  });
 
   handleApiAnalytic(req, 'activated_tool', JSON.stringify({
     habitica_username: habiticaUser?.habitica_user_data?.username || null,

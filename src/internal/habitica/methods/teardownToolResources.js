@@ -4,7 +4,7 @@ import { callHabiticaApi } from 'internal/habitica/helpers/callHabiticaApi';
 import { getLinkedHabiticaUser } from 'internal/habitica/core/getLinkedHabiticaUser';
 import { deleteWebhooks } from 'internal/webhooks/core/deleteWebhooks';
 import { deleteCrons } from 'internal/cron/core/deleteCrons';
-import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic } from 'utils';
+import { sanitizeProperties, isUUID, returnOrSendResponse, handleApiAnalytic, posthogCapture } from 'utils';
 import { createEventMessage } from 'internal/eventMessages/core/createEventMessage';
 
 
@@ -35,14 +35,13 @@ const deleteExternalWebhooks = async (resourceId) => {
   }));
 };
 
-
 const deleteToolRecords = async (resourceId) => {
   const toolDeletes = await HabiticaTool.query()
     .where({ id: resourceId })
     .whereNull('deleted_at')
     .del()
     .catch((err) => { throw [ err, 'teardownToolResources.deleteToolRecords.patchTool' ]; });
-
+  
   return toolDeletes;
 };
 
@@ -89,6 +88,10 @@ export const teardownToolResources = async (properties) => {
     notification = sanitizedNotification.properties;
   }
 
+  const toolTargets = await HabiticaTool.query()
+    .where({ id: sanitizedProperties.resourceId })
+    .whereNull('deleted_at');
+
   await deleteExternalWebhooks(sanitizedProperties.resourceId);
   await deleteWebhooks({ resourceId: sanitizedProperties.resourceId });
   await deleteCrons({ resourceId: sanitizedProperties.resourceId, runCleanup: false });
@@ -111,10 +114,25 @@ export const teardownToolResources = async (properties) => {
   }
 
   // Force a refresh of the user's data to clear the cached habitica-webhook information.
-  await getLinkedHabiticaUser({
+  const habiticaUser = await getLinkedHabiticaUser({
     userId: sanitizedProperties.userId,
     forceRefresh: true,
   });
+
+  for (const toolTarget of toolTargets) {
+    await posthogCapture({
+      userId: sanitizedProperties.userId,
+      event: 'tool toggled',
+      properties: {
+        habitica_username: habiticaUser?.habitica_user_data?.username,
+        habitica_email: habiticaUser?.habitica_user_data?.email,
+        tool_slug: toolTarget?.tool_slug,
+        enabled: false,
+        source: notification?.fromExpiration ? 'expiration' : 'manual',
+        debug: true,
+      },
+    });
+  }
 
   if (sanitizedProperties?.userId && notification?.slugPrefix && notification?.name) {
     await createEventMessage({
