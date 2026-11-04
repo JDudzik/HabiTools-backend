@@ -54,7 +54,10 @@ export const unlinkHabiticaUser = async (properties) => {
       continue;
     }
 
-    await teardownToolResources({ resourceId: tool.id }).catch(() => {});
+    await teardownToolResources({
+      userId: sanitizedProperties.userId,
+      resourceId: tool.id,
+    }).catch(() => {});
   }
 
   await HabiticaUser.query().deleteById(habiticaUser.id);
