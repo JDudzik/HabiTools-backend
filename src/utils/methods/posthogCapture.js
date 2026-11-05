@@ -62,6 +62,7 @@ export const posthogCapture = async (config) => {
         userEmail,
         passedDistinctId,
       },
+      sourceEnv: process.env.NODE_ENV,
       event,
       properties,
     });
@@ -92,7 +93,10 @@ export const posthogCapture = async (config) => {
     ...captureOptions,
     distinctId,
     event,
-    properties,
+    properties: {
+      sourceEnv: process.env.NODE_ENV,
+      ...properties,
+    },
   });
 
   return {
