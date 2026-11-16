@@ -17,14 +17,17 @@ export function bruteCatcher(tableName, options) {
   const bruteStore = new ExpressBrute.MemoryStore();
 
   const bruteCaught = (req, res, next, nextValidRequestDate) => {
-    const userEmail
-      = (req.body && req.body.x_key)
-      || (req.query && req.query.x_key)
-      || (req.headers && req.headers['x-key'])
-      || req.body.email
-      || undefined;
+    let userEmail = undefined;
+    try {
+      userEmail
+        = (req?.body && req?.body.x_key)
+        || (req?.query && req?.query.x_key)
+        || (req?.headers && req?.headers['x-key'])
+        || req?.body?.email
+        || undefined;
+    } catch { /**/ }
 
-    handleApiAnalytic(req, tableName, `{"email":"${ userEmail }"}`);
+    handleApiAnalytic(req, tableName, userEmail ? `{"email":"${ userEmail }"}` : undefined);
     res.status(429);
     res.json({
       status: 'TOO_MANY_ATTEMPTS',
