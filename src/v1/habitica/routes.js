@@ -47,7 +47,7 @@ module.exports = (router) => {
   bruteStopper(router, `${ securedPath }/tools/quest-voting/pause`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/tools/quest-voting/unpause`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/tools/quest-voting/new-ballot`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
-  bruteStopper(router, '/habitica/tools/quest-voting/vote', { freeRetries: 40, minWait: 200, maxWait: 300000 });
+  bruteStopper(router, '/habitica/tools/quest-voting/vote', { freeRetries: 10, minWait: 500, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/party`, { freeRetries: 30, minWait: 200, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/party-broadcast`, { freeRetries: 20, minWait: 500, maxWait: 300000 });
   bruteStopper(router, `${ securedPath }/global-notification`, { freeRetries: 20, minWait: 1000, maxWait: 300000 });

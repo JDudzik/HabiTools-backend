@@ -22,6 +22,7 @@ async function startServer() {
   try {
     const app = express();
     app.set('query parser', 'extended');
+    app.set('trust proxy', process.env.TRUSTED_PROXIES);
     const knex = Knex(knexConfig[process.env.NODE_ENV]);
     Model.knex(knex);
     await migrateDataLatest();

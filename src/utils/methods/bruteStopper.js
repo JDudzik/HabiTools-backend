@@ -1,4 +1,5 @@
 import { handleApiAnalytic } from './handleApiAnalytic';
+import { handleApiError } from './handleApiError';
 import ExpressBrute from 'express-brute';
 
 
@@ -27,7 +28,8 @@ export function bruteCatcher(tableName, options) {
         || undefined;
     } catch { /**/ }
 
-    handleApiAnalytic(req, tableName, userEmail ? `{"email":"${ userEmail }"}` : undefined);
+    const analyticData = { email: userEmail, ip: req?.ip, path: req?.path, nextValidRequestDate, headers: req?.headers };
+    handleApiAnalytic(req, tableName, analyticData);
     res.status(429);
     res.json({
       status: 'TOO_MANY_ATTEMPTS',
